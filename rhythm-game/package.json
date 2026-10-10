@@ -1,0 +1,6 @@
+{
+  "name": "qubit-tempo",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev": "python3 -m http.server 8766", "test": "node --test tests/*.test.mjs", "test:quantum": "node tests/crosscheck.mjs"}
+}

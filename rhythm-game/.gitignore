@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+upload/
+*.zip
+qiskit-results.json
