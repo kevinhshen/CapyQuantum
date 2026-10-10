@@ -2,7 +2,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "python3 -m http.server 8765",
-    "test": "node tests/crosscheck.mjs"
-  }
+    "dev": "python3 -m http.server 8766",
+    "test": "node --test rhythm-game/tests/*.test.mjs",
+    "test:quantum": "node rhythm-game/tests/crosscheck.mjs"
+  },
+  "name": "capyquantum"
 }

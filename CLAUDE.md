@@ -43,14 +43,19 @@ If it doesn't clear this bar, judges may score it **0** on Novelty & Creativity 
 ## Our Project
 
 - **Theme:** Quantum Unlocked. **Topic:** quantum error correction (QEC).
-- **Game: Qubit Factory.** A factory tycoon. Products (qubits) ride a conveyor belt; quantum glitches corrupt them; the goal is to make as much money as possible over 5 days. QEC techniques are upgrades and abilities (Repetition Code, Decoder Bot, Phase Goggles, Bigger Code, Cryo Cooling).
-- **Design rule:** someone with **zero** quantum knowledge must understand it. Use the spinning-coin analogy consistently, and teach just-in-time (briefing slides, foreman tips via `teach()`, hands-on `TRAININGS`, daily insight, `GLOSSARY`). Keep it simple and fun for non-experts. Minimal text, learn by playing, and real QEC explained in short "Real-world QEC" notes. (An earlier lesson-style version was rejected as too complicated.)
+- **Active game:** Qubit Tempo, the garden rhythm MVP in `rhythm-game/`. Players read neighboring parity lamps, choose qubit corrections, and apply them to the beat in 3–7 lanes.
+- **History:** Qubit Factory is preserved on `codex/archive-qubit-factory-2026-10-10` at commit `4bf75fd`; its application files and plan are removed from `main`.
+- **Design rule:** teach just in time for someone with zero quantum knowledge. Distinguish rhythm accuracy, register restoration, and quantum state preservation.
 
 ## Project status
-- MVP built. See `PLAN.md` (roadmap and ideas) and `README.md` (the draft project page and architecture).
-- Local preview: `npm run dev`, then open http://localhost:8765/dev.html (`?speed=4` to playtest faster). Tests: `npm test` (a JS-vs-Qiskit cross-check; needs `.venv` with qiskit).
-- **Keep `quantum/qec.py` `build_circuit` and `circuits.js` `buildOps` in sync**, and run `npm test` after changing either. Any new circuit the game uses must be in `allSpecs()` in `game.js`, which is run as one Qiskit job at startup.
-- Upload to Qollab: `index.html`, `main.js`, `main.css`, `game.js`, `circuits.js`, `circuit-view.js`, `engine-qiskit.js`, `quantum/qec.py`, `quantum/__init__.py`. Don't upload the dev files, tests, or `.venv`.
+
+- See `README.md`, `rhythm-game/README.md`, and `rhythm-game/LEVEL_AUTHORING.md` for setup, model limits, and content authoring.
+- Local preview: `npm run dev`, then open http://localhost:8766/ for the standalone player or /rhythm-game/dev.html for the JavaScript reference simulator.
+- Tests: `npm test`; Qiskit comparison: `npm run test:quantum` (requires `rhythm-game/.venv` or `QISKIT_PYTHON`).
+- Keep `rhythm-game/quantum/rhythm.py` and `rhythm-game/model.js` in sync and run both test commands after circuit changes.
+- Rebuild the standalone player with `python3 rhythm-game/tools/build_standalone.py`. Generate Qollab runtime files with `python3 rhythm-game/tools/package_qollab.py`; upload the contents of `rhythm-game/upload/`, preserving `quantum/`.
+- The repository root page opens the standalone player. Qollab must use the rhythm game's runtime files and Python bridge.
+- Qollab execution, publication, and submission remain separate validation steps.
 
 ## Qollab Platform (how projects run)
 

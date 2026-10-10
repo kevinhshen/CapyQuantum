@@ -4,7 +4,7 @@ Read parity lamps on falling quantum memories, decide which qubits to flip, and 
 
 This effort is supported by Qollab & IonQ
 
-Theme: Quantum Unlocked · application license: MIT. This is a separate game in `rhythm-game/`; the root factory remains available. Visual direction follows the team's Ion Garden branch. See [ATTRIBUTION.md](ATTRIBUTION.md) for starting points and AI disclosure.
+Theme: Quantum Unlocked · application license: MIT. This is the active project on `main`, in `rhythm-game/`. The original factory is preserved on `codex/archive-qubit-factory-2026-10-10`. Visual direction follows the team's Ion Garden branch. See [ATTRIBUTION.md](ATTRIBUTION.md) for starting points and AI disclosure.
 
 ## Play
 
