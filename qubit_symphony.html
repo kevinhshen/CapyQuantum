@@ -8,7 +8,16 @@
 :root{--ink:#3b2a5c;--mint:#7ddfc3;--pink:#ff8fb1;--gold:#ffd25e;--alert:#b0124a}
 *{box-sizing:border-box}
 body{margin:0;color:var(--ink);background:linear-gradient(#dff1ff,#f3e6ff);min-height:100vh;font:18px/1.5 ui-rounded,"Trebuchet MS","Segoe UI",system-ui,sans-serif}
-main{max-width:920px;margin:0 auto;padding:18px 14px 48px}
+main{max-width:1180px;margin:0 auto;padding:18px 14px 48px}
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:16px;align-items:start}
+.game-main{min-width:0}
+.capy-panel{position:sticky;top:14px;text-align:center;background:#fff8e8;border:3px solid var(--ink);border-radius:22px;padding:14px 12px;box-shadow:0 6px 0 var(--ink);margin:14px 0}
+.capy-art{width:100%;max-width:235px;height:auto;display:block;margin:0 auto 8px}
+.capy-speech{background:#fff;border:2px solid #d5c4ef;border-radius:16px;padding:10px;font-size:.95rem;min-height:76px}
+.capy-name{font-weight:900;font-size:1.1rem}
+.capy-mood{font-size:.9rem;margin:4px 0 8px}
+.capy-pat{margin-top:10px;background:#ffe0eb}
+@media(max-width:760px){.game-layout{grid-template-columns:1fr}.capy-panel{position:static;order:-1}.capy-art{max-width:155px}}
 h1{font-size:2.1rem;margin:0 0 4px}
 p{max-width:68ch;margin:6px 0}
 .panel{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:12px 16px;margin:14px 0;box-shadow:0 6px 0 var(--ink)}
@@ -47,8 +56,8 @@ table{border-collapse:collapse}td,th{border:2px solid var(--ink);padding:2px 10p
 <body>
 <main>
 <h1>Qubit Symphony <span aria-hidden="true">🎵</span></h1>
-<p>Each falling card is one note of <em>Ode to Joy</em>, stored safely in three qubits. When a card enters, noise may have flipped one of its qubits, and the lamps show it. If any qubit is still flipped when the card reaches the line, the note plays <strong>wrong</strong>, and the card vanishes. The lamps show where neighbours disagree, so you can find the flipped qubit without ever reading the note itself. Flip it back in time!</p>
-
+<p>Each falling card is one note of <em>Ode to Joy</em>, encoded across three qubits. Noise may flip a qubit; use the lamps (syndrome clues) to identify and correct a single error before the note reaches the line.</p>
+<div class="game-layout"><div class="game-main">
 <section class="panel controls" aria-label="Settings">
 <label>Speed<select id="speed"><option value="slow">Slow (practice)</option><option value="normal">Normal</option><option value="fast">Fast</option></select></label>
 <label class="ck"><input type="checkbox" id="lying"> Lying lamps (hard)</label>
@@ -71,6 +80,14 @@ table{border-collapse:collapse}td,th{border:2px solid var(--ink);padding:2px 10p
 <section class="panel" id="review" hidden aria-label="Concert review"></section>
 
 <section class="panel" aria-label="Event log"><strong>Diary</strong><ol id="log" role="log" aria-live="polite" reversed></ol></section>
+</div>
+<aside class="capy-panel" aria-label="Emotional support capybara">
+  <div class="capy-name">Clover the Support Capybara 🧡</div>
+  <div class="capy-mood" id="capyMood">Calm companion · quantum-sized encouragement</div>
+  <img class="capy-art" src="clover_support_capybara.png" alt="Clover, a cute golden-brown capybara with a pink flower, sipping pink bubble tea while sitting on a lily pad">
+  <div class="capy-speech" id="capySpeech" aria-live="polite">Take a slow breath. Even quantum systems need a little patience. You’ve got this. 🌼</div>
+  <button class="capy-pat" id="capyPat" type="button">Give Clover a gentle pat 🐾</button>
+</aside></div>
 </main>
 <script>
 const $=s=>document.querySelector(s), rnd=Math.random, LANE=352;
@@ -99,7 +116,11 @@ function stats(){
   $('#s1').textContent=`⭐ Score: ${S.score}`; $('#s2').textContent=`🔥 Combo: ${S.combo}`;
   $('#s3').textContent=`🎵 In tune: ${S.ok} · Wrong: ${S.wrong}`; $('#s4').textContent=`🛠️ Good fixes: ${S.good} · Mistakes: ${S.bad}`;
 }
+const capyLines={start:['You don’t need to fix everything at once. One qubit at a time. 🐾','A little noise is part of the journey. Look for the lamp clues!','I believe in you—and in good error correction. 🌼'],fix:['Nice try! Every flip is a chance to learn.','Check the syndrome lamps, then trust your reasoning.','Steady paws, steady qubits. You can do this!'],good:['You found an error and corrected it! Tiny victory dance! ✨','Great correction! The note is back in tune.','One error handled. Take a breath and keep going.'],miss:['That note got noisy, and that’s okay. Notice what happened and try again.','No need to be hard on yourself. Error correction takes practice.','A missed note is feedback, not failure. 💛'],finish:['Look how much you learned by trying! Every run teaches you something.','You made it through the song! Take a moment to feel proud.','Quantum noise is tricky. You kept going, and that matters.']};
+function capySay(kind){const a=capyLines[kind]||capyLines.start;$('#capySpeech').textContent=a[Math.floor(Math.random()*a.length)];$('#capyMood').textContent=kind==='good'?'Proud of your progress ✨':kind==='miss'?'Gentle reminder · mistakes are information':kind==='finish'?'Celebrating your effort 🌼':'Here with you · one step at a time';}
+$('#capyPat').onclick=()=>{capySay('good');say('Clover sends you a little encouragement.');};
 function start(){
+  capySay('start');
   if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();
   if(ac.state==='suspended')ac.resume();
   [...document.querySelectorAll('.trio')].forEach(e=>e.remove());
@@ -143,6 +164,7 @@ function land(t){
   beep(N[t.note],wrong); S.res[t.idx]=!wrong; S.soloRes[t.idx]=!t.init;
   if(wrong){S.combo=0;S.wrong++}else{S.combo++;S.best=Math.max(S.best,S.combo);S.ok++;S.score+=100*Math.min(4,1+Math.floor(S.combo/5))}
   $('#banner').textContent=wrong?`✗ Wrong note! (${t.note})`:`✓ ${t.note}`;
+  capySay(wrong?'miss':'good');
   say(`${t.note}: ${wrong?(quiet?'all three qubits were flipped, so the lamps were quiet but the note was wrong. The code cannot see that.':'a flipped qubit was left unfixed, so the note was wrong.'):'played in tune.'}`);
   const h=$('#hit'); h.className=wrong?'no':'ok'; setTimeout(()=>h.className='',300);
   t.gone=true; t.el.remove(); stats();
@@ -165,7 +187,7 @@ function tick(ts){
 }
 function strip(a){return a.map(v=>`<span class="${v?'ok':'no'}" aria-hidden="true">${v?'✓':'✗'}</span>`).join('')}
 function finish(){
-  S.done=true; $('#pause').disabled=true;
+  S.done=true; $('#pause').disabled=true; capySay('finish');
   const n=SONG.length, solo=S.soloRes.filter(Boolean).length;
   const r=$('#review'); r.hidden=false;
   r.innerHTML=`<h2 style="margin-top:0">Concert review</h2>
