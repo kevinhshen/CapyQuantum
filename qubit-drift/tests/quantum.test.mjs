@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {PRESETS,clone,score,run,compile,script,bench,INPUTS,qiskitSource,validate} from '../quantum.js';
+const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
+test('bit shelter preserves every input against any one X error',()=>{for(let q=0;q<3;q++){const errors=['I','I','I'];errors[q]='X';for(const [,theta,phi] of INPUTS)close(run(PRESETS.bit,errors,theta,phi).fidelity,1);}});
+test('phase sail preserves every input against any one Z error',()=>{for(let q=0;q<3;q++){const errors=['I','I','I'];errors[q]='Z';for(const [,theta,phi] of INPUTS)close(run(PRESETS.phase,errors,theta,phi).fidelity,1);}});
+test('six-state scoring exposes the phase blind spot and double-flip failure',()=>{close(score(PRESETS.bit,['I','Z','I']),1/3);close(score(PRESETS.bit,['X','X','I']),1/3);close(score(PRESETS.phase,['I','X','I']),1/3);});
+test('syndrome follows q0 XOR q1, q0 XOR q2 convention',()=>{for(const [q,s] of [[0,'11'],[1,'10'],[2,'01']]){const e=['I','I','I'];e[q]='X';close(run(PRESETS.bit,e).syndrome[s],1);}});
+test('a broken recovery table damages a genuinely unknown state',()=>{const p=clone(PRESETS.bit);p.decoder['11']=2;assert.ok(score(p,['X','I','I'])<.9);});
+test('DSL programs round-trip presets, and reject malformed input',()=>{for(const p of Object.values(PRESETS)){const rt=compile(script(p));for(const e of [['I','I','I'],['I','X','I'],['I','Z','I']])close(score(rt,e),score(p,e));}for(const text of ['CX q0 q0','H q7','RUN alert(1)','CHECK Y','RECOVER 00 q4'])assert.throws(()=>compile(text));});
+test('noiseless benchmarks are perfect for the three reference designs',()=>{for(const p of Object.values(PRESETS))close(bench(p)[0].fidelity,1);});
+test('normalization is conserved for every Pauli pattern and reference design',()=>{for(const p of Object.values(PRESETS))for(const a of ['I','X','Y','Z'])for(const b of ['I','X','Y','Z'])for(const c of ['I','X','Y','Z']){const r=run(p,[a,b,c],1.15,2.09);close([...r.v].reduce((s,x)=>s+x*x,0),1);close(Object.values(r.syndrome).reduce((s,x)=>s+x,0),1);}});
+test('overlapping gate cells are rejected',()=>{const p=clone(PRESETS.bit);p.gates.push({type:'H',q:0,col:0});assert.throws(()=>validate(p));});
+test('export contains the actual editable decoder and basis',()=>{const p=clone(PRESETS.phase);p.decoder['10']=-1;const source=qiskitSource(p);assert.ok(source.includes('qc.h(2)'));assert.ok(!source.includes('qc.ccx(3, 4, 1)'));assert.ok(source.includes('StatevectorSampler'));});
