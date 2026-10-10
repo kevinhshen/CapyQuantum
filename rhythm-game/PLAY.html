@@ -876,6 +876,14 @@ details p {
 .parity-lamp{position:absolute;top:0;transform:translateX(-50%);width:22px;height:22px;display:grid;place-items:center;border:1px solid #c3cda1;border-radius:50%;font:bold 17px Georgia;color:#7b8a68;background:#eef1dd;z-index:1}
 .parity-lamp[data-alert="1"]{background:#f5d4b6;border:2px solid #bd805d;color:#825738}.choice-result{font:11px ui-monospace,monospace!important;color:#476b47!important}
 @media(max-width:420px){.parity-lamp{width:19px;height:19px;font-size:15px}.packet-qubit{font-size:19px}.packet-tag{font-size:6px}}
+.level-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:6px}
+.level-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:16px 16px 14px;border-radius:16px;background:#fbf6e4;box-shadow:0 3px 0 #64774522}
+.level-card:hover{background:#f2edda;border-color:#b8c697}
+.level-card .level-icon{font-size:24px;color:#658252;line-height:1}
+.level-card b{font:normal 19px Georgia;color:var(--ink)}
+.level-card small{font:9px/1.5 ui-monospace,monospace;letter-spacing:.4px;color:#758573}
+.level-card em{font-size:12px;line-height:1.5;color:#64765e}
+@media(max-width:520px){.level-grid{grid-template-columns:1fr}}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -1323,7 +1331,7 @@ async function startGame(root, engine) {
     <header class="hud"><a class="brand" href="#" aria-label="Choose a map"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>A LITTLE RHYTHM GOES A LONG WAY</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">a garden for fragile memories</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
     <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
     <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
-    <aside id="map-letter" class="map-letter"><div class="eyebrow">A SONG FOR YOUR GARDEN</div><span class="letter-stamp">✧</span><h1>Let the<br><em>notes bloom.</em></h1><p>Decode falling memories on the line.<br>Read the parity lamps.<br>Choose which qubits to flip.</p><label class="field">MAP<select id="map-select" aria-label="Map"></select></label><label class="field">DIFFICULTY<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}">${d} qubits · up to ${Math.floor((d - 1) / 2)} flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm">86 BPM</span><span id="map-duration">39 seconds</span></div><button id="play" class="primary" disabled>Preparing memories… <span>↗</span></button><button id="practice" class="text-button" disabled>Try six packets without a timer</button><div class="author-actions"><button id="import-map">+ Map</button><button id="import-music">+ Music</button><button id="settings">Tune</button></div><span id="music-name" class="music-name">Original garden soundtrack</span><button id="clear-music" class="text-button" hidden>Use the original soundtrack</button><input id="map-file" type="file" accept=".json,application/json" hidden><input id="music-file" type="file" accept="audio/*" hidden><p id="load-status" class="runtime-note" role="status" aria-live="polite">Preparing quantum reference experiments.</p></aside>
+    <aside id="map-letter" class="map-letter"><div class="eyebrow">A SONG FOR YOUR GARDEN</div><span class="letter-stamp">✧</span><h1>Let the<br><em>notes bloom.</em></h1><p>Decode falling memories on the line.<br>Read the parity lamps.<br>Choose which qubits to flip.</p><label class="field">MAP<select id="map-select" aria-label="Map"></select></label><label class="field">DIFFICULTY<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}">${d} qubits · up to ${Math.floor((d - 1) / 2)} flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm">86 BPM</span><span id="map-duration">39 seconds</span></div><button id="play" class="primary" disabled>Preparing memories… <span>↗</span></button><button id="practice" class="text-button" disabled>Try six packets without a timer</button><button id="levels" class="text-button">Level: choose…</button><div class="author-actions"><button id="import-map">+ Map</button><button id="import-music">+ Music</button><button id="settings">Tune</button></div><span id="music-name" class="music-name">Original garden soundtrack</span><button id="clear-music" class="text-button" hidden>Use the original soundtrack</button><input id="map-file" type="file" accept=".json,application/json" hidden><input id="music-file" type="file" accept="audio/*" hidden><p id="load-status" class="runtime-note" role="status" aria-live="polite">Preparing quantum reference experiments.</p></aside>
     <div id="practice-hint" class="practice-hint" hidden><span>✧</span><p id="practice-text">Read the clues, then catch the notes.</p><button id="practice-next" hidden>Continue [W]</button></div>
     <div class="bottom-note"><span>✧ This effort is supported by Qollab & IonQ</span><span id="bottom-status">a new map, a little care</span></div>
     <div id="live" class="sr-only" role="status" aria-live="polite"></div>
@@ -1478,7 +1486,33 @@ async function startGame(root, engine) {
     $('close-tune').onclick = closeDialog;
   }
   populateMaps(); refreshMap();
-  $('map-select').onchange = refreshMap; $('qubits').onchange = refreshMap; $('play').onclick = () => start(false); $('practice').onclick = () => start(true);
+  // Level select: each level pairs a built-in map with a qubit count. It appears first, before anything can be played.
+  const LEVELS = [
+    { name: 'Seedling', icon: '✿', map: 'morning-dew', qubits: 3, blurb: 'Meet the lamps. One flip at a time, slow tempo.' },
+    { name: 'Sprout', icon: '❀', map: 'lantern-waltz', qubits: 4, blurb: 'A fourth qubit and a steadier beat.' },
+    { name: 'Sapling', icon: '❁', map: 'lantern-waltz', qubits: 5, blurb: 'Two flips can strike at once. Read carefully.' },
+    { name: 'Bloom', icon: '✺', map: 'firefly-rush', qubits: 7, blurb: 'Seven qubits, up to three flips, fast tempo.' },
+  ];
+  let levelName = null;
+  function levelDetail(level) {
+    const flips = Math.floor((level.qubits - 1) / 2), bpm = getMap(level.map, level.qubits).bpm;
+    return `${level.qubits} QUBITS · UP TO ${flips} FLIP${flips > 1 ? 'S' : ''} · ${bpm} BPM`;
+  }
+  function setLevelLabel() { $('levels').textContent = levelName ? `Level: ${levelName} · change` : 'Level: custom · change'; }
+  function chooseLevel(level) {
+    $('map-select').value = level.map; $('qubits').value = String(level.qubits); levelName = level.name;
+    refreshMap(); setLevelLabel(); closeDialog(); menuStatus(`${level.name} selected. Press play when you are ready.`);
+    $('play').focus();
+  }
+  function showLevels() {
+    if (!['menu'].includes(mode)) return;
+    showDialog(`<div class="eyebrow">BEFORE WE BEGIN</div><h2 id="dialog-title">Choose your level.<em>You can change it any time before playing.</em></h2><div class="level-grid">${LEVELS.map((level, i) => `<button class="level-card" data-level="${i}"><span class="level-icon" aria-hidden="true">${level.icon}</span><b>${html(level.name)}</b><small>${levelDetail(level)}</small><em>${html(level.blurb)}</em></button>`).join('')}</div>`, '<button id="level-skip" class="subtle">Decide later</button>');
+    root.querySelectorAll('[data-level]').forEach(button => { button.onclick = () => chooseLevel(LEVELS[Number(button.dataset.level)]); });
+    $('level-skip').onclick = () => { closeDialog(); setLevelLabel(); };
+  }
+  function customLevel() { levelName = null; setLevelLabel(); refreshMap(); }
+  $('map-select').onchange = customLevel; $('qubits').onchange = customLevel; $('play').onclick = () => start(false); $('practice').onclick = () => start(true);
+  $('levels').onclick = showLevels; setLevelLabel(); showLevels();
   $('pause').onclick = pauseGame; $('help').onclick = guide; $('settings').onclick = tuning;
   root.querySelector('.brand').onclick = e => { e.preventDefault(); if (['playing', 'practice'].includes(mode)) pauseGame(); else toMenu(); };
   $('sound').onclick = () => { music.setMuted(!music.muted); $('sound').setAttribute('aria-pressed', String(music.muted)); $('sound').setAttribute('aria-label', music.muted ? 'Unmute music' : 'Mute music'); $('sound').textContent = music.muted ? '♪̸' : '♫'; };
