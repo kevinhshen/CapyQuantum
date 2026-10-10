@@ -909,6 +909,51 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,su
 .combo-display{width:auto;min-width:50px;text-align:right}
 
 .learning-path{margin:8px 0 0;padding:16px 18px;background:#fff9e9d9;border:1px solid #b7c6a3;border-radius:16px}.learning-path summary{font:14px system-ui,sans-serif;cursor:pointer}.path-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.path-presets button{text-align:left;padding:14px}.path-presets b{display:block;font:18px Georgia,serif}.path-presets small{display:block;font:11px/1.6 system-ui,sans-serif;margin-top:6px}.learning-path summary:focus-visible{outline:3px solid #314f2d;outline-offset:4px}
+
+/* Animated walkthrough contributed in game-tutorial; native modal integration. */
+.tutorial{width:min(640px,calc(100% - 34px));max-width:640px;max-height:96dvh;padding:0;overflow:auto;background:transparent;border:0;box-shadow:none}.tutorial::backdrop{background:#34483b66;backdrop-filter:blur(7px)}
+.tut-card{width:100%;overflow:auto;background:var(--cream);border:1px solid #e5dfc2;border-radius:24px;padding:28px 32px 22px;box-shadow:0 25px 100px #2f482e40}
+.tut-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tut-top .eyebrow{margin-bottom:14px}
+.tut-skip{width:auto;display:inline-block;padding:0!important;font-size:11px}
+.tut-card h2{margin-bottom:14px}
+.tut-stage{position:relative;height:250px;overflow:hidden;margin:0 0 16px;border:1px solid #d4dbb9;border-radius:18px;background:linear-gradient(180deg,#fff9e955,#e8edcf99)}
+.tut-note{position:absolute;left:12px;right:12px;top:9px;min-height:20px;text-align:center;font:italic 14px Georgia;color:#476b47;z-index:3}
+.tut-packet{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:min(380px,92%);height:66px;border:1px solid #d9ddba;border-radius:15px;background:#fff9e9ef;box-shadow:0 4px 0 #536f3b22;z-index:2}
+.tut-stage .packet-qubit{transition:color .3s,opacity .3s,transform .3s}
+.tut-stage .packet-qubit[data-flip="1"]{color:#d98d5f}
+.tut-stage .packet-qubit[data-hidden="1"]{opacity:0;transform:scale(.3)}
+.tut-stage .parity-lamp{transition:opacity .3s,background .3s,border-color .3s}
+.tut-stage .parity-lamp[data-hidden="1"]{opacity:0}
+.tut-pop{animation:tutPop .5s ease}
+.parity-lamp.tut-pop{animation:tutLamp .7s ease-out}
+@keyframes tutPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+@keyframes tutLamp{0%{box-shadow:0 0 0 0 #e9ad85aa}100%{box-shadow:0 0 0 14px #e9ad8500}}
+.tut-spark{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:22px;line-height:1;color:#d98d5f;opacity:0;z-index:4}
+.tut-flower{position:absolute;left:50%;top:66px;transform:translateX(-50%);font-size:22px;line-height:1;color:#e9ad85;opacity:0;z-index:4}
+.tut-flower.go{animation:tutFloat 1.3s ease-out}
+@keyframes tutFloat{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-46px) scale(1.2)}}
+.tut-stage [data-for]{opacity:0;pointer-events:none;transition:opacity .35s}
+.tut-stage[data-step="2"] [data-for~="2"],.tut-stage[data-step="3"] [data-for~="3"],.tut-stage[data-step="4"] [data-for~="4"]{opacity:1}
+.tut-table{position:absolute;left:50%;top:116px;transform:translateX(-50%);width:min(320px,88%);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.tut-table>div{display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid #d9ddba;border-radius:10px;background:#fff9e9cc;font:11px ui-monospace,monospace;color:#64765e;transition:background .25s,border-color .25s}
+.tut-table b{font-weight:normal;color:#476b47}
+.tut-table>div[data-active="1"]{background:#f6e2cf;border-color:#e9ad85}
+.tut-hit{position:absolute;left:0;right:0;top:176px;height:3px;background:#536f3b;box-shadow:0 0 18px #fff9e9}
+.tut-hit span{position:absolute;top:6px;left:10px;font:7px ui-monospace,monospace;letter-spacing:1.8px;color:#81906e}
+.tut-keys{position:absolute;left:50%;top:198px;transform:translateX(-50%);width:min(380px,92%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 6px}
+.tut-key{height:38px;display:grid;place-items:center;border:1px solid #b8c697;border-radius:13px;background:#fff9e9c9;box-shadow:0 3px 0 #64774525;font:15px ui-monospace,monospace;transition:background .12s,transform .12s}
+.tut-key.pressed{background:#e9ad85;box-shadow:0 0 22px #e9ad8577;transform:translateY(3px)}
+.tut-text{font-size:13px;line-height:1.7;color:#64765e;margin:0 0 18px;min-height:66px}
+.tut-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tut-dots{display:flex;gap:7px;margin-right:auto}
+.tut-dot{width:24px;height:24px;padding:0;border-radius:50%;background:#e5e8cc;border:1px solid #bfca9c}
+.tut-dot[aria-current="step"]{background:#476b47;border-color:#476b47}
+.tut-nav .primary{min-width:150px;text-align:center}
+.tut-lesson-link{margin-top:14px;font-size:12px}.tut-card .tut-text{color:#34483b}.tut-note{color:#34483b}
+@media(max-width:520px){.tut-card{padding:20px 16px 16px}.tut-card h2{font-size:25px}.tut-nav{justify-content:flex-end}.tut-dots{width:100%;margin-bottom:4px}}
+
+@media(prefers-reduced-motion:reduce){.tutorial *{animation:none!important;transition:none!important}}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -1408,6 +1453,124 @@ const learningPath = [
   { name: 'Bloom', map: 'firefly-rush', qubits: 7, description: 'Seven lanes and up to three bit flips.' },
 ];
 
+// Animated tutorial adapted from teammate commit 414d9d6.
+// Timers reset on navigation/close; no browser storage or extra quantum job.
+function initTutorial(root, onLessons) {
+    root.insertAdjacentHTML('beforeend', `<dialog id="tutorial" class="tutorial" aria-labelledby="tut-title" aria-describedby="tut-text"><div class="tut-card">
+      <div class="tut-top"><div class="eyebrow" id="tut-eyebrow">TUTORIAL</div><button id="tut-skip" class="text-button tut-skip">Skip tutorial ✕</button></div>
+      <h2 id="tut-title"></h2>
+      <div id="tut-stage" class="tut-stage" data-step="0" aria-hidden="true">
+        <div id="tut-note" class="tut-note"></div><div id="tut-spark" class="tut-spark">✸</div><div id="tut-flower" class="tut-flower">✿</div>
+        <div id="tut-packet" class="tut-packet"><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}">✦<small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
+        <div class="tut-table" data-for="2"><div data-row="0"><span>≠ =</span><b>flip Q1</b></div><div data-row="1"><span>≠ ≠</span><b>flip Q2</b></div><div data-row="2"><span>= ≠</span><b>flip Q3</b></div><div data-row="3"><span>= =</span><b>wait</b></div></div>
+        <div class="tut-hit" data-for="3 4"><span>RECOVER HERE</span></div>
+        <div class="tut-keys" data-for="3 4">${['D', 'F', 'J'].map((key, i) => `<div class="tut-key" data-key="${i}">${key}</div>`).join('')}</div>
+      </div>
+      <p id="tut-text" class="tut-text" aria-live="polite"></p>
+      <div class="tut-nav"><div id="tut-dots" class="tut-dots"></div><button id="tut-replay" class="subtle">↻ Replay</button><button id="tut-back" class="subtle">Back</button><button id="tut-next" class="primary">Next ↗</button></div>
+      <button id="tut-lessons" class="text-button tut-lesson-link">Explore the quantum lessons →</button>
+    </div></dialog>`);
+    const $ = id => root.querySelector(`#${id}`);
+    const overlay = $('tutorial'), stage = $('tut-stage'), packet = $('tut-packet'), note = $('tut-note'), spark = $('tut-spark'), flower = $('tut-flower');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const view = { q: [0, 0, 0], hidden: [false, false, false], lamps: [0, 0], lampsHidden: false };
+    let step = 0, timers = [], opener = null;
+    const say = text => { note.textContent = text; };
+    const paint = () => {
+      stage.querySelectorAll('[data-q]').forEach(el => { const i = Number(el.dataset.q); el.dataset.flip = String(view.q[i]); el.dataset.hidden = view.hidden[i] ? '1' : '0'; });
+      stage.querySelectorAll('[data-l]').forEach(el => { const i = Number(el.dataset.l); el.textContent = view.lamps[i] ? '≠' : '='; el.dataset.alert = String(view.lamps[i]); el.dataset.hidden = view.lampsHidden ? '1' : '0'; });
+    };
+    // Lamps show whether neighbours differ. They update a beat after the qubits so the cause comes before the effect.
+    const sync = () => { view.lamps = [view.q[0] ^ view.q[1], view.q[1] ^ view.q[2]]; paint(); };
+    const pop = selector => stage.querySelectorAll(selector).forEach(el => { el.classList.remove('tut-pop'); void el.offsetWidth; el.classList.add('tut-pop'); });
+    const setTop = (y, animate, ms = 1500) => { packet.style.transition = 'none'; void packet.offsetWidth; if (animate && !reduce) packet.style.transition = `top ${ms}ms linear`; packet.style.top = `${y}px`; };
+    const press = i => { const key = stage.querySelector(`[data-key="${i}"]`); key.classList.add('pressed'); timers.push(setTimeout(() => key.classList.remove('pressed'), 240)); };
+    const reset = () => {
+      timers.forEach(clearTimeout); timers = [];
+      Object.assign(view, { q: [0, 0, 0], hidden: [false, false, false], lamps: [0, 0], lampsHidden: false });
+      setTop(34, false); spark.style.transition = 'none'; spark.style.opacity = '0'; spark.style.top = '-24px'; flower.classList.remove('go');
+      stage.querySelectorAll('.tut-key').forEach(key => key.classList.remove('pressed'));
+      stage.querySelectorAll('[data-row]').forEach(row => { row.dataset.active = '0'; });
+      note.textContent = ''; paint();
+    };
+    const STEPS = [
+      { title: 'One memory, three qubits', text: 'A qubit is fragile: noise can flip it without warning. We encode one logical qubit across three physical qubits, without making independent copies. In this example their computational-basis values agree. The lamps between neighbours read = while they match.',
+        run({ at }) {
+          view.hidden = [true, false, true]; view.lampsHidden = true; paint(); say('One qubit holds the memory…');
+          at(900, () => { view.hidden = [false, false, false]; paint(); pop('[data-q="0"],[data-q="2"]'); say('…encoded across three physical qubits.'); });
+          at(2200, () => { view.lampsHidden = false; sync(); pop('[data-l]'); say('Every neighbour agrees, so both lamps read =  ✓'); });
+        } },
+      { title: 'Noise strikes', text: 'Now a stray error flips one qubit. The lamps never look at the memory itself. They only compare neighbours: ≠ means those two qubits disagree. That is how errors are found without reading the memory.',
+        run({ at }) {
+          sync(); say('Everything agrees…');
+          at(900, () => { spark.style.transition = reduce ? 'none' : 'top .55s ease-in, opacity .15s'; spark.style.opacity = '1'; spark.style.top = '60px'; say('…until noise strikes Q2.'); });
+          at(1500, () => { spark.style.opacity = '0'; view.q[1] = 1; paint(); pop('[data-q="1"]'); say('Q2 flips.'); });
+          at(2300, () => { sync(); pop('[data-l]'); say('Both lamps beside Q2 now read ≠ : “these two disagree”.'); });
+        } },
+      { title: 'Read the lamps', text: 'Each pattern of lamps points to one culprit. For three qubits with at most one bit flip: ≠ = points to Q1, ≠ ≠ to Q2, and = ≠ to Q3. All = means wait within this error limit.',
+        run({ at }) {
+          const cases = [[1, 0, 0, 0, 'Only Q1 disagrees → flip Q1'], [0, 1, 0, 1, 'Q2 disagrees with both neighbours → flip Q2'], [0, 0, 1, 2, 'Only Q3 disagrees → flip Q3'], [0, 0, 0, 3, 'Everyone agrees → nothing to fix, wait.']];
+          const show = c => { view.q = [c[0], c[1], c[2]]; sync(); pop('[data-l]'); stage.querySelectorAll('[data-row]').forEach(row => { row.dataset.active = row.dataset.row === String(c[3]) ? '1' : '0'; }); say(c[4]); };
+          if (reduce) { show(cases[1]); return; }
+          const loop = () => { cases.forEach((c, i) => at(i * 2300, () => show(c))); at(cases.length * 2300, loop); };
+          loop();
+        } },
+      { title: 'Fix it on the beat', text: 'In the game each packet falls toward the recovery line. Decide which qubit is faulty from the lamps, then press its key as the packet arrives. The keys never reveal the answer, and a wrong flip adds a new error.',
+        run({ at }) {
+          view.q = [0, 1, 0]; sync(); say('Lamps read ≠ ≠ → Q2 is the odd one out.');
+          at(1100, () => { setTop(108, true, 1500); say('Press the key as the packet reaches the line.'); });
+          at(2600, () => {
+            press(1); view.q[1] = 0; sync(); pop('[data-q="1"]'); pop('[data-l]'); if (!reduce) flower.classList.add('go');
+            say('Flipped Q2 back on the beat → Perfect ✿ Every lamp reads = again.');
+          });
+        } },
+      { title: 'Know the limits', text: 'Three or four qubits guarantee repair of one bit flip; five or six repair two, and seven repair three. The animation shows three lanes; the game starts with four (D F J K). Beyond the correction limit, the lamps can be fooled, as shown here. This code also only watches bit flips, not phase errors. Use untimed practice to learn at your own pace.',
+        run({ at }) {
+          setTop(108, false); sync(); say('Suppose two flips strike at once: Q1 and Q3.');
+          at(1000, () => { view.q = [1, 0, 1]; paint(); pop('[data-q="0"],[data-q="2"]'); });
+          at(1900, () => { sync(); pop('[data-l]'); say('The lamps look exactly like a single flip on Q2.'); });
+          at(3600, () => { press(1); view.q[1] = 1; sync(); pop('[data-q="1"]'); say('The “fix” backfires: all three are flipped and every lamp reads =.'); });
+        } },
+    ];
+    const last = STEPS.length - 1, dots = $('tut-dots');
+    dots.innerHTML = STEPS.map((_, i) => `<button class="tut-dot" data-dot="${i}" aria-label="Go to step ${i + 1}"></button>`).join('');
+    function goTo(n) {
+      step = Math.max(0, Math.min(last, n)); reset();
+      const current = STEPS[step];
+      stage.dataset.step = String(step); $('tut-eyebrow').textContent = `TUTORIAL · ${step + 1} OF ${STEPS.length}`;
+      $('tut-title').textContent = current.title; $('tut-text').textContent = current.text;
+      dots.querySelectorAll('[data-dot]').forEach(dot => { if (Number(dot.dataset.dot) === step) dot.setAttribute('aria-current', 'step'); else dot.removeAttribute('aria-current'); });
+      $('tut-back').disabled = step === 0; $('tut-next').textContent = step === last ? 'Go to main menu →' : 'Next →';
+      current.run({ at: reduce ? (ms, fn) => fn() : (ms, fn) => timers.push(setTimeout(fn, ms)) });
+    }
+    function openTutorial() {
+      opener = document.activeElement; overlay.showModal(); goTo(0); $('tut-next').focus();
+    }
+    function closeTutorial() {
+      reset(); overlay.close();
+      (opener && opener !== document.body && opener.isConnected ? opener : $('home-start')).focus();
+    }
+    $('tut-next').onclick = () => { if (step === last) closeTutorial(); else goTo(step + 1); };
+    $('tut-back').onclick = () => goTo(step - 1);
+    $('tut-replay').onclick = () => goTo(step);
+    $('tut-skip').onclick = closeTutorial;
+    dots.addEventListener('click', e => { const dot = e.target.closest('[data-dot]'); if (dot) goTo(Number(dot.dataset.dot)); });
+    $('tut-lessons').onclick = () => { closeTutorial(); onLessons(); };
+    overlay.addEventListener('cancel', e => { e.preventDefault(); closeTutorial(); });
+    overlay.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTutorial(); }
+      else if (e.key === 'ArrowRight' && !/INPUT/.test(e.target.tagName)) { e.preventDefault(); $('tut-next').click(); }
+      else if (e.key === 'ArrowLeft' && !/INPUT/.test(e.target.tagName)) { e.preventDefault(); if (step > 0) goTo(step - 1); }
+      else if (e.key === 'Tab') {
+        const focusable = [...overlay.querySelectorAll('button:not([disabled]),input')];
+        const first = focusable[0], end = focusable.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); end.focus(); }
+        else if (!e.shiftKey && document.activeElement === end) { e.preventDefault(); first.focus(); }
+      }
+    });
+    return openTutorial;
+  }
+
 
 const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const pct = n => `${(n * 100).toFixed(1)}%`;
@@ -1639,11 +1802,13 @@ async function startGame(root, engine) {
   root.querySelector('.brand').onclick = e => { e.preventDefault(); if (['playing', 'practice'].includes(mode)) pauseGame(); else navigate('home'); };
   $('sound').onclick = () => setMuted(!music.muted);
   $('practice-next').onclick = finishPracticePacket;
-  $('home-start').onclick = () => navigate('levels'); $('home-learn').onclick = () => navigate('learn');
+  const openTutorial = initTutorial(main, () => { showLesson(0); navigate('learn'); });
+  $('home-start').onclick = () => navigate('levels'); $('home-learn').onclick = openTutorial;
   for (const page of ['levels', 'learn', 'settings']) $(`${page}-home`).onclick = () => navigate('home');
-  showLesson(0); setState('home');
+  showLesson(0); setState('home'); openTutorial();
   $('dialog').addEventListener('cancel', e => { if (paused && ['playing', 'practice'].includes(mode)) { e.preventDefault(); resumeGame(); } else if (mode === 'result') { e.preventDefault(); toMenu(); } });
   window.addEventListener('keydown', e => {
+    if ($('tutorial').open) return;
     if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
     if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (['playing', 'practice'].includes(mode)) { e.preventDefault(); if (paused) resumeGame(); else pauseGame(); } return; }
     if (e.repeat || held.has(e.code) || $('dialog').open) return;

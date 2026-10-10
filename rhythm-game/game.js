@@ -1,3 +1,4 @@
+import { initTutorial } from './tutorial.js';
 import { learningPath } from './content.js';
 import { beatToSeconds, secondsToBeat } from './timing.js';
 import { allSpecs, makeBank, COUNTS } from './model.js';
@@ -236,11 +237,13 @@ export async function startGame(root, engine) {
   root.querySelector('.brand').onclick = e => { e.preventDefault(); if (['playing', 'practice'].includes(mode)) pauseGame(); else navigate('home'); };
   $('sound').onclick = () => setMuted(!music.muted);
   $('practice-next').onclick = finishPracticePacket;
-  $('home-start').onclick = () => navigate('levels'); $('home-learn').onclick = () => navigate('learn');
+  const openTutorial = initTutorial(main, () => { showLesson(0); navigate('learn'); });
+  $('home-start').onclick = () => navigate('levels'); $('home-learn').onclick = openTutorial;
   for (const page of ['levels', 'learn', 'settings']) $(`${page}-home`).onclick = () => navigate('home');
-  showLesson(0); setState('home');
+  showLesson(0); setState('home'); openTutorial();
   $('dialog').addEventListener('cancel', e => { if (paused && ['playing', 'practice'].includes(mode)) { e.preventDefault(); resumeGame(); } else if (mode === 'result') { e.preventDefault(); toMenu(); } });
   window.addEventListener('keydown', e => {
+    if ($('tutorial').open) return;
     if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
     if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (['playing', 'practice'].includes(mode)) { e.preventDefault(); if (paused) resumeGame(); else pauseGame(); } return; }
     if (e.repeat || held.has(e.code) || $('dialog').open) return;

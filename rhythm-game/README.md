@@ -16,6 +16,8 @@ python3 -m http.server 8766 --bind 127.0.0.1
 
 The file also contains everything needed for offline playback in an ordinary browser. Direct `file://` playback remains a manual check; the automation browser restricts that scheme.
 
+The teammate’s five-step animated tutorial opens automatically on every program run. Skip or finish it to reach Home; **Learn** replays it from step one. Back, Next, Replay, step buttons, arrow keys and Escape are available. The tutorial also links to the quantum lessons and parity lab.
+
 Use **Start** on Home to open Levels. Choose Morning dew (86 BPM), Lantern glow (112→124→112 BPM), or Firefly rush (138 BPM), then Play. Four physical qubits are selected initially; 3–7 are available on generated maps. Team-authored maps fix their own lane count. The optional Guided learning path preserves the teammate’s Seedling, Sprout, Sapling, and Bloom presets in source; selecting one sets its song and lane count. Memory packets fall **top to bottom**. Every qubit marker is neutral: no lane reveals the answer. Lamps between qubits show neighboring parity (`≠` different, `=` same). Choose the smallest correction within the code's guarantee and press those keys at the recovery line. Multiple errors can be repaired as a chord or at numbered rapid beats, in any order. Lamps update after every flip; clean packets need no input. Repeated keydown events are ignored, but separate taps apply separate X operations.
 
 | Lanes | Keyboard |

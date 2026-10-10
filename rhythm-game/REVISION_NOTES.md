@@ -30,3 +30,9 @@ This effort is supported by Qollab & IonQ
 ## Main-branch integration
 
 Merged the teammate’s `game-tutorial` contribution from main. Its four named difficulty presets now live in `content.js` and appear under Guided learning path on the separate Levels page. The conflicting generated player is rebuilt from source, retaining both the page redesign and tutorial presets.
+
+## Animated tutorial integration
+
+Integrated teammate commit `414d9d6` from `game-tutorial`. Its five-step animated walkthrough now runs automatically at startup and restarts when Home → Learn is pressed. A native modal supports Skip, Back, Next, Replay, step buttons, arrow keys and Escape, with focus restored on close. The quantum lessons/lab remain available from the tutorial. Animations/timers reset between steps and on close; reduced-motion uses static final states. No browser storage is required, so the walkthrough appears on each Qollab Run. The three-lane example explicitly distinguishes the four-lane gameplay default, encoding from independent copying, and correction guarantees. The shared source module is included in the standalone builder and Qollab package.
+
+Validation: all 16 existing tests pass; browser checks confirm startup, animation state changes, completion to Home, Learn replay from step one, arrow navigation and Escape exit. The modular player also opens the tutorial and reports no browser errors. Quantum circuits are unchanged.
