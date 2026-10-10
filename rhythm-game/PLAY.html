@@ -876,14 +876,47 @@ details p {
 .parity-lamp{position:absolute;top:0;transform:translateX(-50%);width:22px;height:22px;display:grid;place-items:center;border:1px solid #c3cda1;border-radius:50%;font:bold 17px Georgia;color:#7b8a68;background:#eef1dd;z-index:1}
 .parity-lamp[data-alert="1"]{background:#f5d4b6;border:2px solid #bd805d;color:#825738}.choice-result{font:11px ui-monospace,monospace!important;color:#476b47!important}
 @media(max-width:420px){.parity-lamp{width:19px;height:19px;font-size:15px}.packet-qubit{font-size:19px}.packet-tag{font-size:6px}}
-.level-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:6px}
-.level-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:16px 16px 14px;border-radius:16px;background:#fbf6e4;box-shadow:0 3px 0 #64774522}
-.level-card:hover{background:#f2edda;border-color:#b8c697}
-.level-card .level-icon{font-size:24px;color:#658252;line-height:1}
-.level-card b{font:normal 19px Georgia;color:var(--ink)}
-.level-card small{font:9px/1.5 ui-monospace,monospace;letter-spacing:.4px;color:#758573}
-.level-card em{font-size:12px;line-height:1.5;color:#64765e}
-@media(max-width:520px){.level-grid{grid-template-columns:1fr}}
+.tutorial{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:17px;background:#34483b66;backdrop-filter:blur(7px)}
+.tut-card{width:min(640px,100%);max-height:96dvh;overflow:auto;background:var(--cream);border:1px solid #e5dfc2;border-radius:24px;padding:28px 32px 22px;box-shadow:0 25px 100px #2f482e40}
+.tut-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tut-top .eyebrow{margin-bottom:14px}
+.tut-skip{width:auto;display:inline-block;padding:0!important;font-size:11px}
+.tut-card h2{margin-bottom:14px}
+.tut-stage{position:relative;height:250px;overflow:hidden;margin:0 0 16px;border:1px solid #d4dbb9;border-radius:18px;background:linear-gradient(180deg,#fff9e955,#e8edcf99)}
+.tut-note{position:absolute;left:12px;right:12px;top:9px;min-height:20px;text-align:center;font:italic 14px Georgia;color:#476b47;z-index:3}
+.tut-packet{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:min(380px,92%);height:66px;border:1px solid #d9ddba;border-radius:15px;background:#fff9e9ef;box-shadow:0 4px 0 #536f3b22;z-index:2}
+.tut-stage .packet-qubit{transition:color .3s,opacity .3s,transform .3s}
+.tut-stage .packet-qubit[data-flip="1"]{color:#d98d5f}
+.tut-stage .packet-qubit[data-hidden="1"]{opacity:0;transform:scale(.3)}
+.tut-stage .parity-lamp{transition:opacity .3s,background .3s,border-color .3s}
+.tut-stage .parity-lamp[data-hidden="1"]{opacity:0}
+.tut-pop{animation:tutPop .5s ease}
+.parity-lamp.tut-pop{animation:tutLamp .7s ease-out}
+@keyframes tutPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+@keyframes tutLamp{0%{box-shadow:0 0 0 0 #e9ad85aa}100%{box-shadow:0 0 0 14px #e9ad8500}}
+.tut-spark{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:22px;line-height:1;color:#d98d5f;opacity:0;z-index:4}
+.tut-flower{position:absolute;left:50%;top:66px;transform:translateX(-50%);font-size:22px;line-height:1;color:#e9ad85;opacity:0;z-index:4}
+.tut-flower.go{animation:tutFloat 1.3s ease-out}
+@keyframes tutFloat{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-46px) scale(1.2)}}
+.tut-stage [data-for]{opacity:0;pointer-events:none;transition:opacity .35s}
+.tut-stage[data-step="2"] [data-for~="2"],.tut-stage[data-step="3"] [data-for~="3"],.tut-stage[data-step="4"] [data-for~="4"]{opacity:1}
+.tut-table{position:absolute;left:50%;top:116px;transform:translateX(-50%);width:min(320px,88%);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.tut-table>div{display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid #d9ddba;border-radius:10px;background:#fff9e9cc;font:11px ui-monospace,monospace;color:#64765e;transition:background .25s,border-color .25s}
+.tut-table b{font-weight:normal;color:#476b47}
+.tut-table>div[data-active="1"]{background:#f6e2cf;border-color:#e9ad85}
+.tut-hit{position:absolute;left:0;right:0;top:176px;height:3px;background:#536f3b;box-shadow:0 0 18px #fff9e9}
+.tut-hit span{position:absolute;top:6px;left:10px;font:7px ui-monospace,monospace;letter-spacing:1.8px;color:#81906e}
+.tut-keys{position:absolute;left:50%;top:198px;transform:translateX(-50%);width:min(380px,92%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 6px}
+.tut-key{height:38px;display:grid;place-items:center;border:1px solid #b8c697;border-radius:13px;background:#fff9e9c9;box-shadow:0 3px 0 #64774525;font:15px ui-monospace,monospace;transition:background .12s,transform .12s}
+.tut-key.pressed{background:#e9ad85;box-shadow:0 0 22px #e9ad8577;transform:translateY(3px)}
+.tut-text{font-size:13px;line-height:1.7;color:#64765e;margin:0 0 18px;min-height:66px}
+.tut-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tut-dots{display:flex;gap:7px;margin-right:auto}
+.tut-dot{width:11px;height:11px;padding:0;border-radius:50%;background:#e5e8cc;border:1px solid #bfca9c}
+.tut-dot[aria-current="step"]{background:#476b47;border-color:#476b47}
+.tut-nav .primary{min-width:150px;text-align:center}
+.tut-remember{margin-top:14px;font-size:11px;color:#758573}
+@media(max-width:520px){.tut-card{padding:20px 16px 16px}.tut-card h2{font-size:25px}.tut-nav{justify-content:flex-end}.tut-dots{width:100%;margin-bottom:4px}}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -1331,10 +1364,24 @@ async function startGame(root, engine) {
     <header class="hud"><a class="brand" href="#" aria-label="Choose a map"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>A LITTLE RHYTHM GOES A LONG WAY</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">a garden for fragile memories</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
     <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
     <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
-    <aside id="map-letter" class="map-letter"><div class="eyebrow">A SONG FOR YOUR GARDEN</div><span class="letter-stamp">✧</span><h1>Let the<br><em>notes bloom.</em></h1><p>Decode falling memories on the line.<br>Read the parity lamps.<br>Choose which qubits to flip.</p><label class="field">MAP<select id="map-select" aria-label="Map"></select></label><label class="field">DIFFICULTY<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}">${d} qubits · up to ${Math.floor((d - 1) / 2)} flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm">86 BPM</span><span id="map-duration">39 seconds</span></div><button id="play" class="primary" disabled>Preparing memories… <span>↗</span></button><button id="practice" class="text-button" disabled>Try six packets without a timer</button><button id="levels" class="text-button">Level: choose…</button><div class="author-actions"><button id="import-map">+ Map</button><button id="import-music">+ Music</button><button id="settings">Tune</button></div><span id="music-name" class="music-name">Original garden soundtrack</span><button id="clear-music" class="text-button" hidden>Use the original soundtrack</button><input id="map-file" type="file" accept=".json,application/json" hidden><input id="music-file" type="file" accept="audio/*" hidden><p id="load-status" class="runtime-note" role="status" aria-live="polite">Preparing quantum reference experiments.</p></aside>
+    <aside id="map-letter" class="map-letter"><div class="eyebrow">A SONG FOR YOUR GARDEN</div><span class="letter-stamp">✧</span><h1>Let the<br><em>notes bloom.</em></h1><p>Decode falling memories on the line.<br>Read the parity lamps.<br>Choose which qubits to flip.</p><label class="field">MAP<select id="map-select" aria-label="Map"></select></label><label class="field">DIFFICULTY<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}">${d} qubits · up to ${Math.floor((d - 1) / 2)} flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm">86 BPM</span><span id="map-duration">39 seconds</span></div><button id="play" class="primary" disabled>Preparing memories… <span>↗</span></button><button id="practice" class="text-button" disabled>Try six packets without a timer</button><button id="replay-tutorial" class="text-button">Watch the animated tutorial</button><div class="author-actions"><button id="import-map">+ Map</button><button id="import-music">+ Music</button><button id="settings">Tune</button></div><span id="music-name" class="music-name">Original garden soundtrack</span><button id="clear-music" class="text-button" hidden>Use the original soundtrack</button><input id="map-file" type="file" accept=".json,application/json" hidden><input id="music-file" type="file" accept="audio/*" hidden><p id="load-status" class="runtime-note" role="status" aria-live="polite">Preparing quantum reference experiments.</p></aside>
     <div id="practice-hint" class="practice-hint" hidden><span>✧</span><p id="practice-text">Read the clues, then catch the notes.</p><button id="practice-next" hidden>Continue [W]</button></div>
     <div class="bottom-note"><span>✧ This effort is supported by Qollab & IonQ</span><span id="bottom-status">a new map, a little care</span></div>
     <div id="live" class="sr-only" role="status" aria-live="polite"></div>
+    <div id="tutorial" class="tutorial" role="dialog" aria-modal="true" aria-labelledby="tut-title" hidden><div class="tut-card">
+      <div class="tut-top"><div class="eyebrow" id="tut-eyebrow">TUTORIAL</div><button id="tut-skip" class="text-button tut-skip">Skip tutorial ✕</button></div>
+      <h2 id="tut-title"></h2>
+      <div id="tut-stage" class="tut-stage" data-step="0" aria-hidden="true">
+        <div id="tut-note" class="tut-note"></div><div id="tut-spark" class="tut-spark">✸</div><div id="tut-flower" class="tut-flower">✿</div>
+        <div id="tut-packet" class="tut-packet"><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}">✦<small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
+        <div class="tut-table" data-for="2"><div data-row="0"><span>≠ =</span><b>flip Q1</b></div><div data-row="1"><span>≠ ≠</span><b>flip Q2</b></div><div data-row="2"><span>= ≠</span><b>flip Q3</b></div><div data-row="3"><span>= =</span><b>wait</b></div></div>
+        <div class="tut-hit" data-for="3 4"><span>RECOVER HERE</span></div>
+        <div class="tut-keys" data-for="3 4">${['D', 'F', 'J'].map((key, i) => `<div class="tut-key" data-key="${i}">${key}</div>`).join('')}</div>
+      </div>
+      <p id="tut-text" class="tut-text" aria-live="polite"></p>
+      <div class="tut-nav"><div id="tut-dots" class="tut-dots"></div><button id="tut-replay" class="subtle">↻ Replay</button><button id="tut-back" class="subtle">Back</button><button id="tut-next" class="primary">Next ↗</button></div>
+      <label class="check-field tut-remember"><input id="tut-never" type="checkbox"> Don’t show this on startup</label>
+    </div></div>
     <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-body"></div><div id="dialog-actions"></div></dialog>
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
@@ -1486,33 +1533,111 @@ async function startGame(root, engine) {
     $('close-tune').onclick = closeDialog;
   }
   populateMaps(); refreshMap();
-  // Level select: each level pairs a built-in map with a qubit count. It appears first, before anything can be played.
-  const LEVELS = [
-    { name: 'Seedling', icon: '✿', map: 'morning-dew', qubits: 3, blurb: 'Meet the lamps. One flip at a time, slow tempo.' },
-    { name: 'Sprout', icon: '❀', map: 'lantern-waltz', qubits: 4, blurb: 'A fourth qubit and a steadier beat.' },
-    { name: 'Sapling', icon: '❁', map: 'lantern-waltz', qubits: 5, blurb: 'Two flips can strike at once. Read carefully.' },
-    { name: 'Bloom', icon: '✺', map: 'firefly-rush', qubits: 7, blurb: 'Seven qubits, up to three flips, fast tempo.' },
-  ];
-  let levelName = null;
-  function levelDetail(level) {
-    const flips = Math.floor((level.qubits - 1) / 2), bpm = getMap(level.map, level.qubits).bpm;
-    return `${level.qubits} QUBITS · UP TO ${flips} FLIP${flips > 1 ? 'S' : ''} · ${bpm} BPM`;
+  $('map-select').onchange = refreshMap; $('qubits').onchange = refreshMap; $('play').onclick = () => start(false); $('practice').onclick = () => start(true);
+  // Animated tutorial: a short, self-playing walkthrough shown before the menu can be used.
+  function initTutorial() {
+    const overlay = $('tutorial'), stage = $('tut-stage'), packet = $('tut-packet'), note = $('tut-note'), spark = $('tut-spark'), flower = $('tut-flower');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const view = { q: [0, 0, 0], hidden: [false, false, false], lamps: [0, 0], lampsHidden: false };
+    const PREF = 'qubit-tempo-skip-tutorial';
+    const stored = () => { try { return localStorage.getItem(PREF) === '1'; } catch { return false; } };
+    const store = on => { try { on ? localStorage.setItem(PREF, '1') : localStorage.removeItem(PREF); } catch {} };
+    let step = 0, timers = [], opener = null;
+    const say = text => { note.textContent = text; };
+    const paint = () => {
+      stage.querySelectorAll('[data-q]').forEach(el => { const i = Number(el.dataset.q); el.dataset.flip = String(view.q[i]); el.dataset.hidden = view.hidden[i] ? '1' : '0'; });
+      stage.querySelectorAll('[data-l]').forEach(el => { const i = Number(el.dataset.l); el.textContent = view.lamps[i] ? '≠' : '='; el.dataset.alert = String(view.lamps[i]); el.dataset.hidden = view.lampsHidden ? '1' : '0'; });
+    };
+    // Lamps show whether neighbours differ. They update a beat after the qubits so the cause comes before the effect.
+    const sync = () => { view.lamps = [view.q[0] ^ view.q[1], view.q[1] ^ view.q[2]]; paint(); };
+    const pop = selector => stage.querySelectorAll(selector).forEach(el => { el.classList.remove('tut-pop'); void el.offsetWidth; el.classList.add('tut-pop'); });
+    const setTop = (y, animate, ms = 1500) => { packet.style.transition = 'none'; void packet.offsetWidth; if (animate && !reduce) packet.style.transition = `top ${ms}ms linear`; packet.style.top = `${y}px`; };
+    const press = i => { const key = stage.querySelector(`[data-key="${i}"]`); key.classList.add('pressed'); setTimeout(() => key.classList.remove('pressed'), 240); };
+    const reset = () => {
+      timers.forEach(clearTimeout); timers = [];
+      Object.assign(view, { q: [0, 0, 0], hidden: [false, false, false], lamps: [0, 0], lampsHidden: false });
+      setTop(34, false); spark.style.transition = 'none'; spark.style.opacity = '0'; spark.style.top = '-24px'; flower.classList.remove('go');
+      stage.querySelectorAll('.tut-key').forEach(key => key.classList.remove('pressed'));
+      stage.querySelectorAll('[data-row]').forEach(row => { row.dataset.active = '0'; });
+      note.textContent = ''; paint();
+    };
+    const STEPS = [
+      { title: 'One memory, three qubits', text: 'A qubit is fragile: noise can flip it without warning. So we spread one memory across three qubits that all agree. The small lamps between neighbours read = while they match.',
+        run({ at }) {
+          view.hidden = [true, false, true]; view.lampsHidden = true; paint(); say('One qubit holds the memory…');
+          at(900, () => { view.hidden = [false, false, false]; paint(); pop('[data-q="0"],[data-q="2"]'); say('…copied onto two more qubits.'); });
+          at(2200, () => { view.lampsHidden = false; sync(); pop('[data-l]'); say('Every neighbour agrees, so both lamps read =  ✓'); });
+        } },
+      { title: 'Noise strikes', text: 'Now a stray error flips one qubit. The lamps never look at the memory itself. They only compare neighbours: ≠ means those two qubits disagree. That is how errors are found without reading the memory.',
+        run({ at }) {
+          sync(); say('Everything agrees…');
+          at(900, () => { spark.style.transition = 'top .55s ease-in, opacity .15s'; spark.style.opacity = '1'; spark.style.top = '60px'; say('…until noise strikes Q2.'); });
+          at(1500, () => { spark.style.opacity = '0'; view.q[1] = 1; paint(); pop('[data-q="1"]'); say('Q2 flips.'); });
+          at(2300, () => { sync(); pop('[data-l]'); say('Both lamps beside Q2 now read ≠ : “these two disagree”.'); });
+        } },
+      { title: 'Read the lamps', text: 'Each pattern of lamps points to one culprit. A lone ≠ on the left means Q1, two ≠ in a row means Q2, a lone ≠ on the right means Q3, and all = means there is nothing to fix.',
+        run({ at }) {
+          const cases = [[1, 0, 0, 0, 'Only Q1 disagrees → flip Q1'], [0, 1, 0, 1, 'Q2 disagrees with both neighbours → flip Q2'], [0, 0, 1, 2, 'Only Q3 disagrees → flip Q3'], [0, 0, 0, 3, 'Everyone agrees → nothing to fix, wait.']];
+          const show = c => { view.q = [c[0], c[1], c[2]]; sync(); pop('[data-l]'); stage.querySelectorAll('[data-row]').forEach(row => { row.dataset.active = row.dataset.row === String(c[3]) ? '1' : '0'; }); say(c[4]); };
+          if (reduce) { show(cases[1]); return; }
+          const loop = () => { cases.forEach((c, i) => at(i * 2300, () => show(c))); at(cases.length * 2300, loop); };
+          loop();
+        } },
+      { title: 'Fix it on the beat', text: 'In the game each packet falls toward the recovery line. Decide which qubit is faulty from the lamps, then press its key as the packet arrives. The keys never reveal the answer, and a wrong flip adds a new error.',
+        run({ at }) {
+          view.q = [0, 1, 0]; sync(); say('Lamps read ≠ ≠ → Q2 is the odd one out.');
+          at(1100, () => { setTop(108, true, 1500); say('Press the key as the packet reaches the line.'); });
+          at(2900, () => {
+            press(1); view.q[1] = 0; sync(); pop('[data-q="1"]'); pop('[data-l]'); if (!reduce) flower.classList.add('go');
+            say('Flipped Q2 back on the beat → Perfect ✿ Every lamp reads = again.');
+          });
+        } },
+      { title: 'Know the limits', text: 'Three qubits can repair one flip. Five repair two, and seven repair three. Past that, the lamps can be fooled, as you can see here. This code also only watches bit flips, not phase errors. Use untimed practice to learn at your own pace.',
+        run({ at }) {
+          setTop(108, false); sync(); say('Suppose two flips strike at once: Q1 and Q3.');
+          at(1000, () => { view.q = [1, 0, 1]; paint(); pop('[data-q="0"],[data-q="2"]'); });
+          at(1900, () => { sync(); pop('[data-l]'); say('The lamps look exactly like a single flip on Q2.'); });
+          at(3600, () => { press(1); view.q[1] = 1; sync(); pop('[data-q="1"]'); say('The “fix” backfires: all three are flipped and every lamp reads =.'); });
+        } },
+    ];
+    const last = STEPS.length - 1, dots = $('tut-dots');
+    dots.innerHTML = STEPS.map((_, i) => `<button class="tut-dot" data-dot="${i}" aria-label="Go to step ${i + 1}"></button>`).join('');
+    function goTo(n) {
+      step = Math.max(0, Math.min(last, n)); reset();
+      const current = STEPS[step];
+      stage.dataset.step = String(step); $('tut-eyebrow').textContent = `TUTORIAL · ${step + 1} OF ${STEPS.length}`;
+      $('tut-title').textContent = current.title; $('tut-text').textContent = current.text;
+      dots.querySelectorAll('[data-dot]').forEach(dot => { if (Number(dot.dataset.dot) === step) dot.setAttribute('aria-current', 'step'); else dot.removeAttribute('aria-current'); });
+      $('tut-back').disabled = step === 0; $('tut-next').textContent = step === last ? 'Start playing ↗' : 'Next ↗';
+      current.run({ at: reduce ? (ms, fn) => fn() : (ms, fn) => timers.push(setTimeout(fn, ms)) });
+    }
+    function openTutorial() {
+      opener = document.activeElement; $('tut-never').checked = stored(); overlay.hidden = false; goTo(0); $('tut-next').focus();
+    }
+    function closeTutorial() {
+      timers.forEach(clearTimeout); timers = []; overlay.hidden = true; store($('tut-never').checked);
+      (opener && opener !== document.body && opener.isConnected ? opener : $('map-select')).focus();
+    }
+    $('tut-next').onclick = () => { if (step === last) closeTutorial(); else goTo(step + 1); };
+    $('tut-back').onclick = () => goTo(step - 1);
+    $('tut-replay').onclick = () => goTo(step);
+    $('tut-skip').onclick = closeTutorial;
+    dots.addEventListener('click', e => { const dot = e.target.closest('[data-dot]'); if (dot) goTo(Number(dot.dataset.dot)); });
+    $('replay-tutorial').onclick = openTutorial;
+    overlay.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTutorial(); }
+      else if (e.key === 'ArrowRight' && !/INPUT/.test(e.target.tagName)) { e.preventDefault(); $('tut-next').click(); }
+      else if (e.key === 'ArrowLeft' && !/INPUT/.test(e.target.tagName)) { e.preventDefault(); if (step > 0) goTo(step - 1); }
+      else if (e.key === 'Tab') {
+        const focusable = [...overlay.querySelectorAll('button:not([disabled]),input')];
+        const first = focusable[0], end = focusable.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); end.focus(); }
+        else if (!e.shiftKey && document.activeElement === end) { e.preventDefault(); first.focus(); }
+      }
+    });
+    if (!stored()) openTutorial();
   }
-  function setLevelLabel() { $('levels').textContent = levelName ? `Level: ${levelName} · change` : 'Level: custom · change'; }
-  function chooseLevel(level) {
-    $('map-select').value = level.map; $('qubits').value = String(level.qubits); levelName = level.name;
-    refreshMap(); setLevelLabel(); closeDialog(); menuStatus(`${level.name} selected. Press play when you are ready.`);
-    $('play').focus();
-  }
-  function showLevels() {
-    if (!['menu'].includes(mode)) return;
-    showDialog(`<div class="eyebrow">BEFORE WE BEGIN</div><h2 id="dialog-title">Choose your level.<em>You can change it any time before playing.</em></h2><div class="level-grid">${LEVELS.map((level, i) => `<button class="level-card" data-level="${i}"><span class="level-icon" aria-hidden="true">${level.icon}</span><b>${html(level.name)}</b><small>${levelDetail(level)}</small><em>${html(level.blurb)}</em></button>`).join('')}</div>`, '<button id="level-skip" class="subtle">Decide later</button>');
-    root.querySelectorAll('[data-level]').forEach(button => { button.onclick = () => chooseLevel(LEVELS[Number(button.dataset.level)]); });
-    $('level-skip').onclick = () => { closeDialog(); setLevelLabel(); };
-  }
-  function customLevel() { levelName = null; setLevelLabel(); refreshMap(); }
-  $('map-select').onchange = customLevel; $('qubits').onchange = customLevel; $('play').onclick = () => start(false); $('practice').onclick = () => start(true);
-  $('levels').onclick = showLevels; setLevelLabel(); showLevels();
+  initTutorial();
   $('pause').onclick = pauseGame; $('help').onclick = guide; $('settings').onclick = tuning;
   root.querySelector('.brand').onclick = e => { e.preventDefault(); if (['playing', 'practice'].includes(mode)) pauseGame(); else toMenu(); };
   $('sound').onclick = () => { music.setMuted(!music.muted); $('sound').setAttribute('aria-pressed', String(music.muted)); $('sound').setAttribute('aria-label', music.muted ? 'Unmute music' : 'Mute music'); $('sound').textContent = music.muted ? '♪̸' : '♫'; };
