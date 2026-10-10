@@ -223,3 +223,6 @@ __marimo__/
 .venv/
 .DS_Store
 
+
+# Local preview tooling
+node_modules/
