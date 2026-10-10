@@ -1,3 +1,4 @@
+import './content.js';
 import { startGame } from './game.js';
 import { keyOf } from './model.js';
 const engine = {

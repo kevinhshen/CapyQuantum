@@ -1,37 +1,918 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qubit Tempo · CapyQuantum</title><style>:root{color-scheme:dark;--bg:#101827;--panel:#172233;--line:#344457;--ink:#f4f5f7;--muted:#afbacb;--mint:#78efc3;--violet:#c4b2fc;--amber:#ffd08a;--red:#ffacae;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#21364a 0,transparent 48%),var(--bg);color:var(--ink);font-size:15px;line-height:1.55}button,input,a{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}button,a,input,summary{outline-offset:5px}:focus-visible{outline:3px solid var(--mint)}button{border:0}a{color:inherit;text-decoration:none}[hidden]{display:none!important}.shell{max-width:1280px;margin:auto;padding:30px 42px 24px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--line)}.brand{display:flex;gap:12px;align-items:center;font-weight:800;font-size:14px;letter-spacing:.13em}.brand svg{width:48px;height:48px}.brand small{display:block;font-size:9px;letter-spacing:.17em;color:var(--muted);font-weight:500;margin-top:4px}.toptools{display:flex;align-items:center;gap:10px}.edition{font-size:10px;letter-spacing:.15em;margin-right:12px;color:var(--mint)}.tool{background:#1c2b3c;color:var(--ink);border:1px solid var(--line);border-radius:9px;min-height:44px;padding:8px 13px;font-size:12px}.hero{display:grid;grid-template-columns:1.6fr 1fr;gap:60px;padding:40px 0 34px;align-items:center}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--mint);display:flex;align-items:center;gap:9px}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--mint)}h1{font-size:clamp(38px,4.5vw,61px);font-weight:750;letter-spacing:-.05em;line-height:1.06;margin:16px 0}h1 span{color:var(--mint)}.intro{color:var(--muted);font-size:15px;line-height:1.7;margin:16px 0 22px}.launch{display:flex;gap:12px;flex-wrap:wrap}.primary,.secondary{display:inline-flex;align-items:center;justify-content:space-between;gap:28px;border-radius:8px;font-weight:700;font-size:13px;min-height:48px;padding:13px 20px}.primary{color:#112a25;background:var(--mint)}.primary:hover:not(:disabled){background:#a3f9d9}.secondary{background:#243448;color:var(--ink);border:1px solid #4c627b}.secondary:hover:not(:disabled){background:#30425a}.options{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:18px;align-items:center}.options label{display:flex;gap:7px;align-items:center;cursor:pointer}.options input{accent-color:var(--mint);width:16px;height:16px}.mission{border-left:1px solid var(--line);padding:15px 0 15px 32px}.mission-top{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.15em}.mission-top span{color:var(--mint)}.mission p{font-size:27px;line-height:1.3;letter-spacing:-.02em;color:var(--muted);margin:20px 0}.mission strong{font-weight:600;color:var(--ink)}.mission-flow{display:flex;align-items:center;justify-content:space-between;gap:12px}.mission-flow span{font-size:9px;letter-spacing:.12em;color:var(--mint)}.mission-flow b{display:block;font-size:12px;color:var(--ink);letter-spacing:0;font-weight:500}.mission-flow i{color:#8292a7;font-style:normal}.mission small{display:block;color:var(--muted);font-size:11px;margin-top:22px}.console{border:1px solid #4b5c72;background:#172233;border-radius:15px;overflow:hidden;box-shadow:0 24px 60px #0003}.console-top{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--line);background:#1d2b3e}.console-top strong{font-size:10px;letter-spacing:.13em}.live-mark{color:var(--mint);font-size:12px;margin-right:8px}#tempo{margin-left:20px;font-size:10px;color:var(--muted);border-left:1px solid #52657d;padding-left:20px}.console-top .tool{min-height:32px}.stats{display:grid;grid-template-columns:repeat(4,1fr);padding:18px 24px;border-bottom:1px solid var(--line)}.stats>div{padding:0 24px;border-right:1px solid var(--line)}.stats>div:first-child{padding-left:0}.stats>div:last-child{border:0}.stats span{font-size:9px;letter-spacing:.12em;color:var(--muted);display:block}.stats strong{font-size:25px;letter-spacing:.03em;font-family:ui-monospace,SFMono-Regular,monospace;font-weight:550;display:block;margin-top:4px}.stats strong span{display:inline;font-size:18px}.play-layout{display:grid;grid-template-columns:1fr 270px}.play-main{padding:18px 22px 20px;min-width:0}.track-header{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:var(--muted);padding:0 0 14px}#countdown{color:var(--mint);font-size:9px;white-space:nowrap}.track{position:relative;background:linear-gradient(90deg,#142a2c88,transparent 40%),#0e1725;border:1px solid var(--line);border-radius:8px;height:260px;overflow:hidden}.lane{position:absolute;left:0;right:0;border-top:1px solid #354253;height:1px}.lane-one{top:25%}.lane-two{top:50%}.lane-three{top:75%}.lane span{position:absolute;left:12px;top:-10px;color:var(--muted);font-size:11px;background:#0e1725;padding:0 5px;letter-spacing:.1em}.hitline{position:absolute;left:18%;top:30px;bottom:25px;width:2px;background:var(--mint);box-shadow:0 0 22px #78efc355}.hitline span{position:absolute;bottom:-20px;left:-25px;font-size:8px;letter-spacing:.1em;color:var(--mint);white-space:nowrap}.packet{position:absolute;top:0;height:100%;width:64px;transform:translateX(-50%);border-left:1px solid #93a7c242;border-right:1px solid #93a7c242;background:#22304466;opacity:.65}.packet.current{opacity:1;background:#34485f77;border-color:#8ba5bd55}.packet-id{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:9px;color:var(--muted)}.coin{position:absolute;left:50%;transform:translate(-50%,-50%);width:28px;height:28px;display:grid;place-items:center;font-size:22px;border:2px solid #a9bdd2;background:#172233;border-radius:50%;color:#a9bdd2}.c1{top:25%;border-color:var(--mint)}.c2{top:50%;border-color:var(--violet)}.c3{top:75%;border-color:var(--amber)}.signal{position:absolute;left:50%;transform:translate(-50%,-50%);width:32px;min-height:25px;line-height:23px;text-align:center;border:1px solid #586f83;border-radius:5px;font-size:17px;font-weight:700;background:#1d2b3e}.s1{top:37.5%}.s2{top:62.5%}.signal.different{color:#172233;background:var(--amber);border-color:var(--amber)}.signal.same{color:#bacada}.track-overlay{position:absolute;inset:0;display:grid;place-items:center;background:#101827dd;font-size:16px;letter-spacing:.16em;z-index:3}.progress{height:2px;background:#2c3b50;margin:12px 0 15px}#progress-fill{height:100%;width:0;background:var(--mint)}.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.key{display:flex;align-items:center;justify-content:center;gap:14px;background:#203145;color:var(--ink);border:1px solid #4a637d;border-radius:9px;min-height:58px}.key:hover:not(:disabled){background:#30465e}.key kbd{font-size:18px;line-height:1.2;border:1px solid #69819a;border-radius:5px;min-width:29px;padding:3px 7px}.key span{font-size:12px}.key-one{border-bottom:3px solid var(--mint)}.key-two{border-bottom:3px solid var(--violet)}.key-three{border-bottom:3px solid var(--amber)}.key-one kbd{color:var(--mint)}.key-two kbd{color:var(--violet)}.key-three kbd{color:var(--amber)}.decoder{background:#1c293a;padding:20px;border-left:1px solid var(--line)}.clues{display:flex;flex-direction:column;gap:8px;margin:14px 0 20px}.clues>div{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid #52647a;border-radius:5px}.clues span{font-size:11px;color:var(--muted)}.clues b{font-size:10px}.clues .different b{color:var(--amber)}.clues .same b{color:#d4dfec}.decoder-label{font-size:8px;letter-spacing:.15em;color:var(--muted);margin-bottom:8px}table{border-collapse:collapse;width:100%;font-size:11px}th{text-align:left;color:var(--muted);font-size:9px;font-weight:500;padding:5px 3px}td{border-top:1px solid #3c4b5e;padding:7px 3px}kbd{font-family:ui-monospace,monospace}.decoder kbd{color:var(--mint);font-weight:700}.quiet{font-size:11px;color:var(--muted);line-height:1.6}.text-button{min-height:44px;color:var(--mint);background:transparent;padding:0;text-align:left;font-size:11px;text-decoration:underline;text-underline-offset:5px}.feedback-strip{padding:16px 22px;display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);background:#1d2b3e;min-height:70px}#feedback{flex:1;font-size:12px;line-height:1.5}#feedback.success{color:var(--mint)}#feedback.error{color:var(--red)}.timing{font-size:9px;color:var(--muted);letter-spacing:.08em;white-space:nowrap}.compact{font-size:11px;min-height:38px;padding:8px 12px;gap:10px}.bottom-row{display:flex;align-items:center;gap:30px;justify-content:space-between;padding:22px 0}.bottom-row p{color:var(--muted);font-size:11px;max-width:620px;margin:0}.bottom-row strong{color:var(--ink)}.source{color:var(--mint);font-size:10px;text-align:right;max-width:260px}footer{border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;gap:20px;font-size:9px;color:var(--muted)}.report{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;margin-top:24px}h2{font-size:27px;line-height:1.2;letter-spacing:-.03em;margin:12px 0}.report-head p{font-size:13px;color:var(--muted)}.report-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:24px 0}.report-stats strong{display:block;font-size:26px;color:var(--mint)}.report-stats span{font-size:11px;color:var(--muted)}.report .launch{margin-top:20px}details{margin:18px 0}summary{cursor:pointer;font-size:12px;color:var(--mint);min-height:30px}.table-scroll{overflow-x:auto}.loading{padding:40px}dialog{width:min(720px,calc(100% - 32px));max-height:90vh;overflow:auto;border:1px solid #5e7891;border-radius:16px;background:#172233;color:var(--ink);padding:30px}dialog::backdrop{background:#08101cdd}dialog p{font-size:14px;color:#d3dce9}dialog h3{font-size:22px;margin:8px 0}.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}.lab-grid article{border:1px solid var(--line);border-radius:8px;padding:18px}.lab-grid p{font-size:12px}.lab-count{font-size:10px;letter-spacing:.12em;color:var(--muted)}.lab-value{display:block;font-size:34px;color:var(--mint)}.lab-value.warning{color:var(--amber)}.lab-grid small{font-size:10px;color:var(--muted)}.formula{padding:18px;background:#101827;border:1px solid var(--line);border-radius:8px;font-family:ui-monospace,monospace;text-align:center;color:var(--mint);font-size:15px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-@media(min-width:1450px){.shell{padding-top:40px}.hero{padding-top:50px;padding-bottom:45px}.track{height:290px}}
-@media(max-width:950px){.shell{padding:22px}.hero{gap:25px}.mission{padding-left:20px}.play-layout{grid-template-columns:1fr 225px}.decoder{padding:16px}.key{gap:9px}.key span{font-size:11px}.edition{display:none}.stats>div{padding:0 15px}}
-@media(max-width:700px){.shell{padding:16px 12px}.topbar{gap:10px}.brand{font-size:11px;gap:7px}.brand svg{width:36px;height:36px}.brand small{font-size:7px}.toptools{gap:5px}.tool{font-size:10px;padding:8px}.hero{grid-template-columns:1fr;padding:28px 8px 24px}.mission{display:none}h1{font-size:43px}.intro{font-size:13px}.launch{gap:8px}.primary,.secondary{font-size:12px;padding:12px 15px;gap:14px}.options{gap:12px;font-size:10px}.console-top{padding:10px 12px}.console-top strong{font-size:8px}#tempo{margin-left:9px;padding-left:9px}.stats{padding:14px 12px}.stats>div{padding:0 8px}.stats span{font-size:7px;letter-spacing:.06em}.stats strong{font-size:19px}.play-layout{grid-template-columns:1fr}.play-main{padding:14px 12px}.track{height:230px}.track-header{font-size:8px}#countdown{font-size:8px}.key{gap:9px;min-height:54px}.decoder{border-left:0;border-top:1px solid var(--line);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}.decoder .eyebrow{grid-column:1}.clues{grid-column:1;grid-row:2 / 4;margin:0}.decoder-label{grid-column:2;grid-row:1}.decoder table{grid-column:2;grid-row:2 / 5}.decoder .quiet{grid-column:1;margin:3px 0}.decoder .text-button{grid-column:1 / 3}.feedback-strip{flex-wrap:wrap;padding:14px}.feedback-strip #feedback{flex-basis:100%}.timing{margin-left:auto}.bottom-row{flex-direction:column;align-items:flex-start;gap:12px}.source{text-align:left}footer{flex-direction:column;gap:5px;font-size:9px}.report{padding:20px}.report-stats{grid-template-columns:1fr 1fr}h2{font-size:24px}.lab-grid{grid-template-columns:1fr}dialog{padding:22px}.formula{font-size:12px}.packet{width:50px}.coin{width:24px;height:24px}.signal{width:28px;font-size:15px}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.hitline{box-shadow:none}}
-
-@media(max-width:700px){#round{font-size:16px;white-space:nowrap}}
-</style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Standalone rhythm rules and five-qubit circuit model. Mirrors quantum/rhythm.py.
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qubit Tempo · CapyQuantum</title><style>:root {
+  font-family:Georgia,'Times New Roman',serif;
+  color:#34483b;
+  background:#b7c99a;
+  font-synthesis:none;
+  --cream:#fff9e9;
+  --ink:#34483b;
+  --muted:#758573;
+  --green:#476b47;
+  --line:#cbd5ac;
+  --peach:#e9ad85
+}
+* {
+  box-sizing:border-box
+}
+body {
+  margin:0
+}
+button,select,input {
+  font:inherit;
+  color:inherit
+}
+button {
+  cursor:pointer
+}
+button:disabled {
+  cursor:wait;
+  opacity:.5
+}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible {
+  outline:3px solid #476b47;
+  outline-offset:4px
+}
+button {
+  border:1px solid var(--line);
+  background:var(--cream);
+  border-radius:12px;
+  transition:background .15s,transform .15s
+}
+button:hover {
+  background:#f2edda
+}
+button:active {
+  transform:translateY(1px)
+}
+[hidden] {
+  display:none!important
+}
+.garden-game {
+  height:100dvh;
+  min-height:630px;
+  overflow:hidden;
+  position:relative
+}
+#garden {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none
+}
+.hud {
+  position:absolute;
+  top:28px;
+  left:38px;
+  right:38px;
+  display:flex;
+  gap:26px;
+  align-items:center;
+  z-index:5
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:var(--ink);
+  font-size:29px;
+  line-height:1
+}
+.brand em {
+  font-weight:normal
+}
+.brand-flower {
+  font-size:39px;
+  color:#587846
+}
+.brand small {
+  display:block;
+  font:8px/1.5 ui-monospace,monospace;
+  letter-spacing:1.2px;
+  margin-top:8px
+}
+.song-label {
+  margin-left:auto;
+  display:flex;
+  flex-direction:column;
+  text-align:right;
+  gap:5px
+}
+.song-label b {
+  font-size:17px;
+  font-weight:normal
+}
+.song-label span {
+  font:10px ui-monospace,monospace;
+  color:#536b48
+}
+.score-pill {
+  background:#fff9e9cc;
+  border:1px solid #fcf4d6;
+  border-radius:14px;
+  padding:10px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  box-shadow:0 3px 0 #49652d15
+}
+.score-pill b {
+  font:21px ui-monospace,monospace;
+  letter-spacing:1px
+}
+.score-pill small {
+  font:8px ui-monospace,monospace;
+  letter-spacing:1.8px
+}
+.hud nav {
+  display:flex;
+  gap:7px
+}
+.hud nav button {
+  width:36px;
+  height:36px;
+  font:18px Georgia;
+  background:#fff9e9b8
+}
+.song-progress {
+  position:absolute;
+  left:38px;
+  right:38px;
+  top:98px;
+  height:3px;
+  background:#66864b25;
+  z-index:4;
+  border-radius:4px
+}
+.song-progress i {
+  display:block;
+  width:0;
+  height:100%;
+  background:#fff9e9;
+  border-radius:4px
+}
+.deck {
+  --lanes:3;
+  --deck-width:405px;
+  position:absolute;
+  width:min(var(--deck-width),55vw);
+  top:127px;
+  bottom:60px;
+  left:calc(50% - 200px);
+  transform:translateX(-50%);
+  transition:left .5s,width .3s;
+  z-index:2
+}
+.highway {
+  position:absolute;
+  inset:0 0 30px;
+  background:linear-gradient(180deg,#fff9e928,#fff9e978 55%,#fdf6e7dd);
+  border:1px solid #fff9e990;
+  border-top:0;
+  border-radius:22px 22px 34px 34px;
+  box-shadow:0 24px 60px #46623625,0 6px 0 #5d733019;
+  overflow:hidden
+}
+.lane-grid {
+  display:grid;
+  grid-template-columns:repeat(var(--lanes),1fr);
+  position:absolute;
+  inset:0
+}
+.lane {
+  border-right:1px solid #70885e22;
+  position:relative
+}
+.lane:last-child {
+  border:0
+}
+.lane span {
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  font:9px ui-monospace,monospace;
+  letter-spacing:2px;
+  color:#718365
+}
+.highway-grain {
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 50px,#fff9e912 51px);
+  pointer-events:none
+}
+.hit-line {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:92px;
+  height:3px;
+  background:#536f3b;
+  box-shadow:0 0 18px #fff9e9;
+  z-index:2
+}
+.hit-line span {
+  position:absolute;
+  top:7px;
+  left:8px;
+  font:7px ui-monospace,monospace;
+  letter-spacing:1.8px;
+  color:#81906e
+}
+.receptors {
+  position:absolute;
+  bottom:20px;
+  left:0;
+  right:0;
+  display:grid;
+  grid-template-columns:repeat(var(--lanes),1fr);
+  gap:6px;
+  padding:0 10px;
+  z-index:4
+}
+.receptors button {
+  height:55px;
+  border:1px solid #b8c697;
+  background:#fff9e9c9;
+  border-radius:15px;
+  box-shadow:0 4px 0 #64774525
+}
+.receptors span {
+  font:18px ui-monospace,monospace
+}
+.receptors small {
+  display:block;
+  font:7px ui-monospace,monospace;
+  letter-spacing:1px;
+  margin-top:4px;
+  color:#7d8e6b
+}
+.receptors button.pressed {
+  background:#e9ad85;
+  box-shadow:0 0 22px #e9ad8577;
+  transform:translateY(3px)
+}
+.notes {
+  position:absolute;
+  inset:0;
+  pointer-events:none
+}
+.falling-note {
+  position:absolute;
+  left:calc(var(--lane)*100%/var(--lanes) + 8px);
+  width:calc(100%/var(--lanes) - 16px);
+  height:24px;
+  margin-top:-12px;
+  background:#e9ad85;
+  border:1px solid #faf0ce;
+  border-radius:10px;
+  box-shadow:0 3px 0 #986b4b44,0 0 20px #e9ad8533;
+  text-align:center;
+  color:#fff9e9;
+  will-change:transform
+}
+.falling-note span {
+  font-size:20px;
+  line-height:21px
+}
+.falling-note.chord-note {
+  background:#98b17e;
+  box-shadow:0 3px 0 #536f3b55;
+  border-color:#e6ecc7
+}
+.falling-note small {
+  position:absolute;
+  top:1px;
+  right:5px;
+  font:9px ui-monospace,monospace;
+  color:#34483b
+}
+.preview-note {
+  opacity:.85
+}
+.judgement {
+  position:absolute;
+  top:52%;
+  width:100%;
+  text-align:center;
+  font-style:italic;
+  font-size:27px;
+  color:#476b47;
+  pointer-events:none;
+  z-index:5
+}
+.judgement[data-kind=stray] {
+  color:#986b4b
+}
+.combo-display {
+  position:absolute;
+  top:63%;
+  width:100%;
+  text-align:center;
+  pointer-events:none
+}
+.combo-display b {
+  display:block;
+  font:52px Georgia;
+  color:#536d3e55
+}
+.combo-display span {
+  font:8px ui-monospace,monospace;
+  letter-spacing:2px;
+  color:#6f845960
+}
+.count-in {
+  position:absolute;
+  top:34%;
+  width:100%;
+  text-align:center;
+  font:90px Georgia;
+  color:#476b47;
+  pointer-events:none
+}
+.deck-caption {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font:9px ui-monospace,monospace;
+  color:#4b633e
+}
+.map-letter {
+  position:absolute;
+  z-index:3;
+  left:calc(50% + 66px);
+  top:140px;
+  width:325px;
+  background:var(--cream);
+  border:1px solid #e8e1c6;
+  box-shadow:0 14px 45px #49652d20,0 5px 0 #6e7d4222;
+  border-radius:4px 22px 22px 22px;
+  padding:28px 28px 20px;
+  transform:rotate(1deg)
+}
+.eyebrow {
+  font:8px ui-monospace,monospace;
+  letter-spacing:1.8px;
+  color:#798666;
+  margin-bottom:18px
+}
+.letter-stamp {
+  position:absolute;
+  right:23px;
+  top:30px;
+  border:1px dashed #bec997;
+  border-radius:8px;
+  padding:4px 9px;
+  font:27px Georgia;
+  color:#9ea67c;
+  transform:rotate(-9deg)
+}
+h1 {
+  font-size:38px;
+  line-height:1.05;
+  letter-spacing:-1.5px;
+  font-weight:normal;
+  margin:0 0 15px
+}
+h1 em {
+  color:#658252
+}
+.map-letter p {
+  font-size:12px;
+  line-height:1.6;
+  color:#758573;
+  margin:0 0 20px
+}
+.field {
+  display:block;
+  font:8px ui-monospace,monospace;
+  letter-spacing:1.5px;
+  color:#758573;
+  margin-top:14px
+}
+.field select {
+  display:block;
+  width:100%;
+  margin-top:7px;
+  border:0;
+  border-bottom:1px solid #cbd5ac;
+  background:transparent;
+  padding:6px 0 9px;
+  font:14px Georgia;
+  letter-spacing:0;
+  border-radius:0
+}
+.map-info {
+  display:flex;
+  justify-content:space-between;
+  margin:14px 0 19px;
+  font:9px ui-monospace,monospace;
+  color:#758573
+}
+.primary {
+  background:#476b47;
+  color:#fff9e9;
+  border-color:#476b47;
+  padding:13px 17px;
+  box-shadow:0 3px 0 #344d3033;
+  text-align:left;
+  font-size:14px
+}
+.primary:hover {
+  background:#3b5b3b
+}
+.map-letter .primary {
+  width:100%;
+  display:flex;
+  justify-content:space-between
+}
+.text-button {
+  background:transparent;
+  border:0;
+  font:10px Georgia;
+  color:#758573;
+  padding:11px 0;
+  display:block;
+  width:100%;
+  text-align:center;
+  box-shadow:none
+}
+.text-button:hover {
+  background:transparent;
+  color:#476b47;
+  text-decoration:underline
+}
+.author-actions {
+  display:flex;
+  gap:8px;
+  margin:8px 0
+}
+.author-actions button {
+  flex:1;
+  padding:7px 0;
+  font:10px ui-monospace,monospace;
+  border-radius:8px
+}
+.music-name {
+  font:8px ui-monospace,monospace;
+  display:block;
+  color:#758573;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.map-letter .runtime-note {
+  font:8px/1.5 ui-monospace,monospace;
+  margin:13px 0 0;
+  text-align:center;
+  color:#7c896a
+}
+.bottom-note {
+  position:absolute;
+  bottom:19px;
+  left:38px;
+  right:38px;
+  display:flex;
+  justify-content:space-between;
+  font:8px ui-monospace,monospace;
+  letter-spacing:.3px;
+  color:#526c42;
+  z-index:4
+}
+.practice-hint {
+  position:absolute;
+  left:50%;
+  top:112px;
+  transform:translateX(-50%);
+  z-index:6;
+  background:#fff9e9ed;
+  border:1px solid #cbd5ac;
+  border-radius:16px;
+  padding:12px 20px;
+  max-width:80vw;
+  box-shadow:0 5px 25px #49652d20;
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+.practice-hint>span {
+  color:#e9ad85;
+  font-size:28px
+}
+.practice-hint p {
+  font-size:12px;
+  line-height:1.5;
+  max-width:340px;
+  margin:0
+}
+.practice-hint button {
+  padding:8px;
+  white-space:nowrap;
+  font-size:11px
+}
+.garden-game[data-state=playing] .deck,.garden-game[data-state=practice] .deck,.garden-game[data-state=result] .deck {
+  left:50%;
+  width:min(var(--deck-width),76vw)
+}
+.garden-game:not([data-state=menu]) .map-letter {
+  display:none
+}
+.garden-game[data-state=menu] .score-pill {
+  opacity:.6
+}
+.garden-game[data-state=result] .combo-display {
+  opacity:.3
+}
+dialog {
+  max-width:590px;
+  width:calc(100% - 34px);
+  max-height:90dvh;
+  overflow:auto;
+  border:1px solid #e5dfc2;
+  border-radius:24px;
+  background:var(--cream);
+  color:var(--ink);
+  padding:34px;
+  box-shadow:0 25px 100px #2f482e40
+}
+dialog::backdrop {
+  background:#34483b50;
+  backdrop-filter:blur(7px)
+}
+h2 {
+  font-size:31px;
+  font-weight:normal;
+  line-height:1.12;
+  letter-spacing:-.8px;
+  margin:0 0 19px
+}
+h2 em {
+  display:block;
+  font-size:19px;
+  letter-spacing:-.3px;
+  color:#758573;
+  margin-top:9px
+}
+dialog p {
+  font-size:13px;
+  line-height:1.7;
+  color:#64765e
+}
+#dialog-actions {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:23px
+}
+#dialog-actions .primary {
+  flex:1
+}
+.subtle {
+  padding:11px 14px;
+  font-size:12px;
+  background:#f6f1de
+}
+.result-title {
+  display:flex;
+  gap:20px;
+  align-items:center;
+  justify-content:space-between
+}
+.grade {
+  font:70px Georgia;
+  color:#658252
+}
+.result-stats {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border-top:1px solid #d4dbb9;
+  border-bottom:1px solid #d4dbb9;
+  margin-top:8px;
+  padding:20px 0;
+  gap:12px
+}
+.result-stats b {
+  display:block;
+  font:29px Georgia
+}
+.result-stats small {
+  font:7px ui-monospace,monospace;
+  letter-spacing:1px;
+  color:#7b896b;
+  display:block;
+  margin-top:7px
+}
+.judgement-row {
+  display:flex;
+  justify-content:space-between;
+  margin-top:22px;
+  font:9px ui-monospace,monospace;
+  color:#758573;
+  gap:10px
+}
+.judgement-row b {
+  display:block;
+  font:19px Georgia;
+  color:#476b47;
+  margin-bottom:5px
+}
+.timing-chart {
+  margin:13px 0 20px
+}
+.timing-chart svg {
+  display:block;
+  width:100%;
+  height:82px
+}
+.timing-chart>div {
+  display:flex;
+  justify-content:space-between;
+  font:8px ui-monospace,monospace;
+  color:#758573
+}
+.result-insight {
+  padding:11px 14px;
+  background:#e8edcf80;
+  border-radius:10px
+}
+details {
+  font-size:12px;
+  color:#64765e;
+  margin-top:19px
+}
+summary {
+  cursor:pointer
+}
+details p {
+  font-size:11px
+}
+.tune-field {
+  display:block;
+  font-size:13px;
+  margin:20px 0
+}
+.tune-field input {
+  width:100%;
+  display:block;
+  accent-color:#476b47;
+  margin:13px 0
+}
+.tune-field span {
+  font:10px ui-monospace,monospace;
+  color:#758573
+}
+.check-field {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px
+}
+.check-field input {
+  accent-color:#476b47
+}
+.sr-only {
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0
+}
+.loading {
+  margin:30px;
+  font-style:italic
+}
+@media(min-width:1500px) {
+  .deck {
+    left:calc(50% - 170px)
+  }
+  .map-letter {
+    left:calc(50% + 115px)
+  }
+}
+@media(max-height:780px) and (min-width:821px) {
+  .map-letter {
+    top:118px;
+    padding:21px 25px;
+    width:310px
+  }
+  .map-letter h1 {
+    font-size:31px
+  }
+  .map-letter p {
+    margin-bottom:10px
+  }
+  .field {
+    margin-top:9px
+  }
+  .map-info {
+    margin:10px 0
+  }
+  .eyebrow {
+    margin-bottom:13px
+  }
+  .deck {
+    top:112px;
+    bottom:51px
+  }
+}
+@media(max-width:820px) {
+  .garden-game {
+    min-height:650px
+  }
+  .hud {
+    top:18px;
+    left:18px;
+    right:18px;
+    gap:12px
+  }
+  .brand {
+    font-size:22px
+  }
+  .brand-flower {
+    font-size:29px
+  }
+  .brand small {
+    font-size:6px;
+    letter-spacing:.4px
+  }
+  .song-label {
+    display:none
+  }
+  .score-pill {
+    margin-left:auto;
+    padding:7px 10px
+  }
+  .score-pill b {
+    font-size:16px
+  }
+  .hud nav {
+    gap:4px
+  }
+  .hud nav button {
+    width:30px;
+    height:30px
+  }
+  .song-progress {
+    top:82px;
+    left:18px;
+    right:18px
+  }
+  .deck {
+    left:50%;
+    top:102px;
+    bottom:35px;
+    width:min(var(--deck-width),90vw)
+  }
+  .garden-game[data-state=menu] .deck {
+    left:25%;
+    width:40vw;
+    opacity:.65
+  }
+  .map-letter {
+    top:115px;
+    left:auto;
+    right:18px;
+    width:min(325px,70vw);
+    padding:24px;
+    transform:rotate(1deg)
+  }
+  .bottom-note {
+    bottom:11px;
+    left:18px;
+    right:18px;
+    font-size:6px
+  }
+  .bottom-note span:last-child {
+    display:none
+  }
+  .garden-game[data-state=playing] .deck,.garden-game[data-state=practice] .deck,.garden-game[data-state=result] .deck {
+    width:92vw
+  }
+  .deck-caption {
+    font-size:8px
+  }
+  .receptors {
+    gap:4px;
+    padding:0 6px
+  }
+  .receptors span {
+    font-size:15px
+  }
+  .falling-note {
+    left:calc(var(--lane)*100%/var(--lanes) + 5px);
+    width:calc(100%/var(--lanes) - 10px)
+  }
+  .practice-hint {
+    top:100px;
+    padding:10px 14px;
+    max-width:90vw;
+    width:max-content
+  }
+  .practice-hint p {
+    max-width:240px
+  }
+  .practice-hint button {
+    white-space:normal
+  }
+  dialog {
+    padding:25px
+  }
+  .result-stats b {
+    font-size:24px
+  }
+  .result-stats small {
+    font-size:6px
+  }
+  .result-title h2 {
+    font-size:27px
+  }
+  .grade {
+    font-size:58px
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    transition:none!important;
+    scroll-behavior:auto!important
+  }
+}
+@media(max-width:420px) {
+  .hud {
+    gap:8px
+  }
+  .brand {
+    font-size:18px;
+    gap:6px
+  }
+  .brand-flower {
+    font-size:22px
+  }
+  .brand small {
+    display:none
+  }
+  .score-pill {
+    padding:6px 8px
+  }
+  .score-pill b {
+    font-size:14px
+  }
+  .hud nav button {
+    width:28px;
+    height:30px
+  }
+}
+.error-packet{position:absolute;left:2%;width:96%;height:66px;border:1px solid #d9ddba;border-radius:15px;background:#fff9e9ef;box-shadow:0 4px 0 #536f3b22;will-change:transform}
+.packet-tag{text-align:center;font:7px ui-monospace,monospace;letter-spacing:1.2px;color:#7c896a;margin:7px 0 4px}
+.packet-register{position:relative;display:grid;grid-template-columns:repeat(var(--lanes),1fr);align-items:center;height:41px}
+.packet-qubit{text-align:center;font:23px Georgia;color:#8caa74;line-height:20px}.packet-qubit small{display:block;font:7px ui-monospace,monospace;color:#758573;margin-top:3px}.packet-qubit.applied{color:#bd936c}
+.parity-lamp{position:absolute;top:0;transform:translateX(-50%);width:22px;height:22px;display:grid;place-items:center;border:1px solid #c3cda1;border-radius:50%;font:bold 17px Georgia;color:#7b8a68;background:#eef1dd;z-index:1}
+.parity-lamp[data-alert="1"]{background:#f5d4b6;border:2px solid #bd805d;color:#825738}.choice-result{font:11px ui-monospace,monospace!important;color:#476b47!important}
+@media(max-width:420px){.parity-lamp{width:19px;height:19px;font-size:15px}.packet-qubit{font-size:19px}.packet-tag{font-size:6px}}
+</style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
-const FIXES = [0, 1, 2, 4];
-const KEYS = ['A', 'S', 'D'];
-const syndrome = mask => [(mask & 1) ^ ((mask >> 1) & 1), ((mask >> 1) & 1) ^ ((mask >> 2) & 1)];
-function correction(syn) {
-  return ({ '00': 0, '10': 1, '11': 2, '01': 4 })[syn.join('')];
+const COUNTS = [3, 4, 5, 6, 7];
+const weight = mask => mask.toString(2).replaceAll('0', '').length;
+function syndrome(mask, d = 3) {
+  return Array.from({ length: d - 1 }, (_, i) => (mask >> i & 1) ^ (mask >> (i + 1) & 1));
 }
-const keyFor = fix => fix ? KEYS[Math.log2(fix)] : 'WAIT';
-const keyOf = spec => `${spec.error}:${spec.fix}:${spec.state}`;
+function decode(syn) {
+  const bits = [0];
+  syn.forEach(b => bits.push(bits.at(-1) ^ b));
+  let mask = bits.reduce((m, b, i) => m | b << i, 0);
+  const w = weight(mask), d = bits.length;
+  if (w * 2 === d) return null; // Even-count ties contain insufficient information.
+  if (w * 2 > d) mask ^= (1 << d) - 1;
+  return mask;
+}
+const keyOf = spec => `${spec.d}:${spec.error}:${spec.state}`;
+// 248 syndrome cases plus 50 additional no-error/logical-X state references.
+// Multi-key player recovery is represented by its net Pauli-X residual.
 function allSpecs() {
-  return Array.from({ length: 8 }, (_, error) => FIXES.flatMap(fix => STATES.map(state => ({ error, fix, state })))).flat();
+  return COUNTS.flatMap(d => [
+    ...Array.from({ length: 1 << d }, (_, error) => ({ d, error, fix: 0, state: '0' })),
+    ...[0, (1 << d) - 1].flatMap(error => STATES.slice(1).map(state => ({ d, error, fix: 0, state }))),
+  ]);
 }
-function buildOps({ error, fix, state }) {
-  const ops = [];
-  const g = (gate, ...q) => ops.push({ gate, q });
+function buildOps({ d = 3, error, fix = 0, state }) {
+  const ops = [], g = (gate, ...q) => ops.push({ gate, q });
   if (state === '1') g('x', 0);
   if (['+', '-', '+i', '-i'].includes(state)) g('h', 0);
   if (state === '-') g('z', 0);
   if (state === '+i') g('s', 0);
   if (state === '-i') g('sdg', 0);
-  g('cx', 0, 1); g('cx', 0, 2);
-  for (let q = 0; q < 3; q++) if (error >> q & 1) g('x', q);
-  g('cx', 0, 3); g('cx', 1, 3); g('cx', 1, 4); g('cx', 2, 4);
-  for (let q = 0; q < 3; q++) if (fix >> q & 1) g('x', q);
-  g('cx', 0, 2); g('cx', 0, 1);
+  for (let q = 1; q < d; q++) g('cx', 0, q);
+  for (let q = 0; q < d; q++) if (error >> q & 1) g('x', q);
+  for (let q = 0; q < d - 1; q++) { g('cx', q, d + q); g('cx', q + 1, d + q); }
+  for (let q = 0; q < d; q++) if (fix >> q & 1) g('x', q);
+  for (let q = d - 1; q > 0; q--) g('cx', 0, q);
   if (state === '1') g('x', 0);
   if (state === '+i') g('sdg', 0);
   if (state === '-i') g('s', 0);
@@ -40,10 +921,10 @@ function buildOps({ error, fix, state }) {
   return ops;
 }
 function statevector(spec) {
-  const re = new Float64Array(32), im = new Float64Array(32); re[0] = 1;
+  const size = 1 << (2 * (spec.d ?? 3) - 1), re = new Float64Array(size), im = new Float64Array(size); re[0] = 1;
   for (const { gate, q: [a, b] } of buildOps(spec)) {
     if (['z', 's', 'sdg'].includes(gate)) {
-      for (let i = 0; i < 32; i++) if (i >> a & 1) {
+      for (let i = 0; i < size; i++) if (i >> a & 1) {
         const r = re[i], v = im[i];
         if (gate === 'z') { re[i] = -r; im[i] = -v; }
         else if (gate === 's') { re[i] = -v; im[i] = r; }
@@ -52,7 +933,7 @@ function statevector(spec) {
       continue;
     }
     const target = gate === 'cx' ? b : a;
-    for (let i = 0; i < 32; i++) if (!(i >> target & 1)) {
+    for (let i = 0; i < size; i++) if (!(i >> target & 1)) {
       const j = i | 1 << target;
       if (gate === 'cx' && !(i >> a & 1)) continue;
       const r0 = re[i], v0 = im[i], r1 = re[j], v1 = im[j];
@@ -62,37 +943,42 @@ function statevector(spec) {
       } else { re[i] = r1; im[i] = v1; re[j] = r0; im[j] = v0; }
     }
   }
-  return { re: [...re], im: [...im] };
+  return { re, im };
 }
 function distribution(spec) {
-  const { re, im } = statevector(spec);
-  return re.flatMap((r, i) => {
-    const p = r * r + im[i] * im[i];
-    return p < 1e-12 ? [] : [{ syn: [i >> 3 & 1, i >> 4 & 1], pass: (i & 7) === 0, weight: p }];
-  });
+  const { re, im } = statevector(spec), d = spec.d ?? 3, rows = [];
+  for (let i = 0; i < re.length; i++) {
+    const p = re[i] ** 2 + im[i] ** 2;
+    if (p > 1e-12) rows.push({ syn: Array.from({ length: d - 1 }, (_, q) => i >> (d + q) & 1), pass: (i & ((1 << d) - 1)) === 0, weight: p });
+  }
+  return rows;
 }
-const localEngine = {
-  label: 'Local preview · exact JS simulation', kind: 'local',
-  async run(specs) { return specs.map(distribution); },
-};
+const localEngine = { label: 'Exact local quantum simulation', kind: 'local', async run(specs) { return specs.map(distribution); } };
 function makeBank(specs, rows, random = Math.random) {
-  if (rows.length !== specs.length || rows.some(group => !group.length || group.some(r =>
-    !Array.isArray(r.syn) || r.syn.length !== 2 || r.syn.some(b => b !== 0 && b !== 1) ||
-    typeof r.pass !== 'boolean' || !Number.isFinite(r.weight) || r.weight < 0) ||
-    group.reduce((s, r) => s + r.weight, 0) <= 0)) throw new Error('Invalid simulator results');
-  const map = new Map(specs.map((s, i) => [keyOf(s), rows[i]]));
+  if (rows.length !== specs.length || rows.some((group, i) => !group.length || group.some(r =>
+    r.syn?.length !== specs[i].d - 1 || r.syn.some(b => b !== 0 && b !== 1) || typeof r.pass !== 'boolean' || !Number.isFinite(r.weight) || r.weight < 0) ||
+    group.reduce((s, r) => s + r.weight, 0) <= 0)) throw new Error('Invalid quantum reference results');
+  const data = new Map(specs.map((s, i) => [keyOf(s), rows[i]]));
+  const preservation = (d, residual, state) => {
+    const group = data.get(`${d}:${residual}:${state}`);
+    return group.reduce((s, r) => s + (r.pass ? r.weight : 0), 0) / group.reduce((s, r) => s + r.weight, 0);
+  };
   return {
-    sample(error) {
-      const group = map.get(`${error}:0:0`);
+    sample(error, d = 3) {
+      const group = data.get(`${d}:${error}:0`);
       let r = random() * group.reduce((s, row) => s + row.weight, 0);
       for (const row of group) { r -= row.weight; if (r <= 0) return [...row.syn]; }
       return [...group.at(-1).syn];
     },
-    fidelity(error, fix) {
-      return STATES.reduce((sum, state) => {
-        const group = map.get(`${error}:${fix}:${state}`);
-        return sum + group.reduce((s, r) => s + (r.pass ? r.weight : 0), 0) / group.reduce((s, r) => s + r.weight, 0);
-      }, 0) / STATES.length;
+    fidelity(error, fix, d = 3) {
+      const residual = error ^ fix;
+      // Nonuniform residual X patterns leave the code space for every input.
+      // The |0> reference tests that class; the six-state identity/logical-X
+      // classes are separately measured. On noisy backends this is a reference
+      // estimate, not a gate-noise-aware prediction of the player's trajectory.
+      return residual === 0 || residual === (1 << d) - 1
+        ? STATES.reduce((s, state) => s + preservation(d, residual, state), 0) / STATES.length
+        : preservation(d, residual, '0');
     },
   };
 }
@@ -100,231 +986,558 @@ function seeded(seed) {
   let value = seed >>> 0;
   return () => { value += 0x6D2B79F5; let t = value; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
-function chart(bank, bpm = 96, seed = 20261010, count = 40) {
-  const random = seeded(seed), beat = 60 / bpm;
-  return Array.from({ length: count }, (_, i) => {
-    const pick = random();
-    const error = pick < .2 ? 0 : 1 << Math.floor((pick - .2) / .8 * 3);
-    const syn = bank.sample(error);
-    return { error, syn, expected: correction(syn), at: 5 * beat + i * 2 * beat, done: false };
+
+
+const mapRegistry = new Map();
+const laneKeys = d => ({ 3: ['D', 'F', 'J'], 4: ['D', 'F', 'J', 'K'], 5: ['D', 'F', 'SPACE', 'J', 'K'], 6: ['S', 'D', 'F', 'J', 'K', 'L'], 7: ['S', 'D', 'F', 'SPACE', 'J', 'K', 'L'] })[d];
+function maskOf(lanes) { return lanes.reduce((mask, lane) => mask ^ 1 << lane, 0); }
+function validateMap(input) {
+  if (!input || typeof input !== 'object') throw new Error('A map must be an object.');
+  const map = structuredClone(input);
+  map.version ??= 1;
+  if (map.version !== 1) throw new Error('Expected map version 1.');
+  for (const field of ['id', 'title', 'artist']) if (typeof map[field] !== 'string' || !map[field].trim() || map[field].length > 100) throw new Error(`Map ${field} must be short text.`);
+  if (!COUNTS.includes(map.qubits)) throw new Error('Choose 3–7 data qubits.');
+  if (!Number.isFinite(map.bpm) || map.bpm < 40 || map.bpm > 220) throw new Error('Tempo must be 40–220 BPM.');
+  if (!Number.isFinite(map.durationBeats) || map.durationBeats < 8 || map.durationBeats * 60 / map.bpm > 300) throw new Error('Maps must be between eight beats and five minutes.');
+  if (!Array.isArray(map.events) || !map.events.length || map.events.length > 800) throw new Error('Provide 1–800 correction packets.');
+  const ids = new Set(), occupied = new Map();
+  const validLanes = lanes => Array.isArray(lanes) && new Set(lanes).size === lanes.length && lanes.every(q => Number.isInteger(q) && q >= 0 && q < map.qubits);
+  map.events.forEach((event, index) => {
+    event.id ??= `packet-${index}`;
+    if (typeof event.id !== 'string' || ids.has(event.id) || event.id.length > 100) throw new Error('Packet IDs must be unique short strings.'); ids.add(event.id);
+    if (!Number.isFinite(event.beat) || event.beat < 0 || event.beat >= map.durationBeats) throw new Error(`Invalid beat in ${event.id}.`);
+    if (!validLanes(event.error)) throw new Error(`Invalid error lanes in ${event.id}.`);
+    const error = maskOf(event.error), cap = Math.floor((map.qubits - 1) / 2);
+    if (weight(error) > cap || decode(syndrome(error, map.qubits)) !== error) throw new Error(`${event.id} exceeds the ${cap}-flip guarantee of this code.`);
+    event.steps ??= event.error.length ? [{ offset: 0, lanes: event.error }] : [];
+    if (!Array.isArray(event.steps) || event.steps.length > map.qubits) throw new Error('Invalid correction sequence.');
+    let recovery = 0, previous = -1; const used = new Set();
+    event.steps.forEach(step => {
+      if (!Number.isFinite(step.offset) || step.offset < 0 || step.offset > 2 || step.offset <= previous || !validLanes(step.lanes) || !step.lanes.length) throw new Error(`Invalid steps in ${event.id}.`);
+      previous = step.offset;
+      if (event.beat + step.offset > map.durationBeats) throw new Error('Correction notes extend past the song.');
+      if (step.lanes.some(lane => used.has(lane) || !event.error.includes(lane))) throw new Error('Author correction slots for each faulty lane exactly once.');
+      step.lanes.forEach(lane => used.add(lane));
+      recovery ^= maskOf(step.lanes);
+      for (const lane of step.lanes) {
+        const at = (event.beat + step.offset) * 60 / map.bpm;
+        const times = occupied.get(lane) || [];
+        if (times.some(t => Math.abs(t - at) < .085)) throw new Error('Notes on the same lane need at least 85 ms separation.');
+        times.push(at); occupied.set(lane, times);
+      }
+    });
+    if (recovery !== error) throw new Error(`The authored solution for ${event.id} does not repair its error.`);
   });
+  map.events.sort((a, b) => a.beat - b.beat);
+  if (map.events.reduce((n, e) => n + e.steps.reduce((s, step) => s + step.lanes.length, 0), 0) > 1600) throw new Error('Map has too many notes.');
+  map.sections ??= [{ beat: 0, label: 'First light', intensity: .6, transpose: 0 }];
+  if (!Array.isArray(map.sections) || !map.sections.length || map.sections.length > 64) throw new Error('Provide 1–64 music sections.');
+  map.sections.forEach(section => {
+    if (!Number.isFinite(section.beat) || section.beat < 0 || section.beat > map.durationBeats || typeof section.label !== 'string' || section.label.length > 100) throw new Error('Invalid music section.');
+    section.intensity ??= .7; section.transpose ??= 0;
+    if (!Number.isFinite(section.intensity) || section.intensity < 0 || section.intensity > 1 || !Number.isInteger(section.transpose) || Math.abs(section.transpose) > 24) throw new Error('Invalid section intensity or transposition.');
+  });
+  map.sections.sort((a, b) => a.beat - b.beat);
+  if (map.sections[0].beat !== 0) throw new Error('The first section must start on beat zero.');
+  map.music ??= { composer: 'garden-lofi', offsetSeconds: 0, gain: .7 };
+  if (typeof map.music !== 'object' || Array.isArray(map.music)) throw new Error('Music must be an object.');
+  map.music.offsetSeconds ??= 0; map.music.gain ??= .7;
+  if (!Number.isFinite(map.music.offsetSeconds) || map.music.offsetSeconds < 0 || !Number.isFinite(map.music.gain) || map.music.gain < 0 || map.music.gain > 1) throw new Error('Invalid music offset or gain.');
+  if (map.music.url && (typeof map.music.url !== 'string' || /^(?!https?:|data:audio\/)[a-z][a-z0-9+.-]*:/i.test(map.music.url) || typeof map.music.credit !== 'string')) throw new Error('Music needs a relative/HTTP/audio-data URL and a credit.');
+  if (!map.music.url && (typeof map.music.composer !== 'string' || map.music.composer.length > 80)) throw new Error('Specify a music composer ID.');
+  return map;
 }
-function judge(event, fix, time, window = .23) {
-  const delta = time - event.at;
-  if (Math.abs(delta) > window) return null;
-  const correct = fix === event.expected;
-  const timing = fix === 0 ? 'Held' : Math.abs(delta) <= .075 ? 'Perfect' : Math.abs(delta) <= .15 ? 'Great' : 'Good';
-  return { correct, fix, delta, timing, points: correct ? (fix === 0 ? 100 : timing === 'Perfect' ? 150 : timing === 'Great' ? 125 : 100) : 0 };
+function registerMap(map) {
+  const checked = validateMap(map);
+  if (mapRegistry.has(checked.id)) throw new Error(`A map named ${checked.id} already exists.`);
+  mapRegistry.set(checked.id, { title: checked.title, artist: checked.artist, fixed: checked });
+  return checked.id;
 }
-function missed(event) {
-  return { correct: event.expected === 0, fix: 0, delta: null, timing: event.expected === 0 ? 'Held' : 'Miss', points: event.expected === 0 ? 100 : 0 };
+function listMaps() { return [...mapRegistry].map(([id, entry]) => ({ id, title: entry.title, artist: entry.artist, qubits: entry.fixed?.qubits ?? null })); }
+function getMap(id, d = 3) {
+  const entry = mapRegistry.get(id); if (!entry) throw new Error('Unknown map.');
+  return entry.fixed ? structuredClone(entry.fixed) : validateMap(entry.build(d));
 }
-
-
-const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const percent = n => `${Math.round(n * 100)}%`;
-const checksText = syn => `Q1–Q2 ${syn[0] ? 'different' : 'same'}; Q2–Q3 ${syn[1] ? 'different' : 'same'}`;
-const mascot = `<svg viewBox="0 0 80 80" role="img" aria-label="Capybara wearing headphones"><path d="M15 46V35a25 25 0 0 1 50 0v11" fill="none" stroke="currentColor" stroke-width="7"/><path d="M22 33q-7-17 4-14l9 9h18l10-7q8-1 2 15v19q0 15-22 15T20 54z" fill="#e2b99e"/><rect x="9" y="35" width="14" height="22" rx="6" fill="#6ff0c0"/><rect x="62" y="35" width="12" height="22" rx="5" fill="#6ff0c0"/><circle cx="33" cy="43" r="3" fill="#101827"/><circle cx="55" cy="43" r="3" fill="#101827"/><path d="M41 52h9m-5 0v5" stroke="#101827" stroke-width="3" stroke-linecap="round"/></svg>`;
-
-class BeatAudio {
-  constructor() { this.enabled = true; this.context = null; }
-  async unlock() {
-    if (!this.enabled) return;
-    try { this.context ??= new (window.AudioContext || window.webkitAudioContext)(); await this.context.resume(); } catch { this.enabled = false; }
+function gardenMap(id, title, bpm, duration, density, d) {
+  const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
+  const stride = density === 'fast' ? 1 : 2;
+  for (let beat = 4, index = 0; beat < duration - 2; beat += stride, index++) {
+    const count = index % 11 === 8 ? 0 : index > 3 && index % 4 === 3 ? capacity : 1;
+    const lanes = [];
+    while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
+    const burst = lanes.length > 1 && index % 3 !== 0;
+    events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes }] : [] });
   }
-  tone(freq, duration, volume, type = 'sine') {
-    if (!this.enabled || this.context?.state !== 'running') return;
-    const ctx = this.context, osc = ctx.createOscillator(), gain = ctx.createGain(), t = ctx.currentTime;
-    osc.type = type; osc.frequency.setValueAtTime(freq, t);
-    gain.gain.setValueAtTime(volume, t); gain.gain.exponentialRampToValueAtTime(.0001, t + duration);
-    osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + duration);
-  }
-  beat(i) { this.tone(i % 4 === 0 ? 100 : 180, .11, .11); if (i % 2) this.tone(950, .045, .035, 'triangle'); }
-  answer(ok, fix) { this.tone(ok ? [330, 392, 494][Math.max(0, Math.log2(fix || 1))] : 130, .17, .075, 'triangle'); }
+  return { version: 1, id, title, artist: 'CapyQuantum · original synthesized music', bpm, qubits: d, durationBeats: duration,
+    events, sections: [{ beat: 0, label: 'First light', intensity: .45, transpose: 0 }, { beat: 16, label: 'The garden wakes', intensity: .7, transpose: 0 }, { beat: 32, label: 'Lantern bloom', intensity: 1, transpose: 5 }, { beat: duration - 12, label: 'Homeward', intensity: .65, transpose: 0 }],
+    music: { composer: 'garden-lofi', gain: .72, offsetSeconds: 0 } };
 }
+for (const [id, title, bpm, duration, density] of [
+  ['morning-dew', 'Morning dew', 86, 56, 'gentle'],
+  ['lantern-waltz', 'Lantern glow', 112, 80, 'steady'],
+  ['firefly-rush', 'Firefly rush', 138, 96, 'fast'],
+]) mapRegistry.set(id, { title, artist: 'CapyQuantum', build: d => gardenMap(id, title, bpm, duration, density, d) });
 
-async function startGame(root, engine) {
-  root.innerHTML = `<main class="shell">
-    <header class="topbar"><a class="brand" href="#" aria-label="Qubit Tempo home">${mascot}<span>CAPYQUANTUM<small>QUANTUM UNLOCKED / 02</small></span></a><div class="toptools"><span class="edition">RHYTHM EDITION</span><button id="sound" class="tool" aria-pressed="true">♪ Sound on</button><button id="about" class="tool">How it works</button></div></header>
-    <section class="hero"><div><div class="eyebrow"><span class="status-dot"></span> A QUANTUM ERROR-CORRECTION RHYTHM GAME</div><h1>Keep the qubits.<br><span>Keep the beat.</span></h1><p class="intro">Three qubits. Two clues. One well-timed correction.<br>Read the signals and protect a fragile quantum state.</p><div class="launch"><button id="train" class="primary" disabled>Learn to play <span>↗</span></button><button id="play" class="secondary" disabled>Start a rhythm run <span>▶</span></button></div><div class="options"><label><input id="relaxed" type="checkbox"> Relaxed tempo</label><label><input id="still" type="checkbox"> Still notes</label><span>About 55 seconds · A / S / D</span></div></div><aside class="mission"><div class="mission-top">YOUR ROLE <span>01 → 03</span></div><p>You’re the<br><strong>quantum DJ.</strong></p><div class="mission-flow"><span>READ<br><b>the clues</b></span><i>→</i><span>CHOOSE<br><b>the qubit</b></span><i>→</i><span>FLIP<br><b>on the beat</b></span></div><small>No quantum knowledge needed.</small></aside></section>
-    <section class="console" aria-label="Rhythm controller"><div class="console-top"><div><span class="live-mark">●</span> <strong id="mode">STANDBY</strong><span id="tempo">96 BPM</span></div><button id="pause" class="tool" disabled>Pause [P]</button></div>
-      <div class="stats"><div><span>SCORE</span><strong id="score">00000</strong></div><div><span>CORRECT CHOICES</span><strong id="accuracy">—</strong></div><div><span>STREAK</span><strong id="combo">0<span> ×</span></strong></div><div><span>ROUND</span><strong id="round">— / 40</strong></div></div>
-      <div class="play-layout"><div class="play-main"><div class="track-header"><span id="track-label">Read both checks. Choose a lane.</span><span id="countdown">READY WHEN YOU ARE</span></div><div id="track" class="track" aria-hidden="true"><div class="lane lane-one"><span>Q1</span></div><div class="lane lane-two"><span>Q2</span></div><div class="lane lane-three"><span>Q3</span></div><div class="hitline"><span>HIT HERE</span></div><div id="packets"></div><div id="track-overlay" class="track-overlay" hidden>PAUSED</div></div><div class="progress" role="progressbar" aria-label="Run progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
-      <div class="keypad"><button class="key key-one" data-fix="1"><kbd>A</kbd><span>Flip Q1</span></button><button class="key key-two" data-fix="2"><kbd>S</kbd><span>Flip Q2</span></button><button class="key key-three" data-fix="4"><kbd>D</kbd><span>Flip Q3</span></button></div></div>
-      <aside class="decoder"><div class="eyebrow">CURRENT CLUES</div><div id="clues" class="clues" aria-live="polite"><div><span>Q1 ↔ Q2</span><b>—</b></div><div><span>Q2 ↔ Q3</span><b>—</b></div></div><div class="decoder-label">YOUR POCKET DECODER</div><table><caption class="sr-only">Correction rule for at most one bit flip</caption><thead><tr><th>Check 1</th><th>Check 2</th><th>Press</th></tr></thead><tbody><tr><td>Different</td><td>Same</td><td><kbd>A</kbd></td></tr><tr><td>Different</td><td>Different</td><td><kbd>S</kbd></td></tr><tr><td>Same</td><td>Different</td><td><kbd>D</kbd></td></tr><tr><td>Same</td><td>Same</td><td>Wait</td></tr></tbody></table><p class="quiet">No warning? Don’t flip anything.<br>One error per round in this run.</p><button id="lab" class="text-button" disabled>Why two errors break the rule ↗</button></aside></div>
-      <div class="feedback-strip"><div id="feedback" role="status" aria-live="polite">Preparing the quantum experiments…</div><button id="next" class="secondary compact" hidden>Next round →</button><button id="wait" class="secondary compact" hidden>Leave it alone [W]</button><span id="timing" class="timing">READ → CHOOSE → FLIP</span></div>
-    </section>
-    <section id="report" class="report" hidden tabindex="-1"></section>
-    <div class="bottom-row"><p><strong>A tiny lesson with a real limit.</strong> The clues tell you where a single flip happened, without revealing the stored quantum value.</p><span id="source" class="source">Preparing simulator</span></div>
-    <footer><span>This effort is supported by Qollab & IonQ</span><span>CapyQuantum · Qubit Tempo · MIT · AI assistance disclosed in README</span></footer>
-    <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-body"></div><button id="close-dialog" class="primary">Back to the deck</button></dialog>
-  </main>`;
-  const $ = id => root.querySelector(`#${id}`), audio = new BeatAudio();
-  let bank, mode = 'idle', events = [], time = 0, last = 0, beatIndex = -1, score = 0, combo = 0, best = 0, results = [], trainingIndex = 0, activeIndex = -1, paused = false, dialogPaused = false, bpm = 96;
-  const stillQuery = matchMedia('(prefers-reduced-motion: reduce)');
-  $('still').checked = stillQuery.matches;
-  const trainingErrors = [1, 2, 4, 0, 2, 1];
-  const tips = [
-    'Only the first check says different. Q1 is the odd one out. Press A.',
-    'Both checks say different. The middle qubit touches both checks. Press S.',
-    'Only the second check says different. Q3 is the odd one out. Press D.',
-    'Both checks say same. A healthy round needs no correction. Choose “Leave it alone”.',
-    'Your turn: use the two clues to choose a correction.',
-    'One more without a hint. Which qubit should you flip?',
-  ];
-  const updateStats = () => {
-    $('score').textContent = String(score).padStart(5, '0');
-    $('accuracy').textContent = results.length ? percent(results.filter(r => r.correct).length / results.length) : '—';
-    $('combo').innerHTML = `${combo}<span> ×</span>`;
-    $('round').textContent = `${(mode === 'training' ? trainingIndex + 1 : Math.min(results.length + 1, events.length)) || '—'} / ${events.length || 40}`;
-  };
-  function say(text, tone = '') { $('feedback').textContent = text; $('feedback').className = tone; }
-  function clue(event) {
-    $('clues').innerHTML = event ? event.syn.map((b, i) => `<div class="${b ? 'different' : 'same'}"><span>Q${i + 1} ↔ Q${i + 2}</span><b>${b ? '≠ DIFFERENT' : '= SAME'}</b></div>`).join('') : '<div><span>Q1 ↔ Q2</span><b>—</b></div><div><span>Q2 ↔ Q3</span><b>—</b></div>';
-  }
-  function packet(event, i, position, current) {
-    return `<div class="packet ${current ? 'current' : ''}" style="left:${position}%"><span class="packet-id">${String(i + 1).padStart(2, '0')}</span><span class="coin c1">·</span><span class="signal s1 ${event.syn[0] ? 'different' : 'same'}">${event.syn[0] ? '≠' : '='}</span><span class="coin c2">·</span><span class="signal s2 ${event.syn[1] ? 'different' : 'same'}">${event.syn[1] ? '≠' : '='}</span><span class="coin c3">·</span></div>`;
-  }
-  function draw() {
-    const active = events.findIndex(e => !e.done), approach = 4 * 60 / bpm;
-    if (active !== activeIndex) { activeIndex = active; clue(events[active]); }
-    if (mode === 'training') {
-      $('packets').innerHTML = events[trainingIndex] ? packet(events[trainingIndex], trainingIndex, 55, true) : '';
-    } else if (mode === 'run') {
-      const visible = events.flatMap((e, i) => {
-        const position = 18 + (e.at - time) / approach * 78;
-        return !e.done && position >= 0 && position <= 105 && (!$('still').checked || i === active) ? [packet(e, i, $('still').checked ? 18 : position, i === active)] : [];
+// Timing cues do not reveal correction lanes. Players decode parity themselves.
+const WINDOWS = { perfect: .045, great: .09, good: .145 };
+class RhythmRun {
+  constructor(map, bank) {
+    this.map = map; this.bank = bank; this.notes = []; this.packets = []; this.cues = []; this.results = [];
+    this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
+    const beat = 60 / map.bpm;
+    for (const event of map.events) {
+      const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
+      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), at: event.beat * beat,
+        end: (event.beat + Math.max(0, ...event.steps.map(s => s.offset))) * beat + WINDOWS.good, done: false, notes: [] };
+      const steps = event.steps.length ? event.steps : [{ offset: 0, lanes: [] }];
+      steps.forEach((step, order) => {
+        const cue = { id: this.cues.length, packet, at: (event.beat + step.offset) * beat, order, total: steps.length, notes: [], clean: !event.error.length };
+        step.lanes.forEach(lane => {
+          const note = { id: this.notes.length, lane, at: cue.at, packet, cue, done: false, outcome: null };
+          packet.notes.push(note); cue.notes.push(note); this.notes.push(note);
+        });
+        this.cues.push(cue);
       });
-      $('packets').innerHTML = visible.join('');
-      const end = events.at(-1).at + .5, p = Math.min(100, time / end * 100);
-      $('progress-fill').style.width = `${p}%`;
-      root.querySelector('.progress').setAttribute('aria-valuenow', String(Math.round(p)));
-      $('countdown').textContent = time < events[0].at - .23 ? `GET READY · ${Math.max(1, Math.ceil((events[0].at - time) / (60 / bpm)))}` : `${Math.max(0, Math.ceil(end - time))}s LEFT`;
-      $('track-label').textContent = $('still').checked && events[active] ? `Round ${active + 1} · act in ${Math.max(0, events[active].at - time).toFixed(1)}s` : 'Read the checks. Hit the line on the beat.';
+      this.packets.push(packet);
+    }
+    this.notes.sort((a, b) => a.at - b.at);
+    this.cues.sort((a, b) => a.at - b.at);
+  }
+  checks(packet) {
+    return packet.syn.map((bit, i) => bit ^ (packet.applied >> i & 1) ^ (packet.applied >> (i + 1) & 1));
+  }
+  apply(packet, lane) {
+    const correct = Boolean((packet.error ^ packet.applied) >> lane & 1);
+    packet.applied ^= 1 << lane;
+    if (correct) this.goodFixes++; else this.badFixes++;
+    return correct;
+  }
+  press(lane, time) {
+    this.advance(time);
+    // Any key may fill a timing slot. The current residual decides correctness.
+    const candidates = this.notes.filter(n => !n.done && Math.abs(n.at - time) <= WINDOWS.good);
+    candidates.sort((a, b) => Math.abs(a.at - time) - Math.abs(b.at - time));
+    const note = candidates[0];
+    if (!note) {
+      this.strays++; this.combo = 0;
+      const packets = this.packets.filter(p => !p.done && (Math.abs(p.at - time) <= WINDOWS.good || p.notes.some(n => Math.abs(n.at - time) <= WINDOWS.good)));
+      packets.sort((a, b) => Math.abs(a.at - time) - Math.abs(b.at - time));
+      const packet = packets[0], correct = packet ? this.apply(packet, lane) : null;
+      return { type: 'stray', lane, at: time, packet, correct };
+    }
+    const correct = this.apply(note.packet, lane), delta = time - note.at;
+    const timing = Math.abs(delta) <= WINDOWS.perfect ? 'Perfect' : Math.abs(delta) <= WINDOWS.great ? 'Great' : 'Good';
+    note.done = true; note.outcome = { timing, delta, correct };
+    if (correct) {
+      this.score += timing === 'Perfect' ? 300 : timing === 'Great' ? 200 : 100;
+      this.combo++; this.best = Math.max(this.best, this.combo);
+    } else this.combo = 0;
+    return { type: 'hit', lane, note, timing, delta, correct, packet: note.packet };
+  }
+  advance(time) {
+    for (const note of this.notes) if (!note.done && time > note.at + WINDOWS.good) { note.done = true; note.outcome = { timing: 'Miss', delta: null, correct: false }; this.combo = 0; }
+    const resolved = [];
+    for (const p of this.packets) if (!p.done && time > p.end) {
+      p.done = true;
+      const result = { id: p.id, error: p.error, applied: p.applied, restored: p.error === p.applied, syn: p.syn, fidelity: this.bank.fidelity(p.error, p.applied, this.map.qubits) };
+      this.results.push(result); resolved.push(result);
+    }
+    return resolved;
+  }
+  summary() {
+    const judgements = { Perfect: 0, Great: 0, Good: 0, Wrong: 0, Miss: 0 };
+    this.notes.forEach(n => judgements[!n.outcome || n.outcome.timing === 'Miss' ? 'Miss' : n.outcome.correct ? n.outcome.timing : 'Wrong']++);
+    const total = this.notes.length, hits = total - judgements.Miss;
+    const accuracy = total + this.strays ? (judgements.Perfect + judgements.Great * 2 / 3 + judgements.Good / 3) / (total + this.strays) : 1;
+    const deltas = this.notes.filter(n => n.outcome && n.outcome.delta !== null).map(n => n.outcome.delta * 1000);
+    return { judgements, total, hits, accuracy, score: this.score, best: this.best, strays: this.strays, goodFixes: this.goodFixes, badFixes: this.badFixes,
+      choiceAccuracy: this.goodFixes + this.badFixes ? this.goodFixes / (this.goodFixes + this.badFixes) : null,
+      grade: accuracy >= .97 ? 'S' : accuracy >= .9 ? 'A' : accuracy >= .8 ? 'B' : accuracy >= .65 ? 'C' : 'D',
+      restored: this.results.filter(r => r.restored).length, packets: this.packets.length,
+      fidelity: this.results.length ? this.results.reduce((s, r) => s + r.fidelity, 0) / this.results.length : 0,
+      meanOffset: deltas.length ? deltas.reduce((s, x) => s + x, 0) / deltas.length : null, deltas, results: this.results };
+  }
+}
+
+// AudioContext is the master clock. Frame rate never sets the song tempo.
+const composers = new Map();
+function registerComposer(id, composer) {
+  if (typeof id !== 'string' || !id || typeof composer !== 'function' || composers.has(id)) throw new Error('Register a unique composer ID and a scheduling function.');
+  composers.set(id, composer);
+}
+const midiHz = midi => 440 * 2 ** ((midi - 69) / 12);
+registerComposer('garden-lofi', (tick, { tone, noise, section }) => {
+  const beat = tick / 4, sixteenth = tick % 16, bar = Math.floor(beat / 4), root = [48, 45, 53, 43][bar % 4] + section.transpose;
+  if (tick % 8 === 0) tone(95, .15, .15, 'sine', 38);
+  if (tick % 16 === 4 || tick % 16 === 12) noise(.1, .045 * section.intensity, 1800);
+  if (tick % (section.intensity > .8 ? 1 : 2) === 0) noise(.025, .012, 7000);
+  if (tick % 4 === 0) tone(midiHz(root - 12 + [0, 0, 7, 0][Math.floor(sixteenth / 4)]), .28, .065, 'triangle');
+  if (tick % 16 === 0) [0, 3, 7, 10].forEach(n => tone(midiHz(root + n), 1.6, .018, 'sine'));
+
+});
+class MusicTransport {
+  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.loaded = null; this.timer = null; this.running = false; this.paused = false; }
+  async init() {
+    if (!this.context) {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) throw new Error('Web Audio is unavailable. Use a current browser.');
+      this.context = new Audio(); this.master = this.context.createGain(); this.master.connect(this.context.destination);
+      this.noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * .3, this.context.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    }
+    await this.context.resume();
+  }
+  async loadFile(file) { await this.init(); this.loaded = await this.context.decodeAudioData(await file.arrayBuffer()); this.loadedName = file.name; }
+  async start(map, useLoaded = false) {
+    await this.init(); this.stop(); this.map = map; this.beatSeconds = 60 / map.bpm;
+    this.leadIn = 4 * this.beatSeconds; this.origin = this.context.currentTime + .12;
+    this.paused = false; this.running = true; this.master.gain.value = this.muted ? 0 : map.music.gain;
+    this.tick = -16;
+    let buffer = useLoaded ? this.loaded : null;
+    if (map.music.url && !buffer) {
+      const response = await fetch(map.music.url, { credentials: 'omit' });
+      if (!response.ok) throw new Error('Could not load the map’s music.');
+      buffer = await this.context.decodeAudioData(await response.arrayBuffer());
+      // Fetch/decode happened before the actual countdown starts.
+      this.origin = this.context.currentTime + .12;
+    }
+    if (!buffer && !composers.has(map.music.composer)) throw new Error(`Unknown composer: ${map.music.composer}`);
+    if (buffer) {
+      const offset = map.music.offsetSeconds;
+      if (offset >= buffer.duration || buffer.duration - offset < map.durationBeats * this.beatSeconds) throw new Error('The audio file is shorter than this map after its offset.');
+      const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.master);
+      source.start(this.origin + this.leadIn, offset); this.nodes.add(source); this.external = true;
+    } else this.external = false;
+    this.timer = setInterval(() => this.schedule(), 25); this.schedule();
+  }
+  time() { return this.context.currentTime - this.origin - this.leadIn; }
+  schedule() {
+    if (!this.running || this.paused) return;
+    const limit = this.context.currentTime + .12;
+    // A throttled timer resumes at the current tick, rather than playing a backlog.
+    this.tick = Math.max(this.tick, Math.floor((this.context.currentTime - this.origin - this.leadIn) / (this.beatSeconds / 4)));
+    while (this.origin + this.leadIn + this.tick * this.beatSeconds / 4 < limit) {
+      const tick = this.tick++, at = this.origin + this.leadIn + tick * this.beatSeconds / 4;
+      if (at < this.context.currentTime || tick > this.map.durationBeats * 4) continue;
+      if (tick < 0) { if (tick % 4 === 0) this.tone(660, .055, .07, 'sine', null, at); continue; }
+      if (this.external) continue;
+      const beat = tick / 4, section = [...this.map.sections].reverse().find(s => s.beat <= beat) || this.map.sections[0];
+      composers.get(this.map.music.composer)(tick, {
+        map: this.map, section, context: this.context, at,
+        tone: (freq, duration, gain, type = 'sine', endFrequency = null) => this.tone(freq, duration, gain, type, endFrequency, at),
+        noise: (duration, gain, frequency) => this.noise(duration, gain, frequency, at),
+      });
     }
   }
-  function reset(nextMode) {
-    mode = nextMode; paused = false; score = combo = best = time = 0; results = []; activeIndex = -1; beatIndex = -1; last = performance.now();
-    $('report').hidden = true; $('next').hidden = true; $('wait').hidden = nextMode !== 'training';
-    $('progress-fill').style.width = '0%'; root.querySelector('.progress').setAttribute('aria-valuenow', '0');
-    root.querySelector('.console').scrollIntoView({ block: 'start', behavior: 'instant' });
-    $('pause').disabled = nextMode !== 'run'; $('pause').textContent = 'Pause [P]'; $('track-overlay').hidden = true;
-    $('train').disabled = $('play').disabled = false; $('relaxed').disabled = nextMode === 'run';
-    root.querySelectorAll('[data-fix]').forEach(button => { button.disabled = false; });
-    $('mode').textContent = nextMode === 'training' ? 'PRACTICE / NO TIMER' : 'LIVE / SINGLE-FLIP MIX';
-    $('timing').textContent = nextMode === 'training' ? 'TAKE YOUR TIME' : 'WAIT FOR THE HIT LINE';
+  tone(freq, duration, volume, type = 'sine', endFrequency = null, at = this.context.currentTime) {
+    const c = this.context, osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, at); if (endFrequency) osc.frequency.exponentialRampToValueAtTime(endFrequency, at + duration);
+    gain.gain.setValueAtTime(.0001, at); gain.gain.linearRampToValueAtTime(volume, at + .008); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
+    osc.connect(gain); gain.connect(this.master); osc.start(at); osc.stop(at + duration + .01);
+    this.nodes.add(osc); osc.onended = () => this.nodes.delete(osc);
   }
-  function practice() {
-    reset('training'); trainingIndex = 0;
-    events = trainingErrors.map(error => { const syn = bank.sample(error); return { error, syn, expected: correction(syn), done: false }; });
-    $('countdown').textContent = 'UNTIMED · 6 ROUNDS'; $('track-label').textContent = 'Two clues locate one error. The dots hide the stored value.';
-    say(tips[0]); updateStats(); draw();
+  noise(duration, volume, frequency, at) {
+    const source = this.context.createBufferSource(), filter = this.context.createBiquadFilter(), gain = this.context.createGain();
+    source.buffer = this.noiseBuffer; filter.type = 'highpass'; filter.frequency.value = frequency;
+    gain.gain.setValueAtTime(volume, at); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
+    source.connect(filter); filter.connect(gain); gain.connect(this.master); source.start(at); source.stop(at + duration);
+    this.nodes.add(source); source.onended = () => this.nodes.delete(source);
   }
-  async function run() {
-    await audio.unlock(); reset('run'); bpm = $('relaxed').checked ? 70 : 96;
-    events = chart(bank, bpm); $('tempo').textContent = `${bpm} BPM`; $('wait').hidden = true;
-    say('Read the current clues. A = Q1, S = Q2, D = Q3. If both say same, wait.'); updateStats(); draw();
+  memory(restored, index) { if (!this.running || this.paused) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth'); }
+  errorTone(lane) { if (this.context && !this.paused) this.tone(180 + lane * 15, .16, .03, 'sawtooth'); }
+  hit(lane) { if (this.running && !this.paused) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][lane]), .16, .035, 'sine'); }
+  setMuted(muted) { this.muted = muted; if (this.master) this.master.gain.value = muted ? 0 : this.map?.music.gain ?? .7; }
+  async pause() { this.paused = true; if (this.context) await this.context.suspend(); }
+  async resume() { if (this.context) await this.context.resume(); this.paused = false; }
+  stop() { clearInterval(this.timer); this.running = false; for (const node of this.nodes) { try { node.stop(); } catch {} } this.nodes.clear(); }
+}
+
+// Original vector garden, inspired by Ion Garden's sage/cream palette.
+class TempoGarden {
+  constructor(canvas) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.particles = []; this.blooms = 0; this.palette = 0; this.resize(); }
+  resize() { const r = this.canvas.getBoundingClientRect(), ratio = Math.min(devicePixelRatio || 1, 2); this.w = r.width; this.h = r.height; this.canvas.width = r.width * ratio; this.canvas.height = r.height * ratio; this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0); }
+  ellipse(x, y, rx, ry, color) { const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fillStyle = color; c.fill(); }
+  tree(x, y, size, variant = 0) {
+    const c = this.ctx; this.ellipse(x, y + size * .65, size * .52, size * .14, '#55734b28');
+    c.fillStyle = '#a79066'; c.fillRect(x - size * .055, y, size * .11, size * .62);
+    this.ellipse(x, y - size * .2, size * .5, size * .58, variant ? '#829e70' : '#75956c');
+    this.ellipse(x - size * .2, y - size * .08, size * .36, size * .37, variant ? '#96ae7b' : '#87a577');
+    this.ellipse(x + size * .14, y - size * .36, size * .32, size * .36, '#a2b888');
   }
-  function record(event, result, index) {
-    event.done = true; const fidelity = bank.fidelity(event.error, result.fix);
-    results.push({ ...result, fidelity, error: event.error, syn: event.syn, index });
-    score += result.points; combo = result.correct ? combo + 1 : 0; best = Math.max(best, combo);
-    const choice = keyFor(result.fix), expected = keyFor(event.expected);
-    const text = result.correct ? (result.fix ? `Correct · ${choice} flips Q${Math.log2(result.fix) + 1}.` : 'Correct · no warning, no correction.') : `${result.timing === 'Miss' ? 'Missed' : 'Wrong choice'} · these clues call for ${expected === 'WAIT' ? 'waiting' : expected}.`;
-    say(`${text} ${checksText(event.syn)}.`, result.correct ? 'success' : 'error');
-    $('timing').textContent = `${result.timing}${result.delta !== null && result.fix ? ` · ${Math.round(result.delta * 1000)} ms` : ''}`;
-    audio.answer(result.correct, result.fix); updateStats();
+  flower(x, y, size, color) {
+    const c = this.ctx; c.strokeStyle = '#729368'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 2, y + size * 2.4); c.stroke();
+    for (let n = 0; n < 5; n++) { const a = n * Math.PI * 2 / 5; this.ellipse(x + Math.cos(a) * size * .6, y + Math.sin(a) * size * .6, size * .55, size * .55, color); }
+    this.ellipse(x, y, size * .35, size * .35, '#fff1bd');
   }
-  function act(fix) {
-    if (paused || $('dialog').open || !bank) return;
-    if (mode === 'training') {
-      const event = events[trainingIndex]; if (!event || event.done) return;
-      record(event, { correct: fix === event.expected, fix, delta: null, timing: 'Practice', points: fix === event.expected ? 100 : 0 }, trainingIndex);
-      $('next').hidden = false; $('wait').hidden = true;
-      root.querySelectorAll('[data-fix]').forEach(b => { b.disabled = true; });
-      $('next').focus(); return;
+  burst(x, y, lane) { this.blooms++; for (let i = 0; i < 7; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 100, vy: -35 - Math.random() * 60, life: .65, lane }); }
+  draw(dt, beat = 0, reduced = false) {
+    const c = this.ctx, w = this.w, h = this.h;
+    c.fillStyle = this.palette % 2 ? '#b9cda0' : '#b7c99a'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#f2eed055'; c.beginPath(); c.ellipse(w * .12, h * .25, w * .42, h * .4, -.3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#95ad8050'; c.beginPath(); c.ellipse(w * .92, h * .65, w * .38, h * .52, .3, 0, Math.PI * 2); c.fill();
+    this.ellipse(w * .16, h * .65, w * .14, h * .13, '#8eab8425');
+    this.ellipse(w * .13, h * .73, Math.min(95, w * .1), 39, '#7ba59b');
+    this.ellipse(w * .13, h * .72, Math.min(88, w * .09), 31, '#a6c8b0');
+    this.ellipse(w * .13, h * .72, Math.min(75, w * .075), 24, '#92bca9');
+    c.strokeStyle = '#d5e0bc'; c.lineWidth = 2; c.beginPath(); c.ellipse(w * .13, h * .72, Math.min(50, w * .05), 12, 0, 0, Math.PI * 2); c.stroke();
+    for (let i = 0; i < 12; i++) {
+      const side = i % 2, x = side ? w * (.87 + Math.sin(i * 4) * .07) : w * (.08 + Math.sin(i * 4) * .06);
+      const y = h * (.2 + (i % 6) * .13); this.tree(x, y, 30 + (i % 3) * 9, i % 2);
     }
-    if (mode !== 'run' || fix === 0) return;
-    const index = events.findIndex(e => !e.done); if (index < 0) return;
-    const event = events[index], result = judge(event, fix, time);
-    if (!result) { say(time < event.at ? 'Too early · keep reading, wait for the hit line.' : 'Outside the timing window.', 'error'); $('timing').textContent = 'NO CORRECTION APPLIED'; return; }
-    record(event, result, index); draw();
-    if (events.every(e => e.done)) finish();
+    for (let i = 0; i < 68; i++) {
+      const x = ((i * 313.7) % 997) / 997 * w, y = ((i * 197.3) % 983) / 983 * h;
+      if (x > w * .28 && x < w * .72) continue;
+      this.flower(x, y, 2.5 + i % 3, ['#e4b5a3', '#f0dfad', '#d0c2d8'][i % 3]);
+    }
+    // Garden growth responds to successful corrections.
+    for (let i = 0; i < Math.min(this.blooms, 45); i++) this.flower(w * (.79 + (i % 5) * .028), h * (.67 + Math.floor(i / 5) * .018), 3.5, '#f1c7a5');
+    const bob = reduced ? 0 : Math.sin(beat * Math.PI) * 2;
+    this.ellipse(w * .17, h * .52 + 16, 29, 9, '#49684125');
+    this.ellipse(w * .17, h * .52 + bob, 28, 20, '#d5ad83');
+    this.ellipse(w * .17 + 18, h * .52 - 7 + bob, 17, 16, '#e5c59e');
+    this.ellipse(w * .17 + 18, h * .52 - 22 + bob, 5, 6, '#caa17b');
+    this.ellipse(w * .17 + 23, h * .52 - 9 + bob, 2, 2, '#415a42');
+    this.ellipse(w * .17 + 33, h * .52 + bob, 4, 2, '#836a4d');
+    if (!reduced) {
+      this.particles = this.particles.filter(p => p.life > 0);
+      for (const p of this.particles) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 110 * dt; c.globalAlpha = Math.max(0, p.life / .65); this.ellipse(p.x, p.y, 4, 2, ['#f7ead0', '#e9b391', '#cadbb7'][p.lane % 3]); }
+      c.globalAlpha = 1;
+    } else this.particles = [];
   }
+}
+
+// TEAMMATE PORT: add authored maps/composers here; imported by every entry point.
+// import { registerMap } from './maps.js';
+// import { registerComposer } from './audio.js';
+// registerMap({ ...yourMap });
+// registerComposer('your-track', (tick, { tone, noise, section, map }) => { ... });
+// See LEVEL_AUTHORING.md for schema, a complete example, audio, and event hooks.
+
+
+const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const pct = n => `${(n * 100).toFixed(1)}%`;
+async function startGame(root, engine) {
+  root.innerHTML = `<main class="garden-game" data-state="menu">
+    <canvas id="garden" aria-hidden="true"></canvas>
+    <header class="hud"><a class="brand" href="#" aria-label="Choose a map"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>A LITTLE RHYTHM GOES A LONG WAY</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">a garden for fragile memories</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
+    <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
+    <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
+    <aside id="map-letter" class="map-letter"><div class="eyebrow">A SONG FOR YOUR GARDEN</div><span class="letter-stamp">✧</span><h1>Let the<br><em>notes bloom.</em></h1><p>Decode falling memories on the line.<br>Read the parity lamps.<br>Choose which qubits to flip.</p><label class="field">MAP<select id="map-select" aria-label="Map"></select></label><label class="field">DIFFICULTY<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}">${d} qubits · up to ${Math.floor((d - 1) / 2)} flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm">86 BPM</span><span id="map-duration">39 seconds</span></div><button id="play" class="primary" disabled>Preparing memories… <span>↗</span></button><button id="practice" class="text-button" disabled>Try six packets without a timer</button><div class="author-actions"><button id="import-map">+ Map</button><button id="import-music">+ Music</button><button id="settings">Tune</button></div><span id="music-name" class="music-name">Original garden soundtrack</span><button id="clear-music" class="text-button" hidden>Use the original soundtrack</button><input id="map-file" type="file" accept=".json,application/json" hidden><input id="music-file" type="file" accept="audio/*" hidden><p id="load-status" class="runtime-note" role="status" aria-live="polite">Preparing quantum reference experiments.</p></aside>
+    <div id="practice-hint" class="practice-hint" hidden><span>✧</span><p id="practice-text">Read the clues, then catch the notes.</p><button id="practice-next" hidden>Continue [W]</button></div>
+    <div class="bottom-note"><span>✧ This effort is supported by Qollab & IonQ</span><span id="bottom-status">a new map, a little care</span></div>
+    <div id="live" class="sr-only" role="status" aria-live="polite"></div>
+    <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-body"></div><div id="dialog-actions"></div></dialog>
+  </main>`;
+  const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
+  const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
+  let reported = new Set();
+  function reportPackets() { run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } }); }
+  let bank = null, run = null, mode = 'menu', map = getMap('morning-dew', 3), practice = false, practiceIndex = 0, practiceTime = 0;
+  let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches, selectedAudio = false;
+  let paused = false, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
+  function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
+  function announce(text) { $('live').textContent = text; }
+  function menuStatus(text) { $('load-status').textContent = text; }
+  function setState(state) { mode = state; main.dataset.state = state; $('pause').disabled = !['playing', 'practice'].includes(state); }
+  function populateMaps(selected = $('map-select').value || 'morning-dew') {
+    $('map-select').innerHTML = listMaps().map(m => `<option value="${html(m.id)}">${html(m.title)}</option>`).join(''); $('map-select').value = selected;
+  }
+  function refreshMap() {
+    const definition = listMaps().find(m => m.id === $('map-select').value);
+    if (definition?.qubits) $('qubits').value = String(definition.qubits);
+    $('qubits').disabled = Boolean(definition?.qubits);
+    map = getMap($('map-select').value, Number($('qubits').value));
+    $('song-name').textContent = map.title; $('section').textContent = map.artist;
+    $('map-bpm').textContent = `${map.bpm} BPM`; $('map-duration').textContent = `${Math.round(map.durationBeats * 60 / map.bpm)} seconds`;
+    $('keys-caption').textContent = laneKeys(map.qubits).join(' · ');
+    $('clue-caption').textContent = `${map.qubits} qubits · one protected memory`;
+    $('deck').style.setProperty('--lanes', map.qubits); $('deck').style.setProperty('--deck-width', `${240 + map.qubits * 55}px`);
+    $('lane-grid').innerHTML = laneKeys(map.qubits).map((key, lane) => `<div class="lane" style="--lane:${lane}"><span>Q${lane + 1}</span></div>`).join('');
+    $('receptors').innerHTML = laneKeys(map.qubits).map((key, lane) => `<button data-lane="${lane}" aria-label="Flip qubit ${lane + 1}, ${key === 'SPACE' ? 'Space' : key}"><span>${key === 'SPACE' ? '␣' : key}</span><small>Q${lane + 1}</small></button>`).join('');
+    root.querySelectorAll('[data-lane]').forEach(button => {
+      button.addEventListener('pointerdown', e => { e.preventDefault(); act(Number(button.dataset.lane)); });
+      button.addEventListener('click', e => { if (e.detail === 0) act(Number(button.dataset.lane)); });
+    });
+    if (mode === 'menu') drawAttract();
+  }
+  function drawAttract() {
+    $('notes').innerHTML = [0, 1, 2].map(i => `<div class="error-packet preview-note" style="top:${12 + i * 25}%"><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((_, q) => `<span class="packet-qubit">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-alert="${q === i % (map.qubits - 1) ? 1 : 0}" style="left:${(q + 1) / map.qubits * 100}%">${q === i % (map.qubits - 1) ? '≠' : '='}</span>` : ''}`).join('')}</div></div>`).join('');
+    $('combo').textContent = '✿'; $('combo-label').textContent = 'READY TO BLOOM'; $('score').textContent = '000000';
+    $('count-in').textContent = '';
+  }
+  function showDialog(body, actions) {
+    $('dialog-body').innerHTML = body; $('dialog-actions').innerHTML = actions;
+    if (!$('dialog').open) $('dialog').showModal();
+  }
+  function closeDialog() { if ($('dialog').open) $('dialog').close(); }
+  async function pauseGame() {
+    if (!['playing', 'practice'].includes(mode) || paused) return;
+    paused = true; await music.pause();
+    showDialog(`<div class="eyebrow">TAKE A BREATH</div><h2 id="dialog-title">The garden can wait.</h2><p>${html(map.title)} · your place in the music is held.</p>`, '<button id="resume" class="primary">Resume map ↗</button><button id="restart" class="subtle">Start again</button><button id="choose" class="subtle">Choose a map</button>');
+    $('resume').onclick = resumeGame; $('restart').onclick = () => { closeDialog(); start(practice); }; $('choose').onclick = toMenu;
+  }
+  async function resumeGame() { closeDialog(); await music.resume(); paused = false; lastFrame = performance.now(); }
+  function toMenu() {
+    closeDialog(); music.stop(); music.context?.resume(); paused = false; held.clear(); run = null; setState('menu');
+    $('practice-hint').hidden = true; menuStatus('Your garden is ready.'); $('song-fill').style.width = '0%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '0'); refreshMap();
+  }
+  async function start(untimed = false) {
+    if (!bank) return; closeDialog(); refreshMap(); practice = untimed; paused = false; held.clear(); lastSection = lastClue = '';
+    let playMap = structuredClone(map);
+    if (practice) {
+      const choices = [map.events[0], map.events[1], map.events.find(e => e.steps.some(s => s.lanes.length > 1)), map.events.find(e => e.steps.length > 1), map.events.find(e => !e.error.length)];
+      const chosen = [...new Set(choices.filter(Boolean))];
+      for (const event of map.events) { if (chosen.length >= 6) break; if (!chosen.includes(event)) chosen.push(event); }
+      playMap.events = structuredClone(chosen.sort((a, b) => a.beat - b.beat));
+    }
+    run = new RhythmRun(playMap, bank); reported = new Set(); art.blooms = 0; art.particles = []; practiceIndex = 0;
+    $('play').disabled = $('practice').disabled = true; menuStatus('Starting the music…');
+    try {
+      if (practice) { await music.init(); music.stop(); music.master.gain.value = music.muted ? 0 : .6; setState('practice'); practiceTime = run.packets[0].at; }
+      else { await music.start(map, selectedAudio); setState('playing'); }
+    } catch (error) { music.stop(); setState('menu'); menuStatus(error.message); $('play').disabled = $('practice').disabled = false; return; }
+    $('play').disabled = $('practice').disabled = false; $('practice-hint').hidden = !practice;
+    $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet"><div class="packet-tag">ENCODED MEMORY ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
+    run.cues.forEach(c => { c.element = $(`cue-${c.id}`); }); $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
+    emit('map-start', { map: structuredClone(map), practice }); announce(`Starting ${map.title}, ${map.qubits} lanes. Keys: ${laneKeys(map.qubits).join(', ')}.`);
+    $('receptors').querySelector('button')?.focus(); lastFrame = performance.now(); drawNotes(currentTime());
+  }
+  function currentTime() { return practice ? practiceTime : music.time(); }
+  function finishPracticePacket() {
+    const p = run.packets[practiceIndex];
+    if (!p) return finish();
+    run.advance(p.end + .001); reportPackets(); practiceIndex++;
+    if (practiceIndex >= run.packets.length) return finish();
+    practiceTime = run.packets[practiceIndex].at; drawNotes(practiceTime);
+  }
+  function act(lane) {
+    if (!run || paused || !['playing', 'practice'].includes(mode)) return;
+    const time = currentTime() + (practice ? 0 : offsetMs / 1000);
+    const event = run.press(lane, time); reportPackets();
+    root.querySelector(`[data-lane="${lane}"]`).classList.add('pressed');
+    setTimeout(() => root.querySelector(`[data-lane="${lane}"]`)?.classList.remove('pressed'), 90);
+    $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
+    $('judgement').textContent = event.type === 'hit' ? event.correct ? event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
+    $('judgement').dataset.kind = event.correct === false ? 'stray' : event.type; judgementUntil = performance.now() + 450;
+    if (event.type === 'hit' && event.correct) {
+      if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane);
+      const r = $('receptors').getBoundingClientRect(), deck = $('deck').getBoundingClientRect();
+      art.burst(deck.left + (lane + .5) * deck.width / map.qubits, r.top, lane);
+      emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
+    } else { music.errorTone?.(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
+    if (event.packet) announce(`Qubit ${lane + 1} flipped. Checks: ${run.checks(event.packet).map(b => b ? 'different' : 'same').join(', ')}.`);
+    if (practice) { const remaining = run.cues.find(c => c.packet === run.packets[practiceIndex] && c.notes.some(n => !n.done)); if (remaining) practiceTime = remaining.at; drawNotes(practiceTime); }
+  }
+  function drawNotes(time) {
+    const height = root.querySelector('.highway').clientHeight, hit = height - 92;
+    const currentPacket = practice ? run.packets[practiceIndex] : run.packets.find(p => !p.done && p.end >= time);
+    const closest = run.cues.find(c => !c.packet.done && (!practice || c.packet === currentPacket) && (c.clean || c.notes.some(n => !n.done))) || run.cues.filter(c => c.packet === currentPacket).at(-1);
+    for (const cue of run.cues) {
+      const y = hit - (cue.at - time) / approach * (hit - 25);
+      const display = !cue.packet.done && (practice || time <= cue.at + WINDOWS.good) && y > -100 && y < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
+      cue.element.hidden = !display;
+      if (display) {
+        cue.element.style.transform = `translateY(${(still || practice ? hit : y) - 32}px)`;
+        const checks = run.checks(cue.packet);
+        cue.element.querySelectorAll('[data-check]').forEach(lamp => { const bit = checks[Number(lamp.dataset.check)]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
+        cue.element.querySelectorAll('[data-qubit]').forEach(q => { q.classList.toggle('applied', Boolean(cue.packet.applied >> Number(q.dataset.qubit) & 1)); });
+      }
+    }
+    if (time < 0 && !practice) $('count-in').textContent = String(Math.max(1, Math.ceil(-time / (60 / map.bpm)))); else $('count-in').textContent = '';
+    if (currentPacket) {
+      const checks = run.checks(currentPacket), clue = checks.map(b => b ? '≠' : '=').join(' ');
+      $('clue-caption').textContent = `checks ${clue}${still && !practice && closest ? ` · ${Math.max(0, closest.at - time).toFixed(1)}s` : ''}`;
+      if (practice) {
+        $('practice-text').textContent = 'Find the smallest set of qubit flips that makes every lamp =. Recheck after each input; W advances when you are satisfied.';
+        if (currentPacket.id !== lastClue) { lastClue = currentPacket.id; announce(`New memory. Checks: ${clue}. Choose the faulty qubits.`); }
+      }
+    }
+    $('practice-next').hidden = !practice;
+  }
+
   function finish() {
-    const trained = mode === 'training'; mode = 'result'; paused = false;
-    $('mode').textContent = trained ? 'PRACTICE COMPLETE' : 'MIX COMPLETE'; $('pause').disabled = true; $('relaxed').disabled = false; $('next').hidden = $('wait').hidden = true;
-    $('progress-fill').style.width = '100%'; root.querySelector('.progress').setAttribute('aria-valuenow', '100');
-    root.querySelectorAll('[data-fix]').forEach(b => { b.disabled = true; });
-    $('round').textContent = `${results.length} / ${events.length}`; $('countdown').textContent = 'NICE WORK · CHECK YOUR MIX';
-    $('packets').innerHTML = ''; clue(null); $('track-overlay').hidden = false; $('track-overlay').textContent = trained ? 'PRACTICE COMPLETE' : 'MIX COMPLETE';
-    const right = results.filter(r => r.correct).length, timed = results.filter(r => r.correct && r.fix && r.delta !== null), perfect = timed.filter(r => r.timing === 'Perfect').length;
-    const f = results.reduce((s, r) => s + r.fidelity, 0) / results.length;
-    $('report').innerHTML = `<div class="report-head"><div class="eyebrow">${trained ? 'YOU KNOW THE CONTROLS' : 'YOUR MIX, DECODED'}</div><h2>${right / results.length >= .8 ? 'A steady hand on a fragile state.' : 'Every miss is a clue for the next mix.'}</h2><p>${trained ? 'Now try reading the same clues on the beat.' : 'Choosing a correction and timing it are two separate skills.'}</p></div><div class="report-stats"><div><strong>${right} / ${results.length}</strong><span>Correct choices</span></div><div><strong>${trained ? 'Untimed' : `${perfect} / ${timed.length}`}</strong><span>Perfect hits / correct taps</span></div><div><strong>${best}</strong><span>Best streak</span></div><div><strong>${percent(f)}</strong><span>Mean state preservation*</span></div></div><p class="quiet">*${engine.kind === 'qiskit' ? 'Sampled Qiskit' : 'Exact local simulation'} result across six input states for the error and correction in each round. Each round is a fresh register; this is not continuous quantum memory.</p><details><summary>See the last 10 rounds</summary><div class="table-scroll"><table><thead><tr><th>Round</th><th>Checks</th><th>Your choice</th><th>Timing</th><th>State preservation</th></tr></thead><tbody>${results.slice(-10).map(r => `<tr><td>${r.index + 1}</td><td>${r.syn.join('')}</td><td>${keyFor(r.fix)} · ${r.correct ? 'correct' : 'incorrect'}</td><td>${r.timing}</td><td>${percent(r.fidelity)}</td></tr>`).join('')}</tbody></table></div></details><div class="launch"><button id="again" class="primary">${trained ? 'Start a rhythm run ▶' : 'Play another mix ↗'}</button><button id="report-lab" class="secondary">Try the two-error experiment</button></div>`;
-    $('report').hidden = false; $('again').onclick = run; $('report-lab').onclick = lab; $('report').focus();
-    say(trained ? 'Practice complete. You’re ready for the rhythm run.' : 'Run complete. Your report separates correct choices from timing.');
+    if (!run || mode === 'result') return;
+    music.stop(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
+    const result = run.summary(); $('notes').innerHTML = ''; $('count-in').textContent = '';
+    const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#78966b"/>`).join('');
+    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'YOUR MAP, IN BLOOM'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'a little practice goes a long way.' : result.accuracy >= .8 ? 'a lovely little recovery.' : 'another song, another chance.'}</em></h2><span class="grade">${practice ? '✿' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div><p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#e8edcf"/><path d="M12 45H448" stroke="#bdc99e" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(selectedAudio ? music.loadedName : map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
+    $('again').onclick = () => start(false); $('choose-result').onclick = toMenu;
+    emit('map-end', { mapId: map.id, practice, summary: result }); announce(`${map.title} complete. ${result.restored} of ${result.packets} memories restored.`);
   }
-  function togglePause(force) {
-    if (mode !== 'run') return;
-    paused = typeof force === 'boolean' ? force : !paused;
-    $('pause').textContent = paused ? 'Resume [P]' : 'Pause [P]'; $('track-overlay').hidden = !paused; $('track-overlay').textContent = 'PAUSED';
-    $('mode').textContent = paused ? 'PAUSED' : 'LIVE / SINGLE-FLIP MIX'; last = performance.now();
+  async function guide() {
+    const active = ['playing', 'practice'].includes(mode); if (active && !paused) { paused = true; await music.pause(); }
+    showDialog(`<div class="eyebrow">A FIELD GUIDE</div><h2 id="dialog-title">Small notes.<em>Fragile memories.</em></h2><p>Encoded memory packets fall from the top. The lamps between qubits show neighboring parity: ≠ means different, = means same. Decide which qubits flipped, then press their keys as the packet reaches the recovery line. Keys never reveal the answer. Numbered packets share one memory and provide rapid correction beats.</p><p>Each packet protects one quantum state across several physical qubits. Read the parity pattern to choose the smallest set of flips within the code’s guarantee. For three qubits: ≠ = means Q1, ≠ ≠ means Q2, = ≠ means Q3, and = = means wait. The lamps update after every flip. For larger codes, repair the smallest set of qubits that makes all lamps equal. You can choose any order for multi-qubit corrections.</p><p>3 / 4 qubits guarantee one bit flip, 5 / 6 guarantee two, and 7 guarantee three. We keep errors within those limits. This repetition code does not protect against phase errors.</p><p>Use untimed practice to learn the patterns. P or Escape pauses; Space is a lane key in 5- and 7-qubit maps. Music sections change the garden and accompaniment, and caught notes grow flowers.</p><details><summary>Credits and quantum source</summary><p>${html(engine.label)}. Qiskit supplies 298 reference circuits in one job for 3–7 data qubits. The local player identifies recorded results. This is an educational simulation, not quantum hardware timing or general fault tolerance.</p><p>Visual direction from the team’s Ion Garden branch; new vector art, original synthesized music, and code drafted with OpenAI Codex assistance. MIT application. This effort is supported by Qollab & IonQ.</p></details>`, '<button id="close-help" class="primary">Back to the garden ↗</button>'); $('close-help').onclick = active ? resumeGame : closeDialog;
   }
-  function openDialog(html) {
-    dialogPaused = mode === 'run' && !paused; if (dialogPaused) togglePause(true);
-    $('dialog-body').innerHTML = html; $('dialog').showModal(); $('close-dialog').focus();
+  function tuning() {
+    showDialog(`<div class="eyebrow">FIND YOUR RHYTHM</div><h2 id="dialog-title">A little tuning.</h2><label class="tune-field">Note travel <input id="travel" type="range" min="1.2" max="3.6" step=".1" value="${approach}"><span id="travel-value">${approach.toFixed(1)} seconds</span></label><label class="tune-field">Input compensation <input id="offset" type="range" min="-200" max="200" step="5" value="${offsetMs}"><span id="offset-value">${offsetMs} ms</span></label><p>Positive compensation treats your input as later on the song clock. Use the early/late plot after a map to adjust. This is a manual setting, not an automatic device calibration.</p><label class="check-field"><input id="static-mode" type="checkbox" ${still ? 'checked' : ''}> Still notes / reduced motion</label><p>Still notes show the next chord on the line with a countdown. Untimed practice removes the timing demand entirely.</p><button id="export-map" class="subtle">Export selected map JSON</button>`, '<button id="close-tune" class="primary">Ready to bloom ↗</button>');
+    $('travel').oninput = () => { approach = Number($('travel').value); $('travel-value').textContent = `${approach.toFixed(1)} seconds`; };
+    $('offset').oninput = () => { offsetMs = Number($('offset').value); $('offset-value').textContent = `${offsetMs} ms`; };
+    $('static-mode').onchange = () => { still = $('static-mode').checked; };
+    $('export-map').onclick = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(map, null, 2)], { type: 'application/json' })), a = document.createElement('a'); a.href = url; a.download = `${map.id}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+    $('close-tune').onclick = closeDialog;
   }
-  function lab() {
-    const single = bank.sample(4), double = bank.sample(3), fix = correction(double);
-    openDialog(`<div class="eyebrow">THE TWO-ERROR EXPERIMENT</div><h2 id="dialog-title">Same clues. Different problem.</h2><p>The decoder assumes at most one flip. But Q3 flipping once and Q1 + Q2 flipping together produce the same ideal checks: <strong>same / different</strong>.</p><div class="lab-grid"><article><span class="lab-count">ONE ERROR</span><h3>Q3 flips</h3><p>Observed checks: ${checksText(single)}</p><p>Rule chooses <strong>${keyFor(correction(single))}</strong></p><strong class="lab-value">${percent(bank.fidelity(4, correction(single)))}</strong><small>Mean state preservation</small></article><article><span class="lab-count">TWO ERRORS</span><h3>Q1 + Q2 flip</h3><p>Observed checks: ${checksText(double)}</p><p>Rule chooses <strong>${keyFor(fix)}</strong></p><strong class="lab-value warning">${percent(bank.fidelity(3, fix))}</strong><small>Mean state preservation</small></article></div><p><strong>Why it fails:</strong> flipping Q3 in the second case leaves all three qubits flipped. The checks now agree, but the stored logical state may have changed. “No warning” does not always mean “no damage”.</p><p class="quiet">Two flips in separate rounds can each be corrected. Two simultaneous flips need more information or a stronger code. On a noisy simulator, observed checks and sampled preservation can vary.</p><details><summary>What the quantum experiment measures</summary><p>Each case prepares |0⟩, |1⟩, |+⟩, |−⟩, |+i⟩, and |−i⟩. After correction, we undo encoding and preparation and measure all three data qubits. The probability of 000 is the overlap with the original encoded state. The displayed value averages all six. For a triple X error, the ideal average is 1/3: the two X-basis states survive, while the other four do not.</p></details>`);
-  }
-  function about() {
-    openDialog(`<div class="eyebrow">THE SCIENCE BEHIND THE BEAT</div><h2 id="dialog-title">Protect the state. Read the clues.</h2><p>Think of a qubit as a spinning coin. It can hold a blend of two possibilities; this analogy is only a starting point. Looking directly can disturb that blend.</p><p>We encode <strong>one logical qubit across three physical qubits</strong>, not three independent copies. Two helper qubits check neighboring parity. Their signals reveal where a single bit flip happened, without revealing the protected value.</p><div class="formula">α|0⟩ + β|1⟩ → α|000⟩ + β|111⟩</div><p><strong>A / S / D</strong> apply an X gate to Q1 / Q2 / Q3. An X gate reverses a bit flip. The three-qubit code protects against one bit flip per round; it does not protect against phase errors.</p><p>The rhythm is a learning mechanic. It does not represent hardware speed or a fault-tolerance threshold.</p><details><summary>Simulator and verification details</summary><p>${escape(engine.label)}. The Qollab version builds 192 Qiskit circuits and runs them in one job. Check results are sampled from that job. The local preview uses an independently cross-checked JS simulator. State preservation evaluates six input states, including superpositions. Results are reused across fresh rounds, rather than running a job per keypress.</p><p>This is an educational simulation with explicit X errors and terminal measurements. Ideal gates in the local preview; a selected noisy backend may add noise. No quantum advantage or general error correction is claimed.</p></details>`);
-  }
-  $('train').onclick = practice; $('play').onclick = run; $('about').onclick = about; $('lab').onclick = lab; $('pause').onclick = () => togglePause();
-  root.querySelector('.brand').onclick = e => { e.preventDefault(); if (mode === 'run') togglePause(true); window.scrollTo({ top: 0, behavior: 'instant' }); };
-  $('sound').onclick = async () => { audio.enabled = !audio.enabled; $('sound').textContent = audio.enabled ? '♪ Sound on' : '♪ Sound off'; $('sound').setAttribute('aria-pressed', String(audio.enabled)); if (audio.enabled) await audio.unlock(); };
-  $('wait').onclick = () => act(0); root.querySelectorAll('[data-fix]').forEach(b => { b.onclick = () => act(Number(b.dataset.fix)); });
-  $('next').onclick = () => {
-    trainingIndex++; if (trainingIndex === events.length) return finish();
-    $('next').hidden = true; $('wait').hidden = false; root.querySelectorAll('[data-fix]').forEach(b => { b.disabled = false; });
-    say(tips[trainingIndex]); updateStats(); draw(); root.querySelector('[data-fix]').focus();
+  populateMaps(); refreshMap();
+  $('map-select').onchange = refreshMap; $('qubits').onchange = refreshMap; $('play').onclick = () => start(false); $('practice').onclick = () => start(true);
+  $('pause').onclick = pauseGame; $('help').onclick = guide; $('settings').onclick = tuning;
+  root.querySelector('.brand').onclick = e => { e.preventDefault(); if (['playing', 'practice'].includes(mode)) pauseGame(); else toMenu(); };
+  $('sound').onclick = () => { music.setMuted(!music.muted); $('sound').setAttribute('aria-pressed', String(music.muted)); $('sound').setAttribute('aria-label', music.muted ? 'Unmute music' : 'Mute music'); $('sound').textContent = music.muted ? '♪̸' : '♫'; };
+  $('practice-next').onclick = finishPracticePacket;
+  $('import-map').onclick = () => $('map-file').click(); $('import-music').onclick = () => $('music-file').click();
+  $('map-file').onchange = async () => {
+    try { const file = $('map-file').files[0]; if (!file) return; if (file.size > 2_000_000) throw new Error('Map files must be under 2 MB.'); const id = registerMap(JSON.parse(await file.text())); populateMaps(id); refreshMap(); menuStatus(`Loaded ${map.title}.`); emit('map-import', { id }); }
+    catch (error) { menuStatus(error.message); } finally { $('map-file').value = ''; }
   };
-  $('close-dialog').onclick = () => $('dialog').close();
-  $('dialog').addEventListener('close', () => { if (dialogPaused) togglePause(false); dialogPaused = false; });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) togglePause(true); });
-  window.addEventListener('blur', () => { togglePause(true); });
+  $('music-file').onchange = async () => {
+    try { const file = $('music-file').files[0]; if (!file) return; if (file.size > 30_000_000) throw new Error('Local music files must be under 30 MB.'); await music.loadFile(file); selectedAudio = true; $('music-name').textContent = file.name; $('clear-music').hidden = false; menuStatus('Local music loaded. Match the map’s BPM and offset before playing.'); }
+    catch (error) { menuStatus(error.message); } finally { $('music-file').value = ''; }
+  };
+  $('clear-music').onclick = () => { selectedAudio = false; $('music-name').textContent = 'Original garden soundtrack'; $('clear-music').hidden = true; };
+  $('dialog').addEventListener('cancel', e => { if (paused && ['playing', 'practice'].includes(mode)) { e.preventDefault(); resumeGame(); } else if (mode === 'result') { e.preventDefault(); toMenu(); } });
   window.addEventListener('keydown', e => {
-    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || $('dialog').open) return;
-    const key = e.key.toLowerCase();
-    if (key === 'p') { e.preventDefault(); togglePause(); }
-    const fix = { a: 1, s: 2, d: 4 }[key];
-    if (fix) { e.preventDefault(); act(fix); }
-    if (key === 'w' && mode === 'training') { e.preventDefault(); act(0); }
+    if (e.ctrlKey || e.metaKey || e.altKey || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'p') { if (['playing', 'practice'].includes(mode)) { e.preventDefault(); if (paused) resumeGame(); else pauseGame(); } return; }
+    if (e.repeat || held.has(e.code) || $('dialog').open) return;
+    if (e.key.toLowerCase() === 'w' && practice && !$('practice-next').hidden) { e.preventDefault(); finishPracticePacket(); return; }
+    const key = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase(), lane = laneKeys(map.qubits).indexOf(key);
+    if (lane >= 0 && ['playing', 'practice'].includes(mode)) { e.preventDefault(); held.add(e.code); act(lane); }
   });
-  try {
-    const specs = allSpecs(); bank = makeBank(specs, await engine.run(specs));
-    $('source').textContent = engine.label; $('train').disabled = $('play').disabled = $('lab').disabled = false;
-    say('Start with six untimed practice rounds, or jump into the beat.');
-    const demo = { syn: syndrome(2) }; $('packets').innerHTML = packet(demo, 0, 63, true); clue(demo);
-    root.querySelectorAll('[data-fix]').forEach(b => { b.disabled = true; });
-  } catch (err) {
-    say(`Could not prepare experiments: ${err.message}. On Qollab, select a free simulator and run again.`, 'error'); $('source').textContent = 'Simulator unavailable'; return;
-  }
+  window.addEventListener('keyup', e => { held.delete(e.code); });
+  window.addEventListener('blur', () => { held.clear(); pauseGame(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { held.clear(); pauseGame(); } });
+  window.addEventListener('resize', () => art.resize());
+  window.QubitTempo = {
+    registerMap(input) { const id = registerMap(input); populateMaps(); return id; }, registerComposer,
+    maps: () => listMaps(), selectMap(id) { if (mode !== 'menu') throw new Error('Return to map selection first.'); $('map-select').value = id; refreshMap(); },
+    on(type, handler) { const listener = e => handler(e.detail); hooks.addEventListener(type, listener); return () => hooks.removeEventListener(type, listener); },
+    state: () => ({ mode, mapId: map.id, paused, qubits: map.qubits, combo: run?.combo ?? 0, time: run && !paused ? currentTime() : null }),
+  };
   function frame(now) {
-    if (mode === 'run' && !paused) {
-      const elapsed = (now - last) / 1000;
-      if (elapsed > 1.5) { togglePause(true); say('Paused after a long frame delay. Resume when you’re ready.'); last = now; requestAnimationFrame(frame); return; }
-      time += elapsed;
-      const beat = Math.floor(time / (60 / bpm)); if (beat !== beatIndex) { beatIndex = beat; audio.beat(beat); }
-      events.forEach((e, i) => { if (!e.done && time > e.at + .23) record(e, missed(e), i); });
-      if (events.every(e => e.done)) finish(); else draw();
+    const dt = Math.min(.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+    let beat = 0;
+    if (run && ['playing', 'practice'].includes(mode) && !paused) {
+      const time = currentTime(), adjusted = time + (practice ? 0 : offsetMs / 1000); beat = time * map.bpm / 60;
+      if (!practice) {
+        run.advance(adjusted); reportPackets();
+        const progress = Math.max(0, Math.min(100, beat / map.durationBeats * 100)); $('song-fill').style.width = `${progress}%`; root.querySelector('.song-progress').setAttribute('aria-valuenow', String(Math.round(progress)));
+        $('combo').textContent = String(run.combo);
+        const section = [...map.sections].reverse().find(s => s.beat <= beat);
+        if (section && section.label !== lastSection) { lastSection = section.label; $('section').textContent = section.label; art.palette++; emit('section-change', { mapId: map.id, section: structuredClone(section) }); }
+        if (beat > map.durationBeats + 1 && run.packets.every(p => p.done)) finish();
+      }
+      if (['playing', 'practice'].includes(mode)) drawNotes(time);
     }
-    last = now; requestAnimationFrame(frame);
+    if (now > judgementUntil) $('judgement').textContent = '';
+    art.draw(dt, beat, still); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  try {
+    const specs = allSpecs(); bank = makeBank(specs, await engine.run(specs));
+    $('play').disabled = $('practice').disabled = false; $('play').innerHTML = 'Play this map <span>↗</span>';
+    menuStatus('Your garden is ready.'); $('bottom-status').textContent = 'read the rhythm · protect the memory';
+  } catch (error) { menuStatus(`Quantum setup failed: ${error.message}. On Qollab, select a free simulator and Run again.`); }
 }
 
-const snapshot = {"label": "Qiskit \u00b7 BasicSimulator (cached shots)", "specs": [{"error": 0, "fix": 0, "state": "0"}, {"error": 0, "fix": 0, "state": "1"}, {"error": 0, "fix": 0, "state": "+"}, {"error": 0, "fix": 0, "state": "-"}, {"error": 0, "fix": 0, "state": "+i"}, {"error": 0, "fix": 0, "state": "-i"}, {"error": 0, "fix": 1, "state": "0"}, {"error": 0, "fix": 1, "state": "1"}, {"error": 0, "fix": 1, "state": "+"}, {"error": 0, "fix": 1, "state": "-"}, {"error": 0, "fix": 1, "state": "+i"}, {"error": 0, "fix": 1, "state": "-i"}, {"error": 0, "fix": 2, "state": "0"}, {"error": 0, "fix": 2, "state": "1"}, {"error": 0, "fix": 2, "state": "+"}, {"error": 0, "fix": 2, "state": "-"}, {"error": 0, "fix": 2, "state": "+i"}, {"error": 0, "fix": 2, "state": "-i"}, {"error": 0, "fix": 4, "state": "0"}, {"error": 0, "fix": 4, "state": "1"}, {"error": 0, "fix": 4, "state": "+"}, {"error": 0, "fix": 4, "state": "-"}, {"error": 0, "fix": 4, "state": "+i"}, {"error": 0, "fix": 4, "state": "-i"}, {"error": 1, "fix": 0, "state": "0"}, {"error": 1, "fix": 0, "state": "1"}, {"error": 1, "fix": 0, "state": "+"}, {"error": 1, "fix": 0, "state": "-"}, {"error": 1, "fix": 0, "state": "+i"}, {"error": 1, "fix": 0, "state": "-i"}, {"error": 1, "fix": 1, "state": "0"}, {"error": 1, "fix": 1, "state": "1"}, {"error": 1, "fix": 1, "state": "+"}, {"error": 1, "fix": 1, "state": "-"}, {"error": 1, "fix": 1, "state": "+i"}, {"error": 1, "fix": 1, "state": "-i"}, {"error": 1, "fix": 2, "state": "0"}, {"error": 1, "fix": 2, "state": "1"}, {"error": 1, "fix": 2, "state": "+"}, {"error": 1, "fix": 2, "state": "-"}, {"error": 1, "fix": 2, "state": "+i"}, {"error": 1, "fix": 2, "state": "-i"}, {"error": 1, "fix": 4, "state": "0"}, {"error": 1, "fix": 4, "state": "1"}, {"error": 1, "fix": 4, "state": "+"}, {"error": 1, "fix": 4, "state": "-"}, {"error": 1, "fix": 4, "state": "+i"}, {"error": 1, "fix": 4, "state": "-i"}, {"error": 2, "fix": 0, "state": "0"}, {"error": 2, "fix": 0, "state": "1"}, {"error": 2, "fix": 0, "state": "+"}, {"error": 2, "fix": 0, "state": "-"}, {"error": 2, "fix": 0, "state": "+i"}, {"error": 2, "fix": 0, "state": "-i"}, {"error": 2, "fix": 1, "state": "0"}, {"error": 2, "fix": 1, "state": "1"}, {"error": 2, "fix": 1, "state": "+"}, {"error": 2, "fix": 1, "state": "-"}, {"error": 2, "fix": 1, "state": "+i"}, {"error": 2, "fix": 1, "state": "-i"}, {"error": 2, "fix": 2, "state": "0"}, {"error": 2, "fix": 2, "state": "1"}, {"error": 2, "fix": 2, "state": "+"}, {"error": 2, "fix": 2, "state": "-"}, {"error": 2, "fix": 2, "state": "+i"}, {"error": 2, "fix": 2, "state": "-i"}, {"error": 2, "fix": 4, "state": "0"}, {"error": 2, "fix": 4, "state": "1"}, {"error": 2, "fix": 4, "state": "+"}, {"error": 2, "fix": 4, "state": "-"}, {"error": 2, "fix": 4, "state": "+i"}, {"error": 2, "fix": 4, "state": "-i"}, {"error": 3, "fix": 0, "state": "0"}, {"error": 3, "fix": 0, "state": "1"}, {"error": 3, "fix": 0, "state": "+"}, {"error": 3, "fix": 0, "state": "-"}, {"error": 3, "fix": 0, "state": "+i"}, {"error": 3, "fix": 0, "state": "-i"}, {"error": 3, "fix": 1, "state": "0"}, {"error": 3, "fix": 1, "state": "1"}, {"error": 3, "fix": 1, "state": "+"}, {"error": 3, "fix": 1, "state": "-"}, {"error": 3, "fix": 1, "state": "+i"}, {"error": 3, "fix": 1, "state": "-i"}, {"error": 3, "fix": 2, "state": "0"}, {"error": 3, "fix": 2, "state": "1"}, {"error": 3, "fix": 2, "state": "+"}, {"error": 3, "fix": 2, "state": "-"}, {"error": 3, "fix": 2, "state": "+i"}, {"error": 3, "fix": 2, "state": "-i"}, {"error": 3, "fix": 4, "state": "0"}, {"error": 3, "fix": 4, "state": "1"}, {"error": 3, "fix": 4, "state": "+"}, {"error": 3, "fix": 4, "state": "-"}, {"error": 3, "fix": 4, "state": "+i"}, {"error": 3, "fix": 4, "state": "-i"}, {"error": 4, "fix": 0, "state": "0"}, {"error": 4, "fix": 0, "state": "1"}, {"error": 4, "fix": 0, "state": "+"}, {"error": 4, "fix": 0, "state": "-"}, {"error": 4, "fix": 0, "state": "+i"}, {"error": 4, "fix": 0, "state": "-i"}, {"error": 4, "fix": 1, "state": "0"}, {"error": 4, "fix": 1, "state": "1"}, {"error": 4, "fix": 1, "state": "+"}, {"error": 4, "fix": 1, "state": "-"}, {"error": 4, "fix": 1, "state": "+i"}, {"error": 4, "fix": 1, "state": "-i"}, {"error": 4, "fix": 2, "state": "0"}, {"error": 4, "fix": 2, "state": "1"}, {"error": 4, "fix": 2, "state": "+"}, {"error": 4, "fix": 2, "state": "-"}, {"error": 4, "fix": 2, "state": "+i"}, {"error": 4, "fix": 2, "state": "-i"}, {"error": 4, "fix": 4, "state": "0"}, {"error": 4, "fix": 4, "state": "1"}, {"error": 4, "fix": 4, "state": "+"}, {"error": 4, "fix": 4, "state": "-"}, {"error": 4, "fix": 4, "state": "+i"}, {"error": 4, "fix": 4, "state": "-i"}, {"error": 5, "fix": 0, "state": "0"}, {"error": 5, "fix": 0, "state": "1"}, {"error": 5, "fix": 0, "state": "+"}, {"error": 5, "fix": 0, "state": "-"}, {"error": 5, "fix": 0, "state": "+i"}, {"error": 5, "fix": 0, "state": "-i"}, {"error": 5, "fix": 1, "state": "0"}, {"error": 5, "fix": 1, "state": "1"}, {"error": 5, "fix": 1, "state": "+"}, {"error": 5, "fix": 1, "state": "-"}, {"error": 5, "fix": 1, "state": "+i"}, {"error": 5, "fix": 1, "state": "-i"}, {"error": 5, "fix": 2, "state": "0"}, {"error": 5, "fix": 2, "state": "1"}, {"error": 5, "fix": 2, "state": "+"}, {"error": 5, "fix": 2, "state": "-"}, {"error": 5, "fix": 2, "state": "+i"}, {"error": 5, "fix": 2, "state": "-i"}, {"error": 5, "fix": 4, "state": "0"}, {"error": 5, "fix": 4, "state": "1"}, {"error": 5, "fix": 4, "state": "+"}, {"error": 5, "fix": 4, "state": "-"}, {"error": 5, "fix": 4, "state": "+i"}, {"error": 5, "fix": 4, "state": "-i"}, {"error": 6, "fix": 0, "state": "0"}, {"error": 6, "fix": 0, "state": "1"}, {"error": 6, "fix": 0, "state": "+"}, {"error": 6, "fix": 0, "state": "-"}, {"error": 6, "fix": 0, "state": "+i"}, {"error": 6, "fix": 0, "state": "-i"}, {"error": 6, "fix": 1, "state": "0"}, {"error": 6, "fix": 1, "state": "1"}, {"error": 6, "fix": 1, "state": "+"}, {"error": 6, "fix": 1, "state": "-"}, {"error": 6, "fix": 1, "state": "+i"}, {"error": 6, "fix": 1, "state": "-i"}, {"error": 6, "fix": 2, "state": "0"}, {"error": 6, "fix": 2, "state": "1"}, {"error": 6, "fix": 2, "state": "+"}, {"error": 6, "fix": 2, "state": "-"}, {"error": 6, "fix": 2, "state": "+i"}, {"error": 6, "fix": 2, "state": "-i"}, {"error": 6, "fix": 4, "state": "0"}, {"error": 6, "fix": 4, "state": "1"}, {"error": 6, "fix": 4, "state": "+"}, {"error": 6, "fix": 4, "state": "-"}, {"error": 6, "fix": 4, "state": "+i"}, {"error": 6, "fix": 4, "state": "-i"}, {"error": 7, "fix": 0, "state": "0"}, {"error": 7, "fix": 0, "state": "1"}, {"error": 7, "fix": 0, "state": "+"}, {"error": 7, "fix": 0, "state": "-"}, {"error": 7, "fix": 0, "state": "+i"}, {"error": 7, "fix": 0, "state": "-i"}, {"error": 7, "fix": 1, "state": "0"}, {"error": 7, "fix": 1, "state": "1"}, {"error": 7, "fix": 1, "state": "+"}, {"error": 7, "fix": 1, "state": "-"}, {"error": 7, "fix": 1, "state": "+i"}, {"error": 7, "fix": 1, "state": "-i"}, {"error": 7, "fix": 2, "state": "0"}, {"error": 7, "fix": 2, "state": "1"}, {"error": 7, "fix": 2, "state": "+"}, {"error": 7, "fix": 2, "state": "-"}, {"error": 7, "fix": 2, "state": "+i"}, {"error": 7, "fix": 2, "state": "-i"}, {"error": 7, "fix": 4, "state": "0"}, {"error": 7, "fix": 4, "state": "1"}, {"error": 7, "fix": 4, "state": "+"}, {"error": 7, "fix": 4, "state": "-"}, {"error": 7, "fix": 4, "state": "+i"}, {"error": 7, "fix": 4, "state": "-i"}], "rows": [[{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": false, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [0, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": true, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 1], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": true, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [1, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": true, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}], [{"syn": [0, 0], "pass": false, "weight": 128}]]};
+const snapshot = {"label": "Qiskit \u00b7 BasicSimulator (cached shots)", "specs": [{"d": 3, "error": 0, "fix": 0, "state": "0"}, {"d": 3, "error": 1, "fix": 0, "state": "0"}, {"d": 3, "error": 2, "fix": 0, "state": "0"}, {"d": 3, "error": 3, "fix": 0, "state": "0"}, {"d": 3, "error": 4, "fix": 0, "state": "0"}, {"d": 3, "error": 5, "fix": 0, "state": "0"}, {"d": 3, "error": 6, "fix": 0, "state": "0"}, {"d": 3, "error": 7, "fix": 0, "state": "0"}, {"d": 3, "error": 0, "fix": 0, "state": "1"}, {"d": 3, "error": 0, "fix": 0, "state": "+"}, {"d": 3, "error": 0, "fix": 0, "state": "-"}, {"d": 3, "error": 0, "fix": 0, "state": "+i"}, {"d": 3, "error": 0, "fix": 0, "state": "-i"}, {"d": 3, "error": 7, "fix": 0, "state": "1"}, {"d": 3, "error": 7, "fix": 0, "state": "+"}, {"d": 3, "error": 7, "fix": 0, "state": "-"}, {"d": 3, "error": 7, "fix": 0, "state": "+i"}, {"d": 3, "error": 7, "fix": 0, "state": "-i"}, {"d": 4, "error": 0, "fix": 0, "state": "0"}, {"d": 4, "error": 1, "fix": 0, "state": "0"}, {"d": 4, "error": 2, "fix": 0, "state": "0"}, {"d": 4, "error": 3, "fix": 0, "state": "0"}, {"d": 4, "error": 4, "fix": 0, "state": "0"}, {"d": 4, "error": 5, "fix": 0, "state": "0"}, {"d": 4, "error": 6, "fix": 0, "state": "0"}, {"d": 4, "error": 7, "fix": 0, "state": "0"}, {"d": 4, "error": 8, "fix": 0, "state": "0"}, {"d": 4, "error": 9, "fix": 0, "state": "0"}, {"d": 4, "error": 10, "fix": 0, "state": "0"}, {"d": 4, "error": 11, "fix": 0, "state": "0"}, {"d": 4, "error": 12, "fix": 0, "state": "0"}, {"d": 4, "error": 13, "fix": 0, "state": "0"}, {"d": 4, "error": 14, "fix": 0, "state": "0"}, {"d": 4, "error": 15, "fix": 0, "state": "0"}, {"d": 4, "error": 0, "fix": 0, "state": "1"}, {"d": 4, "error": 0, "fix": 0, "state": "+"}, {"d": 4, "error": 0, "fix": 0, "state": "-"}, {"d": 4, "error": 0, "fix": 0, "state": "+i"}, {"d": 4, "error": 0, "fix": 0, "state": "-i"}, {"d": 4, "error": 15, "fix": 0, "state": "1"}, {"d": 4, "error": 15, "fix": 0, "state": "+"}, {"d": 4, "error": 15, "fix": 0, "state": "-"}, {"d": 4, "error": 15, "fix": 0, "state": "+i"}, {"d": 4, "error": 15, "fix": 0, "state": "-i"}, {"d": 5, "error": 0, "fix": 0, "state": "0"}, {"d": 5, "error": 1, "fix": 0, "state": "0"}, {"d": 5, "error": 2, "fix": 0, "state": "0"}, {"d": 5, "error": 3, "fix": 0, "state": "0"}, {"d": 5, "error": 4, "fix": 0, "state": "0"}, {"d": 5, "error": 5, "fix": 0, "state": "0"}, {"d": 5, "error": 6, "fix": 0, "state": "0"}, {"d": 5, "error": 7, "fix": 0, "state": "0"}, {"d": 5, "error": 8, "fix": 0, "state": "0"}, {"d": 5, "error": 9, "fix": 0, "state": "0"}, {"d": 5, "error": 10, "fix": 0, "state": "0"}, {"d": 5, "error": 11, "fix": 0, "state": "0"}, {"d": 5, "error": 12, "fix": 0, "state": "0"}, {"d": 5, "error": 13, "fix": 0, "state": "0"}, {"d": 5, "error": 14, "fix": 0, "state": "0"}, {"d": 5, "error": 15, "fix": 0, "state": "0"}, {"d": 5, "error": 16, "fix": 0, "state": "0"}, {"d": 5, "error": 17, "fix": 0, "state": "0"}, {"d": 5, "error": 18, "fix": 0, "state": "0"}, {"d": 5, "error": 19, "fix": 0, "state": "0"}, {"d": 5, "error": 20, "fix": 0, "state": "0"}, {"d": 5, "error": 21, "fix": 0, "state": "0"}, {"d": 5, "error": 22, "fix": 0, "state": "0"}, {"d": 5, "error": 23, "fix": 0, "state": "0"}, {"d": 5, "error": 24, "fix": 0, "state": "0"}, {"d": 5, "error": 25, "fix": 0, "state": "0"}, {"d": 5, "error": 26, "fix": 0, "state": "0"}, {"d": 5, "error": 27, "fix": 0, "state": "0"}, {"d": 5, "error": 28, "fix": 0, "state": "0"}, {"d": 5, "error": 29, "fix": 0, "state": "0"}, {"d": 5, "error": 30, "fix": 0, "state": "0"}, {"d": 5, "error": 31, "fix": 0, "state": "0"}, {"d": 5, "error": 0, "fix": 0, "state": "1"}, {"d": 5, "error": 0, "fix": 0, "state": "+"}, {"d": 5, "error": 0, "fix": 0, "state": "-"}, {"d": 5, "error": 0, "fix": 0, "state": "+i"}, {"d": 5, "error": 0, "fix": 0, "state": "-i"}, {"d": 5, "error": 31, "fix": 0, "state": "1"}, {"d": 5, "error": 31, "fix": 0, "state": "+"}, {"d": 5, "error": 31, "fix": 0, "state": "-"}, {"d": 5, "error": 31, "fix": 0, "state": "+i"}, {"d": 5, "error": 31, "fix": 0, "state": "-i"}, {"d": 6, "error": 0, "fix": 0, "state": "0"}, {"d": 6, "error": 1, "fix": 0, "state": "0"}, {"d": 6, "error": 2, "fix": 0, "state": "0"}, {"d": 6, "error": 3, "fix": 0, "state": "0"}, {"d": 6, "error": 4, "fix": 0, "state": "0"}, {"d": 6, "error": 5, "fix": 0, "state": "0"}, {"d": 6, "error": 6, "fix": 0, "state": "0"}, {"d": 6, "error": 7, "fix": 0, "state": "0"}, {"d": 6, "error": 8, "fix": 0, "state": "0"}, {"d": 6, "error": 9, "fix": 0, "state": "0"}, {"d": 6, "error": 10, "fix": 0, "state": "0"}, {"d": 6, "error": 11, "fix": 0, "state": "0"}, {"d": 6, "error": 12, "fix": 0, "state": "0"}, {"d": 6, "error": 13, "fix": 0, "state": "0"}, {"d": 6, "error": 14, "fix": 0, "state": "0"}, {"d": 6, "error": 15, "fix": 0, "state": "0"}, {"d": 6, "error": 16, "fix": 0, "state": "0"}, {"d": 6, "error": 17, "fix": 0, "state": "0"}, {"d": 6, "error": 18, "fix": 0, "state": "0"}, {"d": 6, "error": 19, "fix": 0, "state": "0"}, {"d": 6, "error": 20, "fix": 0, "state": "0"}, {"d": 6, "error": 21, "fix": 0, "state": "0"}, {"d": 6, "error": 22, "fix": 0, "state": "0"}, {"d": 6, "error": 23, "fix": 0, "state": "0"}, {"d": 6, "error": 24, "fix": 0, "state": "0"}, {"d": 6, "error": 25, "fix": 0, "state": "0"}, {"d": 6, "error": 26, "fix": 0, "state": "0"}, {"d": 6, "error": 27, "fix": 0, "state": "0"}, {"d": 6, "error": 28, "fix": 0, "state": "0"}, {"d": 6, "error": 29, "fix": 0, "state": "0"}, {"d": 6, "error": 30, "fix": 0, "state": "0"}, {"d": 6, "error": 31, "fix": 0, "state": "0"}, {"d": 6, "error": 32, "fix": 0, "state": "0"}, {"d": 6, "error": 33, "fix": 0, "state": "0"}, {"d": 6, "error": 34, "fix": 0, "state": "0"}, {"d": 6, "error": 35, "fix": 0, "state": "0"}, {"d": 6, "error": 36, "fix": 0, "state": "0"}, {"d": 6, "error": 37, "fix": 0, "state": "0"}, {"d": 6, "error": 38, "fix": 0, "state": "0"}, {"d": 6, "error": 39, "fix": 0, "state": "0"}, {"d": 6, "error": 40, "fix": 0, "state": "0"}, {"d": 6, "error": 41, "fix": 0, "state": "0"}, {"d": 6, "error": 42, "fix": 0, "state": "0"}, {"d": 6, "error": 43, "fix": 0, "state": "0"}, {"d": 6, "error": 44, "fix": 0, "state": "0"}, {"d": 6, "error": 45, "fix": 0, "state": "0"}, {"d": 6, "error": 46, "fix": 0, "state": "0"}, {"d": 6, "error": 47, "fix": 0, "state": "0"}, {"d": 6, "error": 48, "fix": 0, "state": "0"}, {"d": 6, "error": 49, "fix": 0, "state": "0"}, {"d": 6, "error": 50, "fix": 0, "state": "0"}, {"d": 6, "error": 51, "fix": 0, "state": "0"}, {"d": 6, "error": 52, "fix": 0, "state": "0"}, {"d": 6, "error": 53, "fix": 0, "state": "0"}, {"d": 6, "error": 54, "fix": 0, "state": "0"}, {"d": 6, "error": 55, "fix": 0, "state": "0"}, {"d": 6, "error": 56, "fix": 0, "state": "0"}, {"d": 6, "error": 57, "fix": 0, "state": "0"}, {"d": 6, "error": 58, "fix": 0, "state": "0"}, {"d": 6, "error": 59, "fix": 0, "state": "0"}, {"d": 6, "error": 60, "fix": 0, "state": "0"}, {"d": 6, "error": 61, "fix": 0, "state": "0"}, {"d": 6, "error": 62, "fix": 0, "state": "0"}, {"d": 6, "error": 63, "fix": 0, "state": "0"}, {"d": 6, "error": 0, "fix": 0, "state": "1"}, {"d": 6, "error": 0, "fix": 0, "state": "+"}, {"d": 6, "error": 0, "fix": 0, "state": "-"}, {"d": 6, "error": 0, "fix": 0, "state": "+i"}, {"d": 6, "error": 0, "fix": 0, "state": "-i"}, {"d": 6, "error": 63, "fix": 0, "state": "1"}, {"d": 6, "error": 63, "fix": 0, "state": "+"}, {"d": 6, "error": 63, "fix": 0, "state": "-"}, {"d": 6, "error": 63, "fix": 0, "state": "+i"}, {"d": 6, "error": 63, "fix": 0, "state": "-i"}, {"d": 7, "error": 0, "fix": 0, "state": "0"}, {"d": 7, "error": 1, "fix": 0, "state": "0"}, {"d": 7, "error": 2, "fix": 0, "state": "0"}, {"d": 7, "error": 3, "fix": 0, "state": "0"}, {"d": 7, "error": 4, "fix": 0, "state": "0"}, {"d": 7, "error": 5, "fix": 0, "state": "0"}, {"d": 7, "error": 6, "fix": 0, "state": "0"}, {"d": 7, "error": 7, "fix": 0, "state": "0"}, {"d": 7, "error": 8, "fix": 0, "state": "0"}, {"d": 7, "error": 9, "fix": 0, "state": "0"}, {"d": 7, "error": 10, "fix": 0, "state": "0"}, {"d": 7, "error": 11, "fix": 0, "state": "0"}, {"d": 7, "error": 12, "fix": 0, "state": "0"}, {"d": 7, "error": 13, "fix": 0, "state": "0"}, {"d": 7, "error": 14, "fix": 0, "state": "0"}, {"d": 7, "error": 15, "fix": 0, "state": "0"}, {"d": 7, "error": 16, "fix": 0, "state": "0"}, {"d": 7, "error": 17, "fix": 0, "state": "0"}, {"d": 7, "error": 18, "fix": 0, "state": "0"}, {"d": 7, "error": 19, "fix": 0, "state": "0"}, {"d": 7, "error": 20, "fix": 0, "state": "0"}, {"d": 7, "error": 21, "fix": 0, "state": "0"}, {"d": 7, "error": 22, "fix": 0, "state": "0"}, {"d": 7, "error": 23, "fix": 0, "state": "0"}, {"d": 7, "error": 24, "fix": 0, "state": "0"}, {"d": 7, "error": 25, "fix": 0, "state": "0"}, {"d": 7, "error": 26, "fix": 0, "state": "0"}, {"d": 7, "error": 27, "fix": 0, "state": "0"}, {"d": 7, "error": 28, "fix": 0, "state": "0"}, {"d": 7, "error": 29, "fix": 0, "state": "0"}, {"d": 7, "error": 30, "fix": 0, "state": "0"}, {"d": 7, "error": 31, "fix": 0, "state": "0"}, {"d": 7, "error": 32, "fix": 0, "state": "0"}, {"d": 7, "error": 33, "fix": 0, "state": "0"}, {"d": 7, "error": 34, "fix": 0, "state": "0"}, {"d": 7, "error": 35, "fix": 0, "state": "0"}, {"d": 7, "error": 36, "fix": 0, "state": "0"}, {"d": 7, "error": 37, "fix": 0, "state": "0"}, {"d": 7, "error": 38, "fix": 0, "state": "0"}, {"d": 7, "error": 39, "fix": 0, "state": "0"}, {"d": 7, "error": 40, "fix": 0, "state": "0"}, {"d": 7, "error": 41, "fix": 0, "state": "0"}, {"d": 7, "error": 42, "fix": 0, "state": "0"}, {"d": 7, "error": 43, "fix": 0, "state": "0"}, {"d": 7, "error": 44, "fix": 0, "state": "0"}, {"d": 7, "error": 45, "fix": 0, "state": "0"}, {"d": 7, "error": 46, "fix": 0, "state": "0"}, {"d": 7, "error": 47, "fix": 0, "state": "0"}, {"d": 7, "error": 48, "fix": 0, "state": "0"}, {"d": 7, "error": 49, "fix": 0, "state": "0"}, {"d": 7, "error": 50, "fix": 0, "state": "0"}, {"d": 7, "error": 51, "fix": 0, "state": "0"}, {"d": 7, "error": 52, "fix": 0, "state": "0"}, {"d": 7, "error": 53, "fix": 0, "state": "0"}, {"d": 7, "error": 54, "fix": 0, "state": "0"}, {"d": 7, "error": 55, "fix": 0, "state": "0"}, {"d": 7, "error": 56, "fix": 0, "state": "0"}, {"d": 7, "error": 57, "fix": 0, "state": "0"}, {"d": 7, "error": 58, "fix": 0, "state": "0"}, {"d": 7, "error": 59, "fix": 0, "state": "0"}, {"d": 7, "error": 60, "fix": 0, "state": "0"}, {"d": 7, "error": 61, "fix": 0, "state": "0"}, {"d": 7, "error": 62, "fix": 0, "state": "0"}, {"d": 7, "error": 63, "fix": 0, "state": "0"}, {"d": 7, "error": 64, "fix": 0, "state": "0"}, {"d": 7, "error": 65, "fix": 0, "state": "0"}, {"d": 7, "error": 66, "fix": 0, "state": "0"}, {"d": 7, "error": 67, "fix": 0, "state": "0"}, {"d": 7, "error": 68, "fix": 0, "state": "0"}, {"d": 7, "error": 69, "fix": 0, "state": "0"}, {"d": 7, "error": 70, "fix": 0, "state": "0"}, {"d": 7, "error": 71, "fix": 0, "state": "0"}, {"d": 7, "error": 72, "fix": 0, "state": "0"}, {"d": 7, "error": 73, "fix": 0, "state": "0"}, {"d": 7, "error": 74, "fix": 0, "state": "0"}, {"d": 7, "error": 75, "fix": 0, "state": "0"}, {"d": 7, "error": 76, "fix": 0, "state": "0"}, {"d": 7, "error": 77, "fix": 0, "state": "0"}, {"d": 7, "error": 78, "fix": 0, "state": "0"}, {"d": 7, "error": 79, "fix": 0, "state": "0"}, {"d": 7, "error": 80, "fix": 0, "state": "0"}, {"d": 7, "error": 81, "fix": 0, "state": "0"}, {"d": 7, "error": 82, "fix": 0, "state": "0"}, {"d": 7, "error": 83, "fix": 0, "state": "0"}, {"d": 7, "error": 84, "fix": 0, "state": "0"}, {"d": 7, "error": 85, "fix": 0, "state": "0"}, {"d": 7, "error": 86, "fix": 0, "state": "0"}, {"d": 7, "error": 87, "fix": 0, "state": "0"}, {"d": 7, "error": 88, "fix": 0, "state": "0"}, {"d": 7, "error": 89, "fix": 0, "state": "0"}, {"d": 7, "error": 90, "fix": 0, "state": "0"}, {"d": 7, "error": 91, "fix": 0, "state": "0"}, {"d": 7, "error": 92, "fix": 0, "state": "0"}, {"d": 7, "error": 93, "fix": 0, "state": "0"}, {"d": 7, "error": 94, "fix": 0, "state": "0"}, {"d": 7, "error": 95, "fix": 0, "state": "0"}, {"d": 7, "error": 96, "fix": 0, "state": "0"}, {"d": 7, "error": 97, "fix": 0, "state": "0"}, {"d": 7, "error": 98, "fix": 0, "state": "0"}, {"d": 7, "error": 99, "fix": 0, "state": "0"}, {"d": 7, "error": 100, "fix": 0, "state": "0"}, {"d": 7, "error": 101, "fix": 0, "state": "0"}, {"d": 7, "error": 102, "fix": 0, "state": "0"}, {"d": 7, "error": 103, "fix": 0, "state": "0"}, {"d": 7, "error": 104, "fix": 0, "state": "0"}, {"d": 7, "error": 105, "fix": 0, "state": "0"}, {"d": 7, "error": 106, "fix": 0, "state": "0"}, {"d": 7, "error": 107, "fix": 0, "state": "0"}, {"d": 7, "error": 108, "fix": 0, "state": "0"}, {"d": 7, "error": 109, "fix": 0, "state": "0"}, {"d": 7, "error": 110, "fix": 0, "state": "0"}, {"d": 7, "error": 111, "fix": 0, "state": "0"}, {"d": 7, "error": 112, "fix": 0, "state": "0"}, {"d": 7, "error": 113, "fix": 0, "state": "0"}, {"d": 7, "error": 114, "fix": 0, "state": "0"}, {"d": 7, "error": 115, "fix": 0, "state": "0"}, {"d": 7, "error": 116, "fix": 0, "state": "0"}, {"d": 7, "error": 117, "fix": 0, "state": "0"}, {"d": 7, "error": 118, "fix": 0, "state": "0"}, {"d": 7, "error": 119, "fix": 0, "state": "0"}, {"d": 7, "error": 120, "fix": 0, "state": "0"}, {"d": 7, "error": 121, "fix": 0, "state": "0"}, {"d": 7, "error": 122, "fix": 0, "state": "0"}, {"d": 7, "error": 123, "fix": 0, "state": "0"}, {"d": 7, "error": 124, "fix": 0, "state": "0"}, {"d": 7, "error": 125, "fix": 0, "state": "0"}, {"d": 7, "error": 126, "fix": 0, "state": "0"}, {"d": 7, "error": 127, "fix": 0, "state": "0"}, {"d": 7, "error": 0, "fix": 0, "state": "1"}, {"d": 7, "error": 0, "fix": 0, "state": "+"}, {"d": 7, "error": 0, "fix": 0, "state": "-"}, {"d": 7, "error": 0, "fix": 0, "state": "+i"}, {"d": 7, "error": 0, "fix": 0, "state": "-i"}, {"d": 7, "error": 127, "fix": 0, "state": "1"}, {"d": 7, "error": 127, "fix": 0, "state": "+"}, {"d": 7, "error": 127, "fix": 0, "state": "-"}, {"d": 7, "error": 127, "fix": 0, "state": "+i"}, {"d": 7, "error": 127, "fix": 0, "state": "-i"}], "rows": [[{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [1, 0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1, 1], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 1, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 1, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 1, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 1, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [1, 0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": true, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": false, "weight": 64}], [{"syn": [0, 0, 0, 0, 0, 0], "pass": false, "weight": 64}]]};
 const playerEngine = { label: 'Qiskit · BasicSimulator (recorded shots)', kind: 'qiskit', async run(specs) { if (specs.length !== snapshot.specs.length || specs.some((s,i) => keyOf(s) !== keyOf(snapshot.specs[i]))) throw new Error('Recorded circuit mismatch'); return snapshot.rows; } };
 await startGame(document.getElementById('app'), playerEngine);</script></body></html>

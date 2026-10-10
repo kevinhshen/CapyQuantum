@@ -1,134 +1,95 @@
-# Qubit Tempo — CapyQuantum rhythm MVP
+# Qubit Tempo — a garden rhythm game
 
-**Three qubits. Two clues. One well-timed correction.** Read neighboring parity signals, choose the faulty qubit, and apply a correction to the beat. No quantum background required.
-
-Theme: **Quantum Unlocked** · Qollab + IonQ hackathon 2026
+Read parity lamps on falling quantum memories, decide which qubits to flip, and repair them to the beat. One encoded quantum memory per correction packet; three original synthesized maps, with 3–7 lanes. The menu steps aside during play and a report appears after the song.
 
 This effort is supported by Qollab & IonQ
 
-This is an additional MVP inside `rhythm-game/`. The main-branch Qubit Factory remains a separate game. See [ATTRIBUTION.md](ATTRIBUTION.md) for starting points and AI disclosure. Application license: MIT.
+Theme: Quantum Unlocked · application license: MIT. This is a separate game in `rhythm-game/`; the root factory remains available. Visual direction follows the team's Ion Garden branch. See [ATTRIBUTION.md](ATTRIBUTION.md) for starting points and AI disclosure.
 
-## Play immediately
+## Play
 
-**Double-click `PLAY.html`.** It includes the entire game and a recorded 128-shot Qiskit BasicSimulator batch for every supported case. No installation, account, server, external assets, storage, or paid hardware is required. The file clearly identifies its recorded results; it does not submit a live backend job.
-
-- **Learn to play:** six untimed rounds, then a report. The first four teach the rules; the final two ask you to apply them without a direct hint.
-- **Rhythm run:** 40 fresh correction rounds at 96 BPM, roughly 55 seconds. Clean rounds are included, so unnecessary taps can damage the state.
-- **Two-error experiment:** compare Q3 flipping once with Q1 + Q2 flipping simultaneously. Same ideal syndrome, different correctable status.
-
-| Control | Action |
-|---|---|
-| A / S / D | Apply X to Q1 / Q2 / Q3 |
-| W, in practice | Leave a clean round alone |
-| P | Pause / resume the rhythm run |
-| Pointer / touch | Use the equivalent correction buttons |
-| Relaxed tempo | 70 BPM, roughly 72 seconds; select before starting |
-| Still notes | Display a stationary current round with a countdown |
-| Sound | Toggle original synthesized percussion and correction tones |
-
-Two checks compare Q1–Q2 and Q2–Q3. Different / same → A; different / different → S; same / different → D; same / same → wait. This decoder assumes at most one bit flip. The note dots hide the logical value; they are lane markers, not measurements of the data qubits.
-
-Timing window: ±230 ms; perfect ≤75 ms, great ≤150 ms. A correct tap earns 150 / 125 / 100 points for perfect / great / good timing. A correctly untouched clean round earns 100. Wrong choices and missed corrections earn zero. Inputs outside the window do not apply a correction. Repeated keydown events are ignored. Hiding the page, leaving the window, or a frame delay over 1.5 seconds pauses the run.
-
-The report separates correction choices, perfect hits, streak, and physical state preservation. A no-input round is not counted as a perfectly timed tap. The seeded ideal-backend chart repeats, so replay can serve as deliberate practice.
-
-## Local development
-
-From this folder:
+`PLAY.html` is the generated single-file player, with recorded Qiskit BasicSimulator results embedded. It submits no live backend job. Serve this folder locally and open `http://127.0.0.1:8766/PLAY.html`:
 
 ```sh
 python3 -m http.server 8766 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:8766/dev.html` for the exact JavaScript simulator. This preview has no dependencies and is labeled as a local simulation.
+The file also contains everything needed for offline playback in an ordinary browser. Direct `file://` playback remains a manual check; the automation browser restricts that scheme.
 
-For **actual local Qiskit results**:
+Choose Morning dew (86 BPM), Lantern glow (112 BPM), or Firefly rush (138 BPM), then 3–7 qubits. Memory packets fall **top to bottom**. Every qubit marker is neutral: no lane reveals the answer. Lamps between qubits show neighboring parity (`≠` different, `=` same). Choose the smallest correction within the code's guarantee and press those keys at the recovery line. Multiple errors can be repaired as a chord or at numbered rapid beats, in any order. Lamps update after every flip; clean packets need no input. Repeated keydown events are ignored, but separate taps apply separate X operations.
+
+| Lanes | Keyboard |
+|---|---|
+| 3 | D F J |
+| 4 | D F J K |
+| 5 | D F Space J K |
+| 6 | S D F J K L |
+| 7 | S D F Space J K L |
+
+P / Escape pauses; pointer/touch receptors apply the same input. **Untimed practice** selects up to six representative packets, including chords, bursts, and clean registers when the map supplies them. W advances any practice packet when the player is satisfied with the correction; it does not reveal whether the answer was right. **Tune** adjusts note travel, input compensation, and still notes. The reduced-motion preference enables still notes by default. Mute silences audio while preserving the song clock.
+
+A hit is Perfect within 45 ms, Great within 90 ms, or Good within 145 ms. Correct corrections earn 300/200/100 points. A perfectly timed healthy-qubit flip earns zero, adds an error, and breaks combo. Any key can occupy a rhythm timing slot; correctness depends on the current quantum residual, rather than a prescribed key order. Accuracy weights those judgements 1 / ⅔ / ⅓ and includes stray inputs in its denominator. Misses reset combo. A stray near a live packet applies an extra X; out-of-window strays penalize rhythm but do not alter a resolved register. The report separates correct-on-beat accuracy, correction-choice accuracy, combo, timing, whole-register restoration, and quantum reference preservation. Practice gets no rhythm rank.
+
+The original Web Audio accompaniment is scheduled against AudioContext's clock. Song sections change its arrangement and the garden palette; correct hits add accents and flowers. Resolved memories generate clear melody notes when restored and buzzy, shifted notes when corrupted. An imported recording retains its original sound, with the game layering recovery feedback over it. Imported audio is manually aligned by BPM and offset. Automatic beat detection, variable-tempo charts, sustained notes, and online leaderboards are outside this MVP.
+
+## Add levels and music
+
+**Your teammate's entry point is `content.js`.** Register authored maps, optional composers, or use the runtime event hooks. Maps support simultaneous chords, rapid multi-step corrections, rest packets, music URLs/offsets, and section cues.
+
+See [LEVEL_AUTHORING.md](LEVEL_AUTHORING.md) for the schema, examples, file limits, clock conventions, and reactive events. Try **+ Map → `examples/lantern-duet.json`** and **+ Music** for a local audio file. Tune can export a selected map as JSON. Files and scores stay in browser memory; there is no upload service or persistence.
+
+## Local development and Qiskit
+
+`dev.html` runs the exact JavaScript reference simulator. For locally executed Qiskit, install the pinned dependencies and generate the recorded bank:
 
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python tools/prepare_preview.py
+python3 tools/build_standalone.py
 ```
 
-With the server running, open `http://127.0.0.1:8766/qiskit.html`. This loads the generated cached BasicSimulator shots. Rebuild the standalone player after source changes with `python3 tools/build_standalone.py`; when `qiskit-results.json` exists it embeds those results, otherwise it uses the labeled local simulator.
+Open `qiskit.html` with the server running to use that cached batch. Rebuild `PLAY.html` after source or content edits. It embeds the recorded bank when present and otherwise labels its exact local JS simulator. The snapshot itself is ignored by Git; the generated standalone player is committed.
 
-## Run on Qollab
+## Qollab package
 
-1. Create a **JS / Qiskit** project.
-2. Run `python3 tools/package_qollab.py` locally.
-3. Upload the contents of `upload/` at the Qollab project root, preserving the `quantum/` directory. The zip provides the same 10-file package for sharing; use the platform's supported upload interface.
-4. Select a free simulator, preferably the built-in ideal simulator for a first demo, and press Run.
-5. Verify keyboard, touch, audio, all lesson rounds, both lab cases, and a complete run inside the actual Qollab iframe before publishing.
+```sh
+python3 tools/package_qollab.py
+```
 
-Runtime files: `index.html`, `main.js`, `main.css`, `game.js`, `model.js`, `quantum/__init__.py`, `quantum/rhythm.py`. License, README, and attribution are included. Do not upload development environments, local preview files, snapshots, tests, or `PLAY.html` as the Qollab runtime.
+Create a JS / Qiskit project, upload the contents of `upload/` preserving `quantum/`, select a free simulator, and Run. The same files are in `qubit-tempo-qollab.zip`. `index.html` intentionally has no module script tag: Qollab executes `main.js`. It imports the Python namespace and calls `.callPromising` with Qollab's provided `backend`.
 
-Qollab owns execution of `main.js`; its `index.html` intentionally has no browser module script tag. The entry imports `quantum.rhythm` as a namespace and calls Python through `.callPromising`. It uses the platform-provided `backend`, with exactly one `backend.run([...], shots=128)` call. Every error mask and supported player action is batched at startup: 8 masks × 4 actions × 6 input states = **192 five-qubit circuits**. Replaying the game reuses the returned results and does not submit another job. A failed backend setup is reported; it does not silently substitute browser-only results.
+The runtime makes **one job containing 298 circuits at 64 shots each**. Restarting a map reuses its references. Circuits use H/S/S†/X/Z/CX and terminal measurement, with 3–7 data qubits plus 2–6 syndrome ancillas (5–13 physical qubits). No Aer, paid hardware, storage, POST, workers, or credentials are needed by the application. Failed backend setup stays visible rather than silently replacing Qiskit with another simulator.
 
-The circuits use H, S, S†, X, Z, and CX with terminal measurements. No dynamic circuits, Aer, paid hardware, network POST, workers, browser storage, or credentials are needed by the application. Provider-specific limits still require a real platform test, particularly for the full 192-circuit batch on the free IonQ simulator.
+Local BasicSimulator verification passes. The complete batch, audio, keyboard, pointer input, and authored content must still be tested inside the actual Qollab iframe, including the free IonQ simulator, before publication. This is not a claim of live Qollab or IonQ execution.
 
-## Why this is quantum error correction
+## Quantum model
 
-One logical state `α|0⟩ + β|1⟩` is encoded as `α|000⟩ + β|111⟩`; these are not three independent copies. Two additional ancilla qubits acquire the neighboring parity syndromes. The player applies a candidate X recovery. The quantum model keeps coherent amplitudes, so the experiment includes superpositions and phase-sensitive inputs rather than checking only a classical bit.
+A logical state `α|0⟩ + β|1⟩` is encoded across `d` data qubits as `α|0…0⟩ + β|1…1⟩`. These are not independent copies. Neighboring parity ancillas reveal relative bit flips without measuring the logical value. The game follows Qubit Symphony’s parity-decoding interaction: players infer faults without direct error-location hints. The lamps are syndromes, not logical-value measurements. In three lanes, `≠ =` identifies Q1, `≠ ≠` Q2, `= ≠` Q3, and `= =` means wait. Wider codes require the smallest set of flips that accounts for every parity check. Player mistakes can exceed the code’s guarantee or create a logical X with quiet lamps; the post-map state-preservation result exposes that failure.
 
-For each injected error and candidate correction, the validation prepares all six states `|0⟩`, `|1⟩`, `|+⟩`, `|−⟩`, `|+i⟩`, `|−i⟩`. After correction, it undoes the encoding and input preparation and measures the three data qubits. **P(000) is fidelity with the original encoded pure state**. The report averages this quantity across all six inputs. This checks state restoration; it is not majority-vote decoding or a claim that every player round independently runs all six preparations.
+The repetition code guarantees `floor((d−1)/2)` X errors: 3/4 → 1, 5/6 → 2, 7 → 3. Even-count half-flip patterns are ambiguous, so authored maps reject them. 4 and 6 add rhythm difficulty without increasing guaranteed correction capacity over 3 and 5. The code does not protect against phase errors. See [IBM's error-correction course](https://learning.quantum.ibm.com/course/foundations-of-quantum-error-correction/correcting-quantum-errors).
 
-Ideal results:
+Rapid player corrections combine by XOR: two X operations on a lane cancel. The residual `injected error XOR applied corrections` determines ideal recovery. After undoing encoding and preparation, measuring all data qubits as zero tests overlap with the original encoded pure state.
 
-| Injected error | Recovery | Mean encoded-state preservation |
-|---|---|---|
-| None | Wait | 100% |
-| One X, any location | X on the same location | 100% |
-| One X | Wait, or X on a wrong location | 0% |
-| Q1 + Q2 flip | Syndrome rule selects Q3 | 33⅓% |
+The reference bank contains **248** computational-input error patterns (`8+16+32+64+128`) and **50** additional identity/logical-X cases (`5 counts × 2 residual classes × 5 other inputs`). Total: **298**. Zero residual preserves all six inputs; a full-register X preserves only the two X-basis inputs, averaging ⅓; all other residual patterns leave the code space, giving zero ideal overlap. This classification avoids batching every possible player sequence.
 
-The double-error recovery leaves a triple X, which becomes a logical X. The two X-basis inputs survive that logical operation; the four Z/Y-basis inputs do not. Thus the six-state mean is 1/3. Agreement of the parity checks alone does not establish that the logical state survived.
+The six inputs are `|0⟩`, `|1⟩`, `|+⟩`, `|−⟩`, `|+i⟩`, and `|−i⟩`. The exact-class reduction is verified against every residual/input combination. On a noisy provider, sampled references are an estimate from those reference circuits; they do **not** model the full gate-noise history of an individual correction sequence. Register restoration in the game uses injected-error ground truth, while displayed checks are sampled from the backend and can be noisy. Each packet starts a fresh register. Rhythm speed is a teaching/game mechanic, not physical quantum correction timing or general fault tolerance.
 
-The novel application is making the player act as a human decoder to a beat, with distinct timing and reasoning feedback and a hands-on ambiguity experiment. The repetition code itself is established science. No learning-outcome improvement has been measured yet.
-
-## Scope and limits
-
-- The scored run includes at most one injected X error per fresh register. Double errors appear in the separate lab.
-- It does not correct general quantum noise or phase errors, or model continuous memory, realistic hardware timing, or fault tolerance.
-- Rhythm is an educational mechanic, not a representation of physical correction speed.
-- Scores are game points. State-preservation percentages are exact local values or sampled backend estimates, explicitly labeled.
-- On noisy backends, observed syndromes may disagree with injected-error ground truth. Choice scoring follows the displayed decoder rule; preservation comes from the separately batched circuit experiment.
-- All measurements are terminal. The ancillas retain the earlier syndrome while the data undergo recovery and validation. This is equivalent for the ideal syndromes used here, but is not a demonstration of live classical-feedback control on hardware.
-
-## Verification
+## Validation
 
 ```sh
 npm test
 npm run test:quantum
 ```
 
-The second command needs the local `.venv` above. Alternatively set `QISKIT_PYTHON` to an existing Qiskit Python executable. The quantum cross-check compares every complex amplitude of **192 full statevectors**, compares BasicSimulator syndromes and preservation with the JS model, and asserts exactly one backend job. Unit tests cover single-error correction, all double-error ambiguities, damage from wrong corrections, normalization, seeded charts, timing versus choice, clean rounds, and invalid backend output.
+The quantum check needs `.venv` or `QISKIT_PYTHON` pointing to Qiskit Python. Tests cover all guaranteed decoders and even-count ties; all built-in maps at every lane count; chords, rapid sequences, free correction order, live parity updates, perfectly timed wrong keys, misses and strays; timing; map validation; malformed backend data. The Qiskit cross-check compares **1,638 full complex statevectors** (1,488 residual/six-input combinations plus 150 actual correction circuits), and checks one 298-circuit BasicSimulator job against the JS reference bank.
 
-Accessibility features include semantic buttons and tables, native dialog focus, visible keyboard focus, text and symbols in addition to color, announced feedback and current clues, untimed practice, relaxed tempo, optional static notes, reduced-motion defaults, and touch-sized actions. This is not a WCAG certification; assistive-technology testing remains useful.
+Browser verification on October 10: three- and seven-lane parity-decoding and imported practice including chords/bursts; JSON map import; local audio pairing; timed completion/report; pause/resume; mobile layout; Qiskit-backed standalone player. The exact final browser outcomes are recorded in the PR. Perceptual audio quality, device latency, and difficulty balance need human playtesting.
 
-Browser checks on October 10: completed all six practice rounds using keyboard and pointer controls; verified the single/double-error lab; registered a Perfect keyboard hit; completed a full 40-round Qiskit-backed run; verified pause; checked the 390-pixel mobile layout without horizontal overflow; loaded the packaged single-file player over HTTP with its recorded Qiskit results. No browser console errors were observed. Direct `file://` testing was blocked by the automation browser's URL policy, so manually confirm double-click playback in your ordinary browser. Sound is implemented, but perceptual audio quality and input feel still need human playtesting.
+Accessibility includes native focus-managed dialogs, visible focus, labeled touch controls, keyboard equivalents, text/symbol clues, live announcements, untimed practice, adjustable travel/compensation, reduced motion, and sound controls. This is not a WCAG certification.
 
-## Submission readiness
+## Hackathon handoff
 
-See the root `CLAUDE.md` for the team's copied rules. This MVP includes Qiskit, free local simulator verification, MIT licensing, attribution, starting-point disclosure, a project-page draft below, and a demo outline. **Actual Qollab execution, free IonQ execution, publication, and the public demo video remain submission tasks.** Local testing alone does not establish a valid hackathon submission. Deadline recorded in `CLAUDE.md`: October 11, 2026 at 19:00 ET.
+The repository's `CLAUDE.md` is the rule reference. This MVP includes Qiskit, local free-simulator verification, MIT application licensing, support acknowledgement, starting-point disclosure, and AI attribution. Remaining submission work: run and publish on Qollab, verify the free IonQ simulator, create the public 2–3 minute video and project page, confirm all rule requirements, and submit before the stated deadline. These steps have not been performed here.
 
-## Suggested project page
-
-**Qubit Tempo** turns quantum error correction into a rhythm game. Players read two parity clues, select a qubit, and apply a correction on the beat. Six short practice rounds introduce the rules with no quantum background required. A separate experiment shows why the same clues can hide a double-error failure.
-
-The problem we explore is how to make syndrome decoding intuitive while keeping the limits of the code visible. The Qollab version runs 192 five-qubit Qiskit experiments in one simulator job, including six quantum input states for each error and candidate recovery. Players see separate feedback for correction choices and timing, plus state-preservation results after a run.
-
-To run, choose a free simulator and press Run, then Learn to play. Use A / S / D or the touch buttons. See the README for circuit layout, validation, limitations, and extensions. The application is MIT licensed. It builds on the team's earlier CapyQuantum factory MVP and the standard three-qubit repetition code; OpenAI Codex assisted with code, original assets, tests, and documentation. This effort is supported by Qollab & IonQ.
-
-## 2–3 minute demo outline
-
-1. **0:00–0:25:** Explain the goal: protect one quantum state by reading two clues; show the three controls.
-2. **0:25–0:55:** Play the guided middle-qubit and clean-round examples.
-3. **0:55–1:35:** Play part of a rhythm run. Show a correctly timed hit and explain separate choice/timing feedback.
-4. **1:35–2:10:** Open the double-error lab. Same clues, different preservation; explain the single-error assumption.
-5. **2:10–2:40:** Show the selected Qollab free simulator and briefly explain the single Qiskit batch, six-state checks, MIT license, starting point, and AI assistance.
-
-Record the actual Qollab version after it passes its platform test. Upload a public video that opens without sign-in; do not describe the local recorded player as a live Qollab run.
-
-## Extend it
-
-Keep `model.js` `buildOps` and `quantum/rhythm.py` `build_circuit` synchronized. Extend `allSpecs()` and the Python batch-size validation for new cases, then rerun the full quantum cross-check. Five data qubits could support a two-error lesson; phase protection should be taught as a separate code/basis rather than added as a cosmetic note type.
+For a short demo: show vertical gameplay and a seven-lane chord/burst; show the post-song rhythm/quantum report; explain why 7 qubits support three X flips; demonstrate the teammate map/music port; identify the actual Qollab backend and disclose the starting point and AI assistance.

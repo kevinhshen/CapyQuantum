@@ -7,7 +7,7 @@ Theme: **Quantum Unlocked** · Qollab + IonQ Hackathon 2026
 
 ## Additional MVP: Qubit Tempo
 
-[Qubit Tempo](rhythm-game/README.md) is a separate rhythm-game version: read two parity clues, choose Q1 / Q2 / Q3 with A / S / D, and correct on the beat. It includes untimed practice, a scored run, and a double-error ambiguity experiment. Open `rhythm-game/PLAY.html` for the standalone player, or follow its README for Qollab and local Qiskit previews. Qubit Factory remains the default root project.
+[Qubit Tempo](rhythm-game/README.md) is a separate vertical rhythm game with a garden inspired by the team's Ion Garden branch. Play 3–7 qubit lanes, chords, and rapid recovery sequences; see rhythm and quantum results after the song. Your teammate can add maps and music through `content.js` and [the authoring port](rhythm-game/LEVEL_AUTHORING.md). Open `rhythm-game/PLAY.html` for the standalone player, or follow its README for Qollab and local Qiskit previews. Qubit Factory remains the default root project.
 
 ## The problem
 Quantum error correction is the reason large quantum computers are possible, yet it's usually explained with stabilizer algebra. Qubit Factory puts it in a setting anyone understands: a production line where quality failures cost money, and every upgrade is a real QEC technique.

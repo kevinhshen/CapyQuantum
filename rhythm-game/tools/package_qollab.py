@@ -4,7 +4,8 @@ from shutil import copyfile
 from zipfile import ZipFile, ZIP_DEFLATED
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ('index.html', 'main.js', 'main.css', 'game.js', 'model.js',
+FILES = ('index.html', 'main.js', 'main.css', 'game.js', 'model.js', 'maps.js', 'rhythm.js', 'audio.js', 'garden.js', 'content.js',
+         'LEVEL_AUTHORING.md',
          'quantum/__init__.py', 'quantum/rhythm.py', 'LICENSE', 'README.md', 'ATTRIBUTION.md')
 target = ROOT / 'upload'
 target.mkdir(exist_ok=True)
