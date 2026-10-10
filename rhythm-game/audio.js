@@ -1,3 +1,4 @@
+import { beatToSeconds, secondsToBeat } from './timing.js';
 // AudioContext is the master clock. Frame rate never sets the song tempo.
 const composers = new Map();
 export function registerComposer(id, composer) {
@@ -15,7 +16,7 @@ registerComposer('garden-lofi', (tick, { tone, noise, section }) => {
 
 });
 export class MusicTransport {
-  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.loaded = null; this.timer = null; this.running = false; this.paused = false; }
+  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; }
   async init() {
     if (!this.context) {
       const Audio = window.AudioContext || window.webkitAudioContext;
@@ -26,13 +27,12 @@ export class MusicTransport {
     }
     await this.context.resume();
   }
-  async loadFile(file) { await this.init(); this.loaded = await this.context.decodeAudioData(await file.arrayBuffer()); this.loadedName = file.name; }
-  async start(map, useLoaded = false) {
+  async start(map) {
     await this.init(); this.stop(); this.map = map; this.beatSeconds = 60 / map.bpm;
     this.leadIn = 4 * this.beatSeconds; this.origin = this.context.currentTime + .12;
     this.paused = false; this.running = true; this.master.gain.value = this.muted ? 0 : map.music.gain;
     this.tick = -16;
-    let buffer = useLoaded ? this.loaded : null;
+    let buffer = null;
     if (map.music.url && !buffer) {
       const response = await fetch(map.music.url, { credentials: 'omit' });
       if (!response.ok) throw new Error('Could not load the map’s music.');
@@ -43,10 +43,12 @@ export class MusicTransport {
     if (!buffer && !composers.has(map.music.composer)) throw new Error(`Unknown composer: ${map.music.composer}`);
     if (buffer) {
       const offset = map.music.offsetSeconds;
-      if (offset >= buffer.duration || buffer.duration - offset < map.durationBeats * this.beatSeconds) throw new Error('The audio file is shorter than this map after its offset.');
+      if (offset >= buffer.duration || buffer.duration - offset < beatToSeconds(map, map.durationBeats)) throw new Error('The audio file is shorter than this map after its offset.');
       const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.master);
       source.start(this.origin + this.leadIn, offset); this.nodes.add(source); this.external = true;
     } else this.external = false;
+    this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0] })));
+    this.melodyIndex = 0;
     this.timer = setInterval(() => this.schedule(), 25); this.schedule();
   }
   time() { return this.context.currentTime - this.origin - this.leadIn; }
@@ -54,9 +56,16 @@ export class MusicTransport {
     if (!this.running || this.paused) return;
     const limit = this.context.currentTime + .12;
     // A throttled timer resumes at the current tick, rather than playing a backlog.
-    this.tick = Math.max(this.tick, Math.floor((this.context.currentTime - this.origin - this.leadIn) / (this.beatSeconds / 4)));
-    while (this.origin + this.leadIn + this.tick * this.beatSeconds / 4 < limit) {
-      const tick = this.tick++, at = this.origin + this.leadIn + tick * this.beatSeconds / 4;
+    this.tick = Math.max(this.tick, Math.floor(secondsToBeat(this.map, this.time()) * 4));
+    // A chart melody shares every authored correction time, including offbeats.
+    while (!this.external && this.melodyIndex < this.melody.length) {
+      const note = this.melody[this.melodyIndex], at = this.origin + this.leadIn + beatToSeconds(this.map, note.beat);
+      if (at >= limit) break;
+      this.melodyIndex++;
+      if (at >= this.context.currentTime) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][note.lane]), .2, .055, 'triangle', null, at);
+    }
+    while (this.origin + this.leadIn + beatToSeconds(this.map, this.tick / 4) < limit) {
+      const tick = this.tick++, at = this.origin + this.leadIn + beatToSeconds(this.map, tick / 4);
       if (at < this.context.currentTime || tick > this.map.durationBeats * 4) continue;
       if (tick < 0) { if (tick % 4 === 0) this.tone(660, .055, .07, 'sine', null, at); continue; }
       if (this.external) continue;

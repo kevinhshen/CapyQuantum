@@ -1,17 +1,17 @@
+import { beatToSeconds } from './timing.js';
 // Timing cues do not reveal correction lanes. Players decode parity themselves.
 export const WINDOWS = { perfect: .045, great: .09, good: .145 };
 export class RhythmRun {
   constructor(map, bank) {
     this.map = map; this.bank = bank; this.notes = []; this.packets = []; this.cues = []; this.results = [];
     this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
-    const beat = 60 / map.bpm;
     for (const event of map.events) {
       const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
-      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), at: event.beat * beat,
-        end: (event.beat + Math.max(0, ...event.steps.map(s => s.offset))) * beat + WINDOWS.good, done: false, notes: [] };
+      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), at: beatToSeconds(map, event.beat),
+        end: beatToSeconds(map, event.beat + Math.max(0, ...event.steps.map(s => s.offset))) + WINDOWS.good, done: false, notes: [] };
       const steps = event.steps.length ? event.steps : [{ offset: 0, lanes: [] }];
       steps.forEach((step, order) => {
-        const cue = { id: this.cues.length, packet, at: (event.beat + step.offset) * beat, order, total: steps.length, notes: [], clean: !event.error.length };
+        const cue = { id: this.cues.length, packet, at: beatToSeconds(map, event.beat + step.offset), order, total: steps.length, notes: [], clean: !event.error.length };
         step.lanes.forEach(lane => {
           const note = { id: this.notes.length, lane, at: cue.at, packet, cue, done: false, outcome: null };
           packet.notes.push(note); cue.notes.push(note); this.notes.push(note);

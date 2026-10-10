@@ -13,3 +13,7 @@ This effort is supported by Qollab & IonQ
 - **Contribution claimed:** the parity-decoding vertical rhythm recovery interaction, 3–7 lane chords and rapid sequences, post-map timing/recovery feedback, accessible practice, teammate content port, and reproducible quantum checks. Educational effectiveness and novelty scores have not been established by a user study or judging.
 
 Build date: October 10, 2026, within the window specified in the repository's CLAUDE.md. This file documents starting points; it is not a certification of submission eligibility.
+
+- **This revision:** osu!-inspired separate Home/Levels navigation (no copied assets or code), bright educational UI, four short quantum lessons and parity lab, irregular phrase charts, shared tempo-change timing, team-only content workflow, packaging updates and timing tests drafted with OpenAI Codex at the user’s direction.
+
+- **Merged tutorial contribution:** teammate’s `game-tutorial` level presets (Seedling, Sprout, Sapling, Bloom), originally added to generated `PLAY.html`, now live in `content.js` and the Levels page so rebuilds preserve them.

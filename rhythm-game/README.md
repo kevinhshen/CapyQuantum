@@ -1,6 +1,6 @@
-# Qubit Tempo — a garden rhythm game
+# Qubit Tempo — learn quantum error correction through rhythm
 
-Read parity lamps on falling quantum memories, decide which qubits to flip, and repair them to the beat. One encoded quantum memory per correction packet; three original synthesized maps, with 3–7 lanes. The menu steps aside during play and a report appears after the song.
+Read parity lamps on falling quantum memories, decide which qubits to flip, and repair them to the beat. One encoded quantum memory per correction packet; three original synthesized maps, with 3–7 lanes. Home, Levels, Learn, Settings, and gameplay have separate screens. Four lanes are the default; a report appears after the song.
 
 This effort is supported by Qollab & IonQ
 
@@ -16,7 +16,7 @@ python3 -m http.server 8766 --bind 127.0.0.1
 
 The file also contains everything needed for offline playback in an ordinary browser. Direct `file://` playback remains a manual check; the automation browser restricts that scheme.
 
-Choose Morning dew (86 BPM), Lantern glow (112 BPM), or Firefly rush (138 BPM), then 3–7 qubits. Memory packets fall **top to bottom**. Every qubit marker is neutral: no lane reveals the answer. Lamps between qubits show neighboring parity (`≠` different, `=` same). Choose the smallest correction within the code's guarantee and press those keys at the recovery line. Multiple errors can be repaired as a chord or at numbered rapid beats, in any order. Lamps update after every flip; clean packets need no input. Repeated keydown events are ignored, but separate taps apply separate X operations.
+Use **Start** on Home to open Levels. Choose Morning dew (86 BPM), Lantern glow (112→124→112 BPM), or Firefly rush (138 BPM), then Play. Four physical qubits are selected initially; 3–7 are available on generated maps. Team-authored maps fix their own lane count. The optional Guided learning path preserves the teammate’s Seedling, Sprout, Sapling, and Bloom presets in source; selecting one sets its song and lane count. Memory packets fall **top to bottom**. Every qubit marker is neutral: no lane reveals the answer. Lamps between qubits show neighboring parity (`≠` different, `=` same). Choose the smallest correction within the code's guarantee and press those keys at the recovery line. Multiple errors can be repaired as a chord or at numbered rapid beats, in any order. Lamps update after every flip; clean packets need no input. Repeated keydown events are ignored, but separate taps apply separate X operations.
 
 | Lanes | Keyboard |
 |---|---|
@@ -26,17 +26,21 @@ Choose Morning dew (86 BPM), Lantern glow (112 BPM), or Firefly rush (138 BPM), 
 | 6 | S D F J K L |
 | 7 | S D F Space J K L |
 
-P / Escape pauses; pointer/touch receptors apply the same input. **Untimed practice** selects up to six representative packets, including chords, bursts, and clean registers when the map supplies them. W advances any practice packet when the player is satisfied with the correction; it does not reveal whether the answer was right. **Tune** adjusts note travel, input compensation, and still notes. The reduced-motion preference enables still notes by default. Mute silences audio while preserving the song clock.
+P / Escape pauses; pointer/touch receptors apply the same input. **Untimed practice** selects up to six representative packets, including chords, bursts, and clean registers when the map supplies them. W advances any practice packet when the player is satisfied with the correction; it does not reveal whether the answer was right. **Settings** adjusts note travel, input compensation, and still notes. The reduced-motion preference enables still notes by default. Mute silences audio while preserving the song clock.
 
 A hit is Perfect within 45 ms, Great within 90 ms, or Good within 145 ms. Correct corrections earn 300/200/100 points. A perfectly timed healthy-qubit flip earns zero, adds an error, and breaks combo. Any key can occupy a rhythm timing slot; correctness depends on the current quantum residual, rather than a prescribed key order. Accuracy weights those judgements 1 / ⅔ / ⅓ and includes stray inputs in its denominator. Misses reset combo. A stray near a live packet applies an extra X; out-of-window strays penalize rhythm but do not alter a resolved register. The report separates correct-on-beat accuracy, correction-choice accuracy, combo, timing, whole-register restoration, and quantum reference preservation. Practice gets no rhythm rank.
 
-The original Web Audio accompaniment is scheduled against AudioContext's clock. Song sections change its arrangement and the garden palette; correct hits add accents and flowers. Resolved memories generate clear melody notes when restored and buzzy, shifted notes when corrupted. An imported recording retains its original sound, with the game layering recovery feedback over it. Imported audio is manually aligned by BPM and offset. Automatic beat detection, variable-tempo charts, sustained notes, and online leaderboards are outside this MVP.
+The original Web Audio accompaniment is scheduled against AudioContext's clock. Song sections change its arrangement and the garden palette; correct hits add accents and flowers. Resolved memories generate clear melody notes when restored and buzzy, shifted notes when corrupted. Team-provided recordings retain their original sound, with recovery feedback layered over them. Authored fractional beat positions and optional tempo changes share one timeline for music, validation and judgement. Built-in maps use distinct repeating musical phrases with offbeats, rests and varying gaps; their melody makes correction beats audible. Automatic beat detection, sustained notes, and online leaderboards are outside this MVP.
 
 ## Add levels and music
 
 **Your teammate's entry point is `content.js`.** Register authored maps, optional composers, or use the runtime event hooks. Maps support simultaneous chords, rapid multi-step corrections, rest packets, music URLs/offsets, and section cues.
 
-See [LEVEL_AUTHORING.md](LEVEL_AUTHORING.md) for the schema, examples, file limits, clock conventions, and reactive events. Try **+ Map → `examples/lantern-duet.json`** and **+ Music** for a local audio file. Tune can export a selected map as JSON. Files and scores stay in browser memory; there is no upload service or persistence.
+See [LEVEL_AUTHORING.md](LEVEL_AUTHORING.md) for the schema, examples, file limits, clock conventions, and reactive events. Add local soundtrack paths to `content-assets.json`; packaging includes them automatically. Players cannot upload music/maps or export charts. Qollab content comes from team-controlled source files; no writable player upload backend is required. Settings and scores remain in session memory.
+
+## Learn
+
+Four short lessons explain qubits, X/Z errors, encoding, and parity checks. The interactive four-qubit lab lets players inject one error and try X corrections. Repairing it gives equal checks and 100% ideal reference preservation; flipping the whole register afterward keeps the checks equal but creates logical X (one-third mean preservation across six inputs). This uses the same reference bank as gameplay and needs no additional backend job. Sources link to IBM Quantum.
 
 ## Local development and Qiskit
 
@@ -84,7 +88,7 @@ npm run test:quantum
 
 The quantum check needs `.venv` or `QISKIT_PYTHON` pointing to Qiskit Python. Tests cover all guaranteed decoders and even-count ties; all built-in maps at every lane count; chords, rapid sequences, free correction order, live parity updates, perfectly timed wrong keys, misses and strays; timing; map validation; malformed backend data. The Qiskit cross-check compares **1,638 full complex statevectors** (1,488 residual/six-input combinations plus 150 actual correction circuits), and checks one 298-circuit BasicSimulator job against the JS reference bank.
 
-Browser verification on October 10: three- and seven-lane parity-decoding and imported practice including chords/bursts; JSON map import; local audio pairing; timed completion/report; pause/resume; mobile layout; Qiskit-backed standalone player. The exact final browser outcomes are recorded in the PR. Perceptual audio quality, device latency, and difficulty balance need human playtesting.
+Revision verification on October 10: 16 model/gameplay/timing tests passed; the 1,638-statevector Qiskit cross-check passed with one 298-circuit reference job. Browser verification covered separate pages, four-lane practice, parity updates, pause/navigation, and the logical-X learning experiment. See `REVISION_NOTES.md` for final browser and packaging checks. Perceptual audio quality, device latency, and difficulty balance need human playtesting.
 
 Accessibility includes native focus-managed dialogs, visible focus, labeled touch controls, keyboard equivalents, text/symbol clues, live announcements, untimed practice, adjustable travel/compensation, reduced motion, and sound controls. This is not a WCAG certification.
 

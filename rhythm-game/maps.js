@@ -1,3 +1,4 @@
+import { beatToSeconds } from './timing.js';
 import { COUNTS, seeded, weight, syndrome, decode } from './model.js';
 
 const mapRegistry = new Map();
@@ -11,7 +12,14 @@ export function validateMap(input) {
   for (const field of ['id', 'title', 'artist']) if (typeof map[field] !== 'string' || !map[field].trim() || map[field].length > 100) throw new Error(`Map ${field} must be short text.`);
   if (!COUNTS.includes(map.qubits)) throw new Error('Choose 3–7 data qubits.');
   if (!Number.isFinite(map.bpm) || map.bpm < 40 || map.bpm > 220) throw new Error('Tempo must be 40–220 BPM.');
-  if (!Number.isFinite(map.durationBeats) || map.durationBeats < 8 || map.durationBeats * 60 / map.bpm > 300) throw new Error('Maps must be between eight beats and five minutes.');
+  map.tempoChanges ??= [];
+  if (!Array.isArray(map.tempoChanges) || map.tempoChanges.length > 64) throw new Error('Invalid tempo changes.');
+  let previousTempoBeat = 0;
+  for (const change of map.tempoChanges) {
+    if (!Number.isFinite(change.beat) || change.beat <= previousTempoBeat || change.beat >= map.durationBeats || !Number.isFinite(change.bpm) || change.bpm < 40 || change.bpm > 220) throw new Error('Tempo changes must have increasing beats and 40–220 BPM.');
+    previousTempoBeat = change.beat;
+  }
+  if (!Number.isFinite(map.durationBeats) || map.durationBeats < 8 || beatToSeconds(map, map.durationBeats) > 300) throw new Error('Maps must be between eight beats and five minutes.');
   if (!Array.isArray(map.events) || !map.events.length || map.events.length > 800) throw new Error('Provide 1–800 correction packets.');
   const ids = new Set(), occupied = new Map();
   const validLanes = lanes => Array.isArray(lanes) && new Set(lanes).size === lanes.length && lanes.every(q => Number.isInteger(q) && q >= 0 && q < map.qubits);
@@ -33,7 +41,7 @@ export function validateMap(input) {
       step.lanes.forEach(lane => used.add(lane));
       recovery ^= maskOf(step.lanes);
       for (const lane of step.lanes) {
-        const at = (event.beat + step.offset) * 60 / map.bpm;
+        const at = beatToSeconds(map, event.beat + step.offset);
         const times = occupied.get(lane) || [];
         if (times.some(t => Math.abs(t - at) < .085)) throw new Error('Notes on the same lane need at least 85 ms separation.');
         times.push(at); occupied.set(lane, times);
@@ -42,8 +50,13 @@ export function validateMap(input) {
     if (recovery !== error) throw new Error(`The authored solution for ${event.id} does not repair its error.`);
   });
   map.events.sort((a, b) => a.beat - b.beat);
+  for (let i = 1; i < map.events.length; i++) {
+    const previous = map.events[i - 1], next = map.events[i];
+    const end = previous.beat + Math.max(0, ...previous.steps.map(step => step.offset));
+    if (beatToSeconds(map, next.beat) - beatToSeconds(map, end) < .3) throw new Error('Separate memory packets need 300 ms between correction windows. Combine simultaneous corrections into a chord.');
+  }
   if (map.events.reduce((n, e) => n + e.steps.reduce((s, step) => s + step.lanes.length, 0), 0) > 1600) throw new Error('Map has too many notes.');
-  map.sections ??= [{ beat: 0, label: 'First light', intensity: .6, transpose: 0 }];
+  map.sections ??= [{ beat: 0, label: 'Intro', intensity: .6, transpose: 0 }];
   if (!Array.isArray(map.sections) || !map.sections.length || map.sections.length > 64) throw new Error('Provide 1–64 music sections.');
   map.sections.forEach(section => {
     if (!Number.isFinite(section.beat) || section.beat < 0 || section.beat > map.durationBeats || typeof section.label !== 'string' || section.label.length > 100) throw new Error('Invalid music section.');
@@ -73,16 +86,26 @@ export function getMap(id, d = 3) {
 }
 function gardenMap(id, title, bpm, duration, density, d) {
   const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
-  const stride = density === 'fast' ? 1 : 2;
-  for (let beat = 4, index = 0; beat < duration - 2; beat += stride, index++) {
-    const count = index % 11 === 8 ? 0 : index > 3 && index % 4 === 3 ? capacity : 1;
-    const lanes = [];
-    while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
-    const burst = lanes.length > 1 && index % 3 !== 0;
-    events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes }] : [] });
+  // Authored phrases repeat every eight beats; rests and syncopation vary by section.
+  const phrases = density === 'gentle' ? [[0, 2, 3.5, 6], [0, 1.5, 4, 6.5]]
+    : density === 'steady' ? [[0, 1, 2.5, 4, 6, 7], [0, 1.5, 3, 4.5, 6, 7]]
+    : [[0, .75, 1.5, 3, 4, 4.75, 6, 7], [0, 1, 1.75, 3, 4.5, 5.25, 6, 7]];
+  let index = 0;
+  for (let bar = 4; bar < duration - 2; bar += 8) {
+    const phrase = phrases[Math.floor((bar - 4) / 8) % phrases.length];
+    for (let i = 0; i < phrase.length; i++, index++) {
+      const beat = bar + phrase[i]; if (beat >= duration - 2) break;
+      const gap = (phrase[i + 1] ?? 8) - phrase[i];
+      const count = index % 11 === 8 ? 0 : index > 3 && index % 4 === 3 ? capacity : 1;
+      const lanes = [];
+      while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
+      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5;
+      events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes }] : [] });
+    }
   }
   return { version: 1, id, title, artist: 'CapyQuantum · original synthesized music', bpm, qubits: d, durationBeats: duration,
-    events, sections: [{ beat: 0, label: 'First light', intensity: .45, transpose: 0 }, { beat: 16, label: 'The garden wakes', intensity: .7, transpose: 0 }, { beat: 32, label: 'Lantern bloom', intensity: 1, transpose: 5 }, { beat: duration - 12, label: 'Homeward', intensity: .65, transpose: 0 }],
+    tempoChanges: id === 'lantern-waltz' ? [{ beat: 40, bpm: 124 }, { beat: 64, bpm: 112 }] : [],
+    events, sections: [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 5 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }],
     music: { composer: 'garden-lofi', gain: .72, offsetSeconds: 0 } };
 }
 for (const [id, title, bpm, duration, density] of [
