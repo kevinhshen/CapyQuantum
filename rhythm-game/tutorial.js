@@ -6,10 +6,10 @@ export function initTutorial(root, onLessons) {
       <h2 id="tut-title"></h2>
       <div id="tut-stage" class="tut-stage" data-step="0" aria-hidden="true">
         <div id="tut-note" class="tut-note"></div><div id="tut-spark" class="tut-spark">✸</div><div id="tut-flower" class="tut-flower">✿</div>
-        <div id="tut-packet" class="tut-packet"><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}">✦<small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
+        <div id="tut-packet" class="tut-packet"><div id="tut-tail" class="tut-hold-tail" data-for="4">HOLD</div><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}">✦<small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
         <div class="tut-table" data-for="2"><div data-row="0"><span>≠ =</span><b>flip Q1</b></div><div data-row="1"><span>≠ ≠</span><b>flip Q2</b></div><div data-row="2"><span>= ≠</span><b>flip Q3</b></div><div data-row="3"><span>= =</span><b>wait</b></div></div>
-        <div class="tut-hit" data-for="3 4"><span>RECOVER HERE</span></div>
-        <div class="tut-keys" data-for="3 4">${['D', 'F', 'J'].map((key, i) => `<div class="tut-key" data-key="${i}">${key}</div>`).join('')}</div>
+        <div class="tut-hit" data-for="3 4 5"><span>RECOVER HERE</span></div>
+        <div class="tut-keys" data-for="3 4 5">${['D', 'F', 'J'].map((key, i) => `<div class="tut-key" data-key="${i}">${key}</div>`).join('')}</div>
       </div>
       <p id="tut-text" class="tut-text" aria-live="polite"></p>
       <div class="tut-nav"><div id="tut-dots" class="tut-dots"></div><button id="tut-replay" class="subtle">↻ Replay</button><button id="tut-back" class="subtle">Back</button><button id="tut-next" class="primary">Next ↗</button></div>
@@ -34,6 +34,7 @@ export function initTutorial(root, onLessons) {
       timers.forEach(clearTimeout); timers = [];
       Object.assign(view, { q: [0, 0, 0], hidden: [false, false, false], lamps: [0, 0], lampsHidden: false });
       setTop(34, false); spark.style.transition = 'none'; spark.style.opacity = '0'; spark.style.top = '-24px'; flower.classList.remove('go');
+      $('tut-tail').style.transition = 'none'; $('tut-tail').style.height = '50px';
       stage.querySelectorAll('.tut-key').forEach(key => key.classList.remove('pressed'));
       stage.querySelectorAll('[data-row]').forEach(row => { row.dataset.active = '0'; });
       note.textContent = ''; paint();
@@ -68,6 +69,17 @@ export function initTutorial(root, onLessons) {
             press(1); view.q[1] = 0; sync(); pop('[data-q="1"]'); pop('[data-l]'); if (!reduce) flower.classList.add('go');
             say('Flipped Q2 back on the beat → Perfect ✿ Every lamp reads = again.');
           });
+        } },
+      { title: 'Hold the long notes', text: 'A long packet has a ribbon above it. Read the lamps, press the faulty qubit’s key at the line, and keep it down until the ribbon ends. Holding applies one X correction, not repeated flips. Releasing early loses the rhythm credit but does not undo the repair. Untimed practice uses one press for holds; after a pause, re-press held keys to continue.',
+        run({ at }) {
+          view.q = [0, 1, 0]; sync(); setTop(90, false); say('A ribbon means hold. The ≠ ≠ checks point to Q2.');
+          at(800, () => { setTop(108, true, 600); });
+          at(1400, () => {
+            view.q[1] = 0; sync(); stage.querySelector('[data-key="1"]').classList.add('pressed');
+            $('tut-tail').style.transition = reduce ? 'none' : 'height 1800ms linear'; $('tut-tail').style.height = '0px';
+            say('Press F once, then keep holding while the ribbon shrinks.');
+          });
+          at(3200, () => { stage.querySelector('[data-key="1"]').classList.remove('pressed'); say('Tail reached the line → hold complete. Now release F.'); });
         } },
       { title: 'Know the limits', text: 'Three or four qubits guarantee repair of one bit flip; five or six repair two, and seven repair three. The animation shows three lanes; the game starts with four (D F J K). Beyond the correction limit, the lamps can be fooled, as shown here. This code also only watches bit flips, not phase errors. Use untimed practice to learn at your own pace.',
         run({ at }) {

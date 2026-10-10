@@ -34,17 +34,21 @@ export function validateMap(input) {
     if (!Array.isArray(event.steps) || event.steps.length > map.qubits) throw new Error('Invalid correction sequence.');
     let recovery = 0, previous = -1; const used = new Set();
     event.steps.forEach(step => {
+      step.holdBeats ??= 0;
+      if (!Number.isFinite(step.holdBeats) || step.holdBeats < 0 || step.holdBeats > 8 || (step.holdBeats > 0 && step.holdBeats < .5)) throw new Error('Hold duration must be zero (tap) or 0.5–8 beats.');
       if (!Number.isFinite(step.offset) || step.offset < 0 || step.offset > 2 || step.offset <= previous || !validLanes(step.lanes) || !step.lanes.length) throw new Error(`Invalid steps in ${event.id}.`);
       previous = step.offset;
-      if (event.beat + step.offset > map.durationBeats) throw new Error('Correction notes extend past the song.');
+      if (event.beat + step.offset + step.holdBeats > map.durationBeats) throw new Error('Correction notes or hold tails extend past the song.');
       if (step.lanes.some(lane => used.has(lane) || !event.error.includes(lane))) throw new Error('Author correction slots for each faulty lane exactly once.');
       step.lanes.forEach(lane => used.add(lane));
       recovery ^= maskOf(step.lanes);
       for (const lane of step.lanes) {
         const at = beatToSeconds(map, event.beat + step.offset);
+        const end = beatToSeconds(map, event.beat + step.offset + step.holdBeats);
+        if (step.holdBeats && end - at < .3) throw new Error('Holds need at least 300 ms of duration.');
         const times = occupied.get(lane) || [];
-        if (times.some(t => Math.abs(t - at) < .085)) throw new Error('Notes on the same lane need at least 85 ms separation.');
-        times.push(at); occupied.set(lane, times);
+        if (times.some(t => at < t.end + .085 && end > t.at - .085)) throw new Error('Notes on the same lane need at least 85 ms separation, including hold tails.');
+        times.push({at, end}); occupied.set(lane, times);
       }
     });
     if (recovery !== error) throw new Error(`The authored solution for ${event.id} does not repair its error.`);
@@ -52,10 +56,11 @@ export function validateMap(input) {
   map.events.sort((a, b) => a.beat - b.beat);
   for (let i = 1; i < map.events.length; i++) {
     const previous = map.events[i - 1], next = map.events[i];
-    const end = previous.beat + Math.max(0, ...previous.steps.map(step => step.offset));
+    const end = previous.beat + Math.max(0, ...previous.steps.map(step => step.offset + step.holdBeats));
     if (beatToSeconds(map, next.beat) - beatToSeconds(map, end) < .3) throw new Error('Separate memory packets need 300 ms between correction windows. Combine simultaneous corrections into a chord.');
   }
-  if (map.events.reduce((n, e) => n + e.steps.reduce((s, step) => s + step.lanes.length, 0), 0) > 1600) throw new Error('Map has too many notes.');
+  const noteCount = map.events.reduce((n, e) => n + e.steps.reduce((s, step) => s + step.lanes.length, 0), 0);
+  if (noteCount < 1 || noteCount > 1600) throw new Error('A level needs 1–1,600 correction notes.');
   map.sections ??= [{ beat: 0, label: 'Intro', intensity: .6, transpose: 0 }];
   if (!Array.isArray(map.sections) || !map.sections.length || map.sections.length > 64) throw new Error('Provide 1–64 music sections.');
   map.sections.forEach(section => {
@@ -100,7 +105,8 @@ function gardenMap(id, title, bpm, duration, density, d) {
       const lanes = [];
       while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
       const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5;
-      events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes }] : [] });
+      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 ? Math.min(1, gap - .75) : 0;
+      events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [] });
     }
   }
   return { version: 1, id, title, artist: 'CapyQuantum · original synthesized music', bpm, qubits: d, durationBeats: duration,

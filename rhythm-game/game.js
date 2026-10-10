@@ -30,8 +30,34 @@ export async function startGame(root, engine) {
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
-  let reported = new Set();
-  function reportPackets() { run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } }); }
+  let reported = new Set(), reportedHolds = new Set();
+  const laneSources = new Map();
+  function reportPackets() {
+    run.notes.filter(n => n.holdSuccess !== undefined).forEach(note => {
+      if (reportedHolds.has(note.id)) return; reportedHolds.add(note.id);
+      $('judgement').textContent = note.holdSuccess ? 'Hold complete' : 'Hold released early';
+      $('judgement').dataset.kind = note.holdSuccess ? 'hit' : 'stray'; judgementUntil = performance.now() + 650;
+      announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
+      emit(note.holdSuccess ? 'hold-complete' : 'hold-break', { lane: note.heldLane, packetId: note.packet.id });
+    });
+    run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } });
+  }
+  function clearInputs() { held.clear(); laneSources.clear(); root.querySelectorAll('[data-lane]').forEach(button => button.classList.remove('pressed', 'holding')); }
+  function inputDown(lane, source) {
+    if (paused || !['playing', 'practice'].includes(mode)) return;
+    const sources = laneSources.get(lane) || new Set();
+    if (sources.has(source)) return;
+    sources.add(source); laneSources.set(lane, sources);
+    if (sources.size === 1) act(lane);
+  }
+  function inputUp(lane, source) {
+    const sources = laneSources.get(lane); if (!sources) return;
+    sources.delete(source); if (sources.size) return; laneSources.delete(lane);
+    if (run && !paused && ['playing', 'practice'].includes(mode)) {
+      run.release(lane, currentTime() + (practice ? 0 : offsetMs / 1000)); reportPackets();
+      $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo); drawNotes(currentTime());
+    }
+  }
   let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
   let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let paused = false, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
@@ -64,13 +90,17 @@ export async function startGame(root, engine) {
     $('lane-grid').innerHTML = laneKeys(map.qubits).map((key, lane) => `<div class="lane" style="--lane:${lane}"><span>Q${lane + 1}</span></div>`).join('');
     $('receptors').innerHTML = laneKeys(map.qubits).map((key, lane) => `<button data-lane="${lane}" aria-label="Flip qubit ${lane + 1}, ${key === 'SPACE' ? 'Space' : key}"><span>${key === 'SPACE' ? '␣' : key}</span><small>Q${lane + 1}</small></button>`).join('');
     root.querySelectorAll('[data-lane]').forEach(button => {
-      button.addEventListener('pointerdown', e => { e.preventDefault(); act(Number(button.dataset.lane)); });
-      button.addEventListener('click', e => { if (e.detail === 0) act(Number(button.dataset.lane)); });
+      button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); inputDown(Number(button.dataset.lane), `pointer-${e.pointerId}`); });
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, e => inputUp(Number(button.dataset.lane), `pointer-${e.pointerId}`));
+      button.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inputDown(Number(button.dataset.lane), 'enter'); } });
+      button.addEventListener('keyup', e => { if (e.key === 'Enter') { e.preventDefault(); inputUp(Number(button.dataset.lane), 'enter'); } });
+      button.addEventListener('click', e => { if (e.detail === 0) { inputDown(Number(button.dataset.lane), 'accessible'); inputUp(Number(button.dataset.lane), 'accessible'); } });
     });
     $('level-difficulty').textContent = 'LEVEL DETAILS';
     $('level-title').textContent = map.title;
     $('level-description').textContent = map.description || ({ 'morning-dew': 'Short phrases and generous gaps for learning the checks.', 'lantern-waltz': 'Practice offbeats, changing gaps, and longer musical phrases.', 'firefly-rush': 'Faster syncopation and short rests. Try wider lanes for chords and rapid corrections.' })[map.id] || 'A team-authored map. Use untimed practice to learn its correction patterns.';
-    $('map-notes').textContent = `${map.events.reduce((n, e) => n + e.steps.reduce((a, step) => a + step.lanes.length, 0), 0)} corrections`;
+    const holdCount = map.events.reduce((total, event) => total + event.steps.reduce((n, step) => n + (step.holdBeats ? step.lanes.length : 0), 0), 0);
+    $('map-notes').textContent = `${map.events.reduce((n, e) => n + e.steps.reduce((a, step) => a + step.lanes.length, 0), 0)} notes · ${holdCount} holds`;
     $('chart-preview').innerHTML = `<svg viewBox="0 0 400 45" role="img" aria-label="Correction times across this level"><path d="M0 38H400" stroke="currentColor" opacity=".2"/>${map.events.flatMap(e => e.steps.map(step => `<path d="M${(e.beat + step.offset) / map.durationBeats * 400} 38v-${9 + step.lanes.length * 7}" stroke="currentColor" stroke-width="3"/>`)).join('')}</svg>`;
     renderLevelList();
 
@@ -95,32 +125,32 @@ export async function startGame(root, engine) {
   function closeDialog() { if ($('dialog').open) $('dialog').close(); }
   async function pauseGame() {
     if (!['playing', 'practice'].includes(mode) || paused) return;
-    paused = true; await music.pause();
-    showDialog(`<div class="eyebrow">PAUSED</div><h2 id="dialog-title">Map paused.</h2><p>${html(map.title)} · the music and map are paused.</p>`, '<button id="resume" class="primary">Resume map ↗</button><button id="restart" class="subtle">Start again</button><button id="choose" class="subtle">Choose a map</button>');
+    paused = true; run?.suspendHolds(); clearInputs(); await music.pause();
+    showDialog(`<div class="eyebrow">PAUSED</div><h2 id="dialog-title">Map paused.</h2><p>${html(map.title)} · the music and map are paused. Re-press any held keys after resuming to finish their tails.</p>`, '<button id="resume" class="primary">Resume map ↗</button><button id="restart" class="subtle">Start again</button><button id="choose" class="subtle">Choose a map</button>');
     $('resume').onclick = resumeGame; $('restart').onclick = () => { closeDialog(); start(practice); }; $('choose').onclick = toMenu;
   }
   async function resumeGame() { closeDialog(); await music.resume(); paused = false; lastFrame = performance.now(); }
   function toMenu() {
-    closeDialog(); music.stop(); music.context?.resume(); paused = false; held.clear(); run = null; setState('levels');
+    closeDialog(); music.stop(); music.context?.resume(); paused = false; clearInputs(); run = null; setState('levels');
     $('practice-hint').hidden = true; menuStatus(engine.label); $('judgement').textContent = ''; $('song-fill').style.width = '0%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '0'); refreshMap(); $('levels-title').focus();
   }
   async function start(untimed = false) {
-    if (!bank || mode === 'starting') return; setState('starting'); closeDialog(); refreshMap(); practice = untimed; paused = false; held.clear(); lastSection = lastClue = '';
+    if (!bank || mode === 'starting') return; setState('starting'); closeDialog(); refreshMap(); practice = untimed; paused = false; clearInputs(); lastSection = lastClue = '';
     let playMap = structuredClone(map);
     if (practice) {
-      const choices = [map.events[0], map.events[1], map.events.find(e => e.steps.some(s => s.lanes.length > 1)), map.events.find(e => e.steps.length > 1), map.events.find(e => !e.error.length)];
+      const choices = [map.events[0], map.events[1], map.events.find(e => e.steps.some(s => s.holdBeats > 0)), map.events.find(e => e.steps.some(s => s.lanes.length > 1)), map.events.find(e => e.steps.length > 1), map.events.find(e => !e.error.length)];
       const chosen = [...new Set(choices.filter(Boolean))];
       for (const event of map.events) { if (chosen.length >= 6) break; if (!chosen.includes(event)) chosen.push(event); }
       playMap.events = structuredClone(chosen.sort((a, b) => a.beat - b.beat));
     }
-    run = new RhythmRun(playMap, bank); reported = new Set(); art.blooms = 0; art.particles = []; practiceIndex = 0;
+    run = new RhythmRun(playMap, bank, { untimed: practice }); reported = new Set(); reportedHolds = new Set(); art.blooms = 0; art.particles = []; practiceIndex = 0;
     $('play').disabled = $('practice').disabled = true; menuStatus('Starting the music…');
     try {
       if (practice) { await music.init(); music.stop(); music.master.gain.value = music.muted ? 0 : .6; setState('practice'); practiceTime = run.packets[0].at; }
       else { await music.start(map); setState('playing'); }
     } catch (error) { music.stop(); setState('levels'); menuStatus(error.message); $('play').disabled = $('practice').disabled = false; return; }
     $('play').disabled = $('practice').disabled = false; $('practice-hint').hidden = !practice;
-    $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet"><div class="packet-tag">${c.clean ? 'WAIT · NO CORRECTION' : `FLIP ${c.notes.length} QUBIT${c.notes.length > 1 ? 'S' : ''}`} ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
+    $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet ${c.endAt > c.at ? 'hold-packet' : ''}">${c.endAt > c.at ? '<div class="hold-body" aria-hidden="true"><span>HOLD</span></div>' : ''}<div class="packet-tag">${c.endAt > c.at ? 'HOLD · ' : ''}${c.clean ? 'WAIT · NO CORRECTION' : `FLIP ${c.notes.length} QUBIT${c.notes.length > 1 ? 'S' : ''}`} ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
     run.cues.forEach(c => { c.element = $(`cue-${c.id}`); }); $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
     emit('map-start', { map: structuredClone(map), practice }); announce(`Starting ${map.title}, ${map.qubits} lanes. Keys: ${laneKeys(map.qubits).join(', ')}.`);
     $('receptors').querySelector('button')?.focus(); lastFrame = performance.now(); drawNotes(currentTime());
@@ -137,10 +167,11 @@ export async function startGame(root, engine) {
     if (!run || paused || !['playing', 'practice'].includes(mode)) return;
     const time = currentTime() + (practice ? 0 : offsetMs / 1000);
     const event = run.press(lane, time); reportPackets();
+    if (event.type === 'hold-resume') { announce(`Continue holding qubit ${lane + 1}. No extra X gate applied.`); drawNotes(currentTime()); return; }
     root.querySelector(`[data-lane="${lane}"]`).classList.add('pressed');
-    setTimeout(() => root.querySelector(`[data-lane="${lane}"]`)?.classList.remove('pressed'), 90);
+
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
-    $('judgement').textContent = event.type === 'hit' ? event.correct ? event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
+    $('judgement').textContent = event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
     $('judgement').dataset.kind = event.correct === false ? 'stray' : event.type; judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
       if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane);
@@ -157,21 +188,27 @@ export async function startGame(root, engine) {
     const closest = run.cues.find(c => !c.packet.done && (!practice || c.packet === currentPacket) && (c.clean || c.notes.some(n => !n.done))) || run.cues.filter(c => c.packet === currentPacket).at(-1);
     for (const cue of run.cues) {
       const y = hit - (cue.at - time) / approach * (hit - 25);
-      const display = !cue.packet.done && (practice || time <= cue.at + WINDOWS.good) && y > -100 && y < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
+      const sustaining = cue.notes.some(n => n.holding);
+      const positionY = still || practice || sustaining ? hit : y;
+      const display = !cue.packet.done && (practice || time <= (cue.endAt > cue.at ? cue.endAt : cue.at) + WINDOWS.good) && positionY > -100 && positionY < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
       cue.element.hidden = !display;
       if (display) {
-        cue.element.style.transform = `translateY(${(still || practice ? hit : y) - 40}px)`;
+        cue.element.style.transform = `translateY(${positionY - 40}px)`;
+        const body = cue.element.querySelector('.hold-body');
+        if (body) { body.hidden = cue.notes.every(n => n.done); body.style.height = `${Math.max(0, cue.endAt - Math.max(cue.at, time)) / approach * (hit - 25)}px`; }
+        cue.element.classList.toggle('sustaining', sustaining);
         const checks = run.checks(cue.packet);
         cue.element.querySelectorAll('[data-check]').forEach(lamp => { const bit = checks[Number(lamp.dataset.check)]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
         cue.element.querySelectorAll('[data-qubit]').forEach(q => { q.classList.toggle('applied', Boolean(cue.packet.applied >> Number(q.dataset.qubit) & 1)); });
       }
     }
+    root.querySelectorAll('[data-lane]').forEach(button => { const lane = Number(button.dataset.lane); button.classList.toggle('pressed', Boolean(laneSources.get(lane)?.size)); button.classList.toggle('holding', run.notes.some(n => n.holding && !n.suspended && n.heldLane === lane)); });
     if (time < 0 && !practice) $('count-in').textContent = String(Math.max(1, Math.ceil(-time / (60 / map.bpm)))); else $('count-in').textContent = '';
     if (currentPacket) {
       const checks = run.checks(currentPacket), clue = checks.map(b => b ? '≠' : '=').join(' ');
-      $('clue-caption').textContent = `checks ${clue}${still && !practice && closest ? ` · ${Math.max(0, closest.at - time).toFixed(1)}s` : ''}`;
+      $('clue-caption').textContent = `checks ${clue}${closest?.endAt > closest?.at ? ` · HOLD ${Math.max(0, closest.endAt - Math.max(time, closest.at)).toFixed(1)}s` : ''}${still && !practice && closest ? ` · ${Math.max(0, closest.at - time).toFixed(1)}s` : ''}`;
       if (practice) {
-        $('practice-text').textContent = 'Find the smallest set of qubit flips that makes every lamp =. Recheck after each input; W advances when you are satisfied.';
+        $('practice-text').textContent = 'Untimed: hold notes use one press; sustain is not scored. Find the smallest set of qubit flips that makes every lamp =. Recheck after each input; W advances when you are satisfied.';
         if (currentPacket.id !== lastClue) { lastClue = currentPacket.id; announce(`New memory. Checks: ${clue}. Choose the faulty qubits.`); }
       }
     }
@@ -183,15 +220,15 @@ export async function startGame(root, engine) {
     music.stop(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
     const result = run.summary(); $('notes').innerHTML = ''; $('count-in').textContent = '';
     const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#78966b"/>`).join('');
-    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✿' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div><p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#e8edcf"/><path d="M12 45H448" stroke="#bdc99e" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
+    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✿' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#e8edcf"/><path d="M12 45H448" stroke="#bdc99e" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
     $('again').onclick = () => start(false); $('choose-result').onclick = toMenu;
     emit('map-end', { mapId: map.id, practice, summary: result }); announce(`${map.title} complete. ${result.restored} of ${result.packets} memories restored.`);
   }
   async function guide() {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
-    if (!paused) { paused = true; await music.pause(); }
-    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
+    if (!paused) { paused = true; run.suspendHolds(); clearInputs(); await music.pause(); }
+    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
     ['A qubit', 'A bit is 0 or 1. A qubit can be in a superposition α|0⟩ + β|1⟩. Measuring it in the 0/1 basis gives one outcome, with probabilities |α|² and |β|².', 'A qubit does not reveal two readable answers at once. Quantum algorithms control amplitudes and interference before measurement.'],
@@ -249,9 +286,9 @@ export async function startGame(root, engine) {
     if (e.repeat || held.has(e.code) || $('dialog').open) return;
     if (e.key.toLowerCase() === 'w' && practice && !$('practice-next').hidden) { e.preventDefault(); finishPracticePacket(); return; }
     const key = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase(), lane = laneKeys(map.qubits).indexOf(key);
-    if (lane >= 0 && ['playing', 'practice'].includes(mode)) { e.preventDefault(); held.add(e.code); act(lane); }
+    if (lane >= 0 && ['playing', 'practice'].includes(mode)) { e.preventDefault(); held.add(e.code); inputDown(lane, e.code); }
   });
-  window.addEventListener('keyup', e => { held.delete(e.code); });
+  window.addEventListener('keyup', e => { held.delete(e.code); const key = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase(), lane = laneKeys(map.qubits).indexOf(key); if (lane >= 0) inputUp(lane, e.code); });
   window.addEventListener('blur', () => { held.clear(); pauseGame(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { held.clear(); pauseGame(); } });
   window.addEventListener('resize', () => art.resize());
@@ -267,7 +304,7 @@ export async function startGame(root, engine) {
     if (run && ['playing', 'practice'].includes(mode) && !paused) {
       const time = currentTime(), adjusted = time + (practice ? 0 : offsetMs / 1000); beat = secondsToBeat(map, time);
       if (!practice) {
-        run.advance(adjusted); reportPackets();
+        run.advance(adjusted); reportPackets(); $('score').textContent = String(run.score).padStart(6, '0');
         const progress = Math.max(0, Math.min(100, beat / map.durationBeats * 100)); $('song-fill').style.width = `${progress}%`; root.querySelector('.song-progress').setAttribute('aria-valuenow', String(Math.round(progress)));
         $('combo').textContent = String(run.combo);
         const section = [...map.sections].reverse().find(s => s.beat <= beat);

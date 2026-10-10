@@ -19,3 +19,5 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 - **Merged tutorial contribution:** teammate’s `game-tutorial` level presets (Seedling, Sprout, Sapling, Bloom), originally added to generated `PLAY.html`, now live in `content.js` and the Levels page so rebuilds preserve them.
 
 - **Animated tutorial integration:** teammate’s `game-tutorial` contribution at `414d9d6` supplies the five illustrated animation sequences. They now live in `tutorial.js`, shared by startup and Learn. Codex adapted the modal, keyboard handling, timer cleanup, Qollab packaging and wording about encoding/correction limits.
+
+- **Hold-note revision:** Codex added sustain input/scoring, neutral hold ribbons, a sixth tutorial step, chart validation/tests and the team authoring rules at the user’s direction. The first five animation sequences retain the teammate attribution above.

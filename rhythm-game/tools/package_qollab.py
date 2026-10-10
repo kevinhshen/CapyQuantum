@@ -6,7 +6,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ('index.html', 'main.js', 'main.css', 'game.js', 'tutorial.js', 'model.js', 'timing.js', 'maps.js', 'rhythm.js', 'audio.js', 'garden.js', 'content.js',
-         'LEVEL_AUTHORING.md', 'content-assets.json',
+         'LEVEL_AUTHORING.md', 'level-making-rules.md', 'content-assets.json',
          'quantum/__init__.py', 'quantum/rhythm.py', 'LICENSE', 'README.md', 'ATTRIBUTION.md')
 assets = json.loads((ROOT / 'content-assets.json').read_text())
 if not isinstance(assets, list) or any(not isinstance(name, str) for name in assets):

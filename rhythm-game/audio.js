@@ -47,7 +47,7 @@ export class MusicTransport {
       const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.master);
       source.start(this.origin + this.leadIn, offset); this.nodes.add(source); this.external = true;
     } else this.external = false;
-    this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0] })));
+    this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
     this.melodyIndex = 0;
     this.timer = setInterval(() => this.schedule(), 25); this.schedule();
   }
@@ -62,7 +62,7 @@ export class MusicTransport {
       const note = this.melody[this.melodyIndex], at = this.origin + this.leadIn + beatToSeconds(this.map, note.beat);
       if (at >= limit) break;
       this.melodyIndex++;
-      if (at >= this.context.currentTime) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][note.lane]), .2, .055, 'triangle', null, at);
+      if (at >= this.context.currentTime) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][note.lane]), note.holdBeats ? beatToSeconds(this.map, note.beat + note.holdBeats) - beatToSeconds(this.map, note.beat) : .2, .055, 'triangle', null, at);
     }
     while (this.origin + this.leadIn + beatToSeconds(this.map, this.tick / 4) < limit) {
       const tick = this.tick++, at = this.origin + this.leadIn + beatToSeconds(this.map, tick / 4);
