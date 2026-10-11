@@ -60,6 +60,43 @@ One logical state is encoded across several data qubits. Ancillas extract neighb
 
 The Qollab runtime batches **298 reference circuits at 64 shots each into one job**, using at most **13 physical qubits**. Level replays reuse the results. Each packet represents a fresh register. This model focuses on bit flips, does not protect against phase errors, and does not model the complete noisy gate history of each player input. The falling speed is a teaching mechanic.
 
+## ⚛ How the quantum simulator is used
+
+**Run → quantum experiments → reference bank → gameplay**
+
+The simulator calculates quantum measurement outcomes used by the game. It runs a batch of reference experiments when Qollab starts the project, and gameplay reuses those results.
+
+### 1. When you press Run
+
+Qollab passes the selected simulator to `rhythm-game/main.js`, which calls the Qiskit code in `rhythm-game/quantum/rhythm.py`. The project builds **298 circuits** covering error patterns for **3–7 data qubits**, including six-input references for the no-error and logical-flip cases.
+
+Each circuit prepares an input state, encodes it across the data qubits, injects an X-error pattern, and extracts neighboring parity checks using ancillas. It then undoes the encoding and input preparation and measures the register. These measurements supply both the parity outcomes and a reference for how well the original state was preserved.
+
+All circuits are submitted in **one backend job**, with **64 shots per circuit**. A *shot* is one repetition of a circuit ending in a measurement. The resulting counts are stored in a reference bank for the current run. Circuits use **5–13 physical qubits**, including the ancillas; the simulator's displayed qubit count is its capacity, not the number our game always uses.
+
+### 2. While you play
+
+- **Initial parity clues** are sampled from the backend's measurement counts for the packet's injected error pattern.
+- **Your key presses** apply bit flips in the JavaScript game model and update the displayed checks immediately.
+- **Correction accuracy and memories restored** are calculated from the known injected errors and your accumulated flips.
+- **Reference preservation** is looked up using the error pattern remaining after your corrections. No-error and logical-flip cases average the six input-state references.
+
+**Each key press does not submit a quantum job.** Music, animation, timing, scoring, and immediate correction updates run in the browser. Changing or replaying a level reuses the same bank. Use Qollab **Stop → Run** to start a fresh simulator job.
+
+For example, on an ideal simulator a bit flip on **Q2** in a four-data-qubit register gives **≠ ≠ =**. Flipping Q2 again returns the checks to **= = =** and restores the state. Flipping every data qubit afterward also leaves equal checks, but can change the logical information; the preservation references expose that limitation.
+
+### 3. What the simulator choice changes
+
+| Simulator | Reference experiments |
+|---|---|
+| Built-in / AWS Braket local | Ideal quantum operations |
+| IBM noise-model simulators | Simulated device noise, running locally |
+| IonQ remote simulators | Simulated IonQ device noise, running remotely |
+
+Start with the **free built-in simulator** for clear learning examples. A noise-model simulator can produce imperfect parity clues and lower reference preservation. These simulator options are software models; physical IonQ hardware is a separate choice. [Qollab backend documentation](https://qollab.xyz/learn/docs/compute-backends)
+
+The noisy results describe **reference experiments**, not the complete gate-noise history of every player correction sequence. Each packet is a fresh register, and rhythm speed is a learning mechanic. The standalone `PLAY.html` uses recorded Qiskit results when a bank was embedded at build time; `dev.html` uses the exact JavaScript model. Neither submits a live Qollab job.
+
 ## 🛠 Develop and verify
 
 The active game is in [`rhythm-game/`](rhythm-game/README.md). Qiskit setup and local reference generation are documented there.
