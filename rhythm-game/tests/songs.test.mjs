@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SONG_LEVELS, parseTune } from '../songs.js';
+import { SONG_LEVELS, LEVELS, RECORDED_LEVELS, parseTune } from '../songs.js';
 import { getMap, listMaps } from '../maps.js';
 import { RhythmRun } from '../rhythm.js';
 import { MusicTransport } from '../audio.js';
@@ -18,14 +18,14 @@ test('all ten songs validate, preserve melody ownership and recover at every lan
       assert.ok(Number.isInteger(e.note) && Number.isInteger(e.wrongNote));
       assert.notEqual(e.note,e.wrongNote);
       if(e.tuneBeat!=null){assert.equal(e.beat,e.tuneBeat);assert.ok(!owned.has(e.tuneBeat));owned.add(e.tuneBeat);assert.ok(tune.notes.some(n=>Math.abs(n.at-e.tuneBeat%tune.length)<1e-9 && n.midi===e.note));}
-      if(i){const prev=map.events[i-1],end=prev.beat+Math.max(0,...prev.steps.map(s=>s.offset+s.holdBeats));assert.ok(beatToSeconds(map,e.beat)-beatToSeconds(map,end)>=.9-1e-8);}
+      if(i){const prev=map.events[i-1],end=prev.beat+Math.max(0,...prev.steps.map(s=>s.offset+s.holdBeats));assert.ok(beatToSeconds(map,e.beat)-beatToSeconds(map,end)>=.3-1e-8);}
     }
     for(const n of run.notes){assert.equal(run.press(n.lane,n.at).correct,true);if(n.holding)run.release(n.heldLane,n.endAt);}
     run.advance(beatToSeconds(map,map.durationBeats)+1);
     assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
     assert.equal(run.packets[0].note,map.events[0].note);assert.ok(run.packets[0].noteSeconds>0);
   }
-  for(const id of ['morning-dew','lantern-waltz','firefly-rush'])assert.ok(getMap(id).events.length);
+  for(const id of ['morning-dew','lantern-waltz','firefly-rush'])assert.throws(()=>getMap(id),/Unknown map/);
 });
 
 test('backing fills follow the changing tempo, happen once, and cancel when a player claims a note', () => {
@@ -47,4 +47,24 @@ test('melody and wrong-note feedback honor separate volumes, mute, pause and rec
   audio.effectsVolume=0;audio.songNote(60,.5,true);audio.songNote(61,.5,false);assert.equal(calls.length,2);
   audio.effectsVolume=.5;audio.musicVolume=0;audio.songNote(60,.5,true);audio.songNote(61,.5,false);assert.equal(calls.length,3);assert.equal(calls[2][6],audio.effectsBus);
   for(const flag of ['paused','muted','external']){audio[flag]=true;audio.songNote(60,.5,true);audio.songNote(61,.5,false);audio[flag]=false;assert.equal(calls.length,3);}
+});
+
+
+test('15 levels retain five CC0 recordings and increase correction density from level 3 at every lane count', () => {
+  assert.deepEqual(listMaps().map(x=>x.id),LEVELS.map(x=>x.id));
+  assert.equal(LEVELS.length,15);assert.equal(RECORDED_LEVELS.length,5);
+  for(const d of [3,4,5,6,7]) {
+    let previousRate=0,previousPackets=0,hasBurst=false,hasChord=false;
+    for(const [i,song] of LEVELS.entries()) {
+      const map=getMap(song.id,d),run=new RhythmRun(map,bank);
+      assert.equal(map.level,i+1);assert.equal(map.qubits,d);
+      hasBurst ||= map.events.some(e=>e.steps.length>1);hasChord ||= map.events.some(e=>e.steps.some(s=>s.lanes.length>1));
+      if(song.file){assert.equal(map.music.url,`./music/${song.file}`);assert.match(map.music.credit,/CC0/);assert.equal(map.songMode,false);}
+      const seconds=beatToSeconds(map,map.durationBeats),rate=run.notes.length/seconds,packets=map.events.length/seconds;
+      if(i>=2){assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
+      for(const note of run.notes){assert.equal(run.press(note.lane,note.at).correct,true);if(note.holding)run.release(note.heldLane,note.endAt);}
+      run.advance(seconds+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
+    }
+    if(d>=5){assert.ok(hasBurst);assert.ok(hasChord);}
+  }
 });

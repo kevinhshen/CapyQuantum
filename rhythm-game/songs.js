@@ -54,3 +54,18 @@ export const SONG_LEVELS = [
     tempoChanges: [{ beat: 32, bpm: 160 }, { beat: 64, bpm: 172 }, { beat: 96, bpm: 184 }],
     sections: [{ beat: 0, label: 'Fate Motif', intensity: .75, transpose: 0 }, { beat: 32, label: 'Relentless', intensity: .85, transpose: 0 }, { beat: 64, label: 'Fortissimo', intensity: .95, transpose: 0 }, { beat: 96, label: 'Finale', intensity: 1, transpose: 0 }] }
 ];
+
+// Recorded tracks contributed on add-cc0-songs, ordered after the ten melody lessons.
+export const RECORDED_LEVELS = [
+  { id: 'cubed-loop', title: 'Loop', artist: 'Cubed Canada', bpm: 66, beats: 100, file: 'cubed-loop.m4a', offset: .01,
+    credit: '"Loop" by cubedcanada, CC0 (opengameart.org/node/88983)' },
+  { id: 'funked-up', title: 'Funked Up', artist: 'Joth', bpm: 87, beats: 92, file: 'funked-up.m4a', offset: .07,
+    credit: '"Funked Up" by Joth, CC0 (opengameart.org/content/funked-up)' },
+  { id: 'oldskool-synth', title: 'Oldskool', artist: 'Of Far Different Nature', bpm: 120, beats: 58, file: 'oldskool.m4a', offset: .02,
+    credit: '"Oldskool (CC0)" by Of Far Different Nature, CC0 (opengameart.org/node/107451)' },
+  { id: 'mecha-march', title: 'Mecha Collection', artist: 'Jonathan So', bpm: 120, beats: 112, file: 'mecha-collection.m4a', offset: .07,
+    credit: '"Mecha Collection" by Jonathan So, CC0 (opengameart.org/content/mecha-collection)' },
+  { id: 'chiptune-1234', title: '1-2-3-4 (Chiptune)', artist: 'Pro Sensory', bpm: 167, beats: 168, file: 'one-two-three-four.m4a', offset: 0,
+    credit: '"1-2-3-4 (Chiptune)" by Pro Sensory, CC0 (opengameart.org/content/1-2-3-4-chiptune)' },
+];
+export const LEVELS = [...SONG_LEVELS, ...RECORDED_LEVELS];

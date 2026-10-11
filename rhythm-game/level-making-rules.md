@@ -137,3 +137,11 @@ Before merging:
 - Run the packaged project with the selected free simulator in Qollab and test its audio before publication. The offline player uses recorded Qiskit results and does not verify live platform execution.
 
 This effort is supported by Qollab & IonQ
+
+## Built-in progression
+
+The catalog contains ten synthesized melody lessons followed by five CC0 recordings: Loop, Funked Up, Oldskool, Mecha Collection, and 1-2-3-4 (Chiptune). Morning dew, Lantern glow, and Firefly rush are retired. All fifteen songs support 3–7 lanes.
+
+From level 3 onward, each chart has a strictly higher number of correction packets and key presses per song second than its predecessor at the same lane count. The target packet rate starts at 0.55 per second and increases by 0.08 for each level, with eighth-beat timing, small rhythmic variations, short holds, and gradually introduced multi-flip chords/sequences. Soundtrack BPM stays unchanged. Tempo conversion and the existing 300 ms packet separation rules still apply.
+
+This is a measured chart-density progression, not proof that every player will find each song harder. Wider lane counts add reading and multi-key demand. Recorded track BPM and offsets came from the contributing branch's automatic estimates; validate alignment by listening before publication.

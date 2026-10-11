@@ -44,7 +44,7 @@ test('validation rejects invalid durations, tails past the song, and packet over
 });
 test('untimed practice removes sustain demand; built-in maps contain both taps and holds',()=>{
  const run=new RhythmRun(chart(),bank,{untimed:true});run.press(1,2);assert.equal(run.score,300);assert.equal(run.notes[0].holding,false);run.advance(4);assert.equal(run.summary().restored,1);
- for(const id of ['morning-dew','lantern-waltz','firefly-rush']) for(const d of [3,4,5,6,7]) {
+ for(const id of ['twinkle','ode-to-joy','canon-in-d']) for(const d of [3,4,5,6,7]) {
   const map=getMap(id,d);assert.ok(map.events.some(e=>e.steps.some(s=>s.holdBeats>0)));assert.ok(map.events.some(e=>e.steps.some(s=>s.holdBeats===0)));
   const game=new RhythmRun(map,bank);for(const note of game.notes)game.press(note.lane,note.at);game.advance(beatToSeconds(map,map.durationBeats)+1);assert.equal(game.summary().grade,'S');assert.equal(game.summary().holdsCompleted,game.summary().holds);
  }

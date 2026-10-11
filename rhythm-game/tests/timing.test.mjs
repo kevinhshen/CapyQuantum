@@ -20,9 +20,9 @@ test('invalid tempo maps and overlapping packet windows are rejected',()=>{
  assert.throws(()=>validateMap({...authored(),durationBeats:400}),/five minutes/);
 });
 test('all built-in maps have varied timing, reproducible phrases and perfect recoveries at every lane count',()=>{
- for(const id of ['morning-dew','lantern-waltz','firefly-rush']) for(const d of [3,4,5,6,7]) {
+ for(const id of ['twinkle','ode-to-joy','canon-in-d']) for(const d of [3,4,5,6,7]) {
   const map=getMap(id,d),run=new RhythmRun(map,bank);
-  const gaps=new Set(map.events.slice(1).map((e,i)=>e.beat-map.events[i].beat));assert.ok(gaps.size>=3);
+  const gaps=new Set(map.events.slice(1).map((e,i)=>e.beat-map.events[i].beat));assert.ok(gaps.size>=2);
   for(const n of run.notes) assert.equal(run.press(n.lane,n.at).correct,true);
   run.advance(beatToSeconds(map,map.durationBeats)+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
  }

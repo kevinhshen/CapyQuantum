@@ -1,4 +1,4 @@
-import { SONG_LEVELS, parseTune } from './songs.js';
+import { LEVELS, parseTune } from './songs.js';
 import { beatToSeconds, secondsToBeat } from './timing.js';
 import { COUNTS, seeded, weight, syndrome, decode } from './model.js';
 
@@ -85,42 +85,11 @@ export function registerMap(map) {
   mapRegistry.set(checked.id, { title: checked.title, artist: checked.artist, fixed: checked });
   return checked.id;
 }
-export function listMaps() { return [...mapRegistry].sort(([a], [b]) => Number(!SONG_LEVELS.some(s => s.id === a)) - Number(!SONG_LEVELS.some(s => s.id === b))).map(([id, entry]) => ({ id, title: entry.title, artist: entry.artist, qubits: entry.fixed?.qubits ?? null })); }
+export function listMaps() { return [...mapRegistry].map(([id, entry]) => ({ id, title: entry.title, artist: entry.artist, qubits: entry.fixed?.qubits ?? null })); }
 export function getMap(id, d = 3) {
   const entry = mapRegistry.get(id); if (!entry) throw new Error('Unknown map.');
   return entry.fixed ? structuredClone(entry.fixed) : validateMap(entry.build(d));
 }
-function gardenMap(id, title, bpm, duration, density, d) {
-  const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
-  // Authored phrases repeat every eight beats; rests and syncopation vary by section.
-  const phrases = density === 'gentle' ? [[0, 2, 3.5, 6], [0, 1.5, 4, 6.5]]
-    : density === 'steady' ? [[0, 1, 2.5, 4, 6, 7], [0, 1.5, 3, 4.5, 6, 7]]
-    : [[0, .75, 1.5, 3, 4, 4.75, 6, 7], [0, 1, 1.75, 3, 4.5, 5.25, 6, 7]];
-  let index = 0;
-  for (let bar = 4; bar < duration - 2; bar += 8) {
-    const phrase = phrases[Math.floor((bar - 4) / 8) % phrases.length];
-    for (let i = 0; i < phrase.length; i++, index++) {
-      const beat = bar + phrase[i]; if (beat >= duration - 2) break;
-      const gap = (phrase[i + 1] ?? 8) - phrase[i];
-      const count = index % 11 === 8 ? 0 : index > 3 && index % 4 === 3 ? capacity : 1;
-      const lanes = [];
-      while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
-      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5;
-      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 ? Math.min(1, gap - .75) : 0;
-      events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [] });
-    }
-  }
-  return { version: 1, id, title, artist: 'CapyQuantum · original synthesized music', bpm, qubits: d, durationBeats: duration,
-    tempoChanges: id === 'lantern-waltz' ? [{ beat: 40, bpm: 124 }, { beat: 64, bpm: 112 }] : [],
-    events, sections: [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 5 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }],
-    music: { composer: 'garden-lofi', gain: .72, offsetSeconds: 0 } };
-}
-for (const [id, title, bpm, duration, density] of [
-  ['morning-dew', 'Morning dew', 86, 56, 'gentle'],
-  ['lantern-waltz', 'Lantern glow', 112, 80, 'steady'],
-  ['firefly-rush', 'Firefly rush', 138, 96, 'fast'],
-]) mapRegistry.set(id, { title, artist: 'CapyQuantum', build: d => gardenMap(id, title, bpm, duration, density, d) });
-
 // Minimum real-time breathing room between memory packets, how far apart the taps of a burst fall, how
 // often a multi-flip packet appears, and how many flips it may carry. Faster songs get more room, not less.
 const PACING = {
@@ -192,4 +161,61 @@ function songMap(id, title, bpm, duration, density, d, extra = {}) {
 }
 
 
-for (const level of SONG_LEVELS) mapRegistry.set(level.id, { title: level.title, artist: level.artist, build: d => songMap(level.id, level.title, level.bpm, level.beats, level.density, d, level) });
+
+// Level difficulty is a chart property, independent of soundtrack BPM. Later levels
+// demand more corrections per second, with chords/sequences introduced gradually.
+function progressiveMap(level, number, d) {
+  const timeline = { bpm: level.bpm, tempoChanges: level.tempoChanges ?? [] };
+  const duration = beatToSeconds(timeline, level.beats);
+  const rate = .55 + (number - 3) * .08;
+  const count = Math.floor(duration * rate);
+  const start = beatToSeconds(timeline, 4), end = beatToSeconds(timeline, level.beats - 3);
+  const slots = Array.from({ length: count }, (_, i) => {
+    // Eighth-beat grid keeps recorded charts rhythmic even when their tempo is slow.
+    const beat = Math.round(secondsToBeat(timeline, start + (end - start) * (i + (i && i < count - 1 ? [0, .12, -.12, .06][i % 4] : 0)) / (count - 1)) * 8) / 8;
+    return { beat, at: beatToSeconds(timeline, beat) };
+  });
+  const tune = level.tune ? parseTune(level.tune) : null, onsets = [];
+  if (tune) for (let loop = 0; loop * tune.length < level.beats; loop++) for (const note of tune.notes) {
+    const beat = loop * tune.length + note.at;
+    if (beat < level.beats) onsets.push({ ...note, beat, atSeconds: beatToSeconds(timeline, beat) });
+  }
+  // Move a cue to a nearby melody onset only when it keeps safe packet spacing.
+  const claimed = new Set();
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i], note = onsets.reduce((best, n) => !claimed.has(n.beat) && Math.abs(n.atSeconds - slot.at) < .06 && (!best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at)) ? n : best, null);
+    if (note && note.atSeconds - (slots[i - 1]?.at ?? 0) >= .34 && (slots[i + 1]?.at ?? duration) - note.atSeconds >= .34) {
+      slot.beat = note.beat; slot.at = note.atSeconds; slot.owned = note; claimed.add(note.beat);
+    }
+  }
+  const random = seeded(20261011 + number * 101 + d), capacity = Math.floor((d - 1) / 2);
+  const multiEvery = number < 5 ? Infinity : Math.max(4, 10 - Math.floor((number - 5) / 2));
+  const events = slots.map((slot, i) => {
+    const flips = i % multiEvery === multiEvery - 1 ? Math.min(capacity, number >= 11 ? 3 : 2) : 1;
+    const lanes = []; while (lanes.length < flips) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
+    const nextAt = slots[i + 1]?.at ?? duration;
+    const room = nextAt - slot.at - .32;
+    const burstSpan = .16 * (lanes.length - 1);
+    const burst = number >= 6 && lanes.length > 1 && Math.floor(i / multiEvery) % 2 === 1 && room > burstSpan;
+    let holdBeats = 0;
+    if (lanes.length === 1 && i % 10 === 3) {
+      const available = secondsToBeat(timeline, slot.at + Math.min(.65, room)) - slot.beat;
+      holdBeats = Math.floor(Math.min(1, available) * 4) / 4;
+      if (holdBeats < .5 || beatToSeconds(timeline, slot.beat + holdBeats) - slot.at < .3) holdBeats = 0;
+    }
+    const steps = burst ? lanes.map((lane, j) => ({ offset: j ? secondsToBeat(timeline, slot.at + j * .16) - slot.beat : 0, lanes: [lane] })) : [{ offset: 0, lanes, holdBeats }];
+    const note = slot.owned ?? onsets.reduce((best, n) => !best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at) ? n : best, null);
+    const melody = note ? { note: note.midi, noteBeats: note.dur, wrongNote: [1,-1,6,-2,2].map(k => note.midi+k).find(m => !tune.notes.some(n => n.midi % 12 === m % 12)) ?? note.midi+1, ...(slot.owned ? { tuneBeat: slot.beat } : {}) } : {};
+    return { id: `p${i}`, beat: slot.beat, error: lanes, steps, ...melody };
+  });
+  const challenge = number < 5 ? 'Steady corrections with short holds.' : number < 8 ? 'More frequent corrections; wider lane counts introduce chords and short sequences.' : number < 11 ? 'Quicker corrections, changing rhythms, and less time to read each check.' : 'Dense, rapid corrections; wider lane counts add multi-flip challenges.';
+  return { version: 1, id: level.id, title: level.title, artist: level.artist, level: number,
+    description: `Level ${number} · ${challenge}`, bpm: level.bpm, qubits: d, durationBeats: level.beats,
+    tempoChanges: timeline.tempoChanges, events, songMode: Boolean(tune),
+    sections: level.sections ?? [{ beat: 0, label: 'Intro', intensity: .5 }, { beat: Math.floor(level.beats / 2), label: 'Build', intensity: .85 }],
+    music: level.file ? { url: `./music/${level.file}`, credit: level.credit, offsetSeconds: level.offset, gain: .7 } : { composer: `song-${level.id}`, gain: .72, offsetSeconds: 0 } };
+}
+for (const [i, level] of LEVELS.entries()) mapRegistry.set(level.id, {
+  title: level.title, artist: level.artist,
+  build: d => i < 2 ? { ...songMap(level.id, level.title, level.bpm, level.beats, level.density, d, level), level: i + 1 } : progressiveMap(level, i + 1, d)
+});
