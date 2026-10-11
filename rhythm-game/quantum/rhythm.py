@@ -2,7 +2,8 @@
 
 All measurements are terminal. Neighbor ancillas store the injected-error
 syndrome. Net X residuals classify multi-key recovery under ideal gates.
-The bank is a reference experiment; provider noise is not a full trajectory.
+The exhaustive bank is for local cross-checks. Qollab submits a single
+four-data-qubit recovery experiment; IonQ's simulator rejects circuit batches.
 """
 import json
 from qiskit import QuantumCircuit, transpile
@@ -56,7 +57,7 @@ def run_batch(backend, specs_json, shots=64):
         raise ValueError('Expected the complete 298-case reference bank')
     circuits = [build_circuit(s) for s in specs]
     try:
-        circuits = transpile(circuits, backend, optimization_level=0)
+        circuits = transpile(circuits, backend, optimization_level=0, num_processes=1)
     except (AttributeError, NotImplementedError):
         pass
     result = backend.run(circuits, shots=int(shots)).result()
@@ -72,3 +73,41 @@ def run_batch(backend, specs_json, shots=64):
 def backend_name(backend):
     name = getattr(backend, 'name', type(backend).__name__)
     return str(name() if callable(name) else name)
+
+
+def run_reference(backend, shots=64):
+    """One real |+> recovery experiment, not a noisy gameplay lookup bank."""
+    if type(shots) is not int or not 1 <= shots <= 1024:
+        raise ValueError('Expected 1–1024 shots')
+    spec = {'d': 4, 'error': 2, 'fix': 2, 'state': '+'}
+    circuit = build_circuit(spec)
+    circuit.name = 'qubit_tempo_recovery'
+    name = backend_name(backend)
+    print(f'Preparing one recovery experiment on {name}: 7 qubits, {shots} shots.', flush=True)
+    # One process is required in the browser. Level 1 is also recommended by
+    # qiskit-ionq and reduces the gates added by IBM connectivity routing.
+    try:
+        circuit = transpile(circuit, backend, optimization_level=1,
+                            num_processes=1, seed_transpiler=7)
+    except (AttributeError, NotImplementedError):
+        # Minimal run-only adapters can accept these standard gates directly.
+        pass
+    print('Submitting one circuit in one job; waiting for measurement results.', flush=True)
+    result = backend.run(circuit, shots=shots).result()
+    if getattr(result, 'success', True) is False:
+        raise RuntimeError(f'{name} did not complete the recovery experiment')
+    counts = result.get_counts()
+    if not isinstance(counts, dict) or not counts or sum(counts.values()) != shots:
+        raise ValueError('The backend returned incomplete measurement counts')
+    normalized = {}
+    for key, count in counts.items():
+        bits = str(key).replace(' ', '')
+        if not bits or any(bit not in '01' for bit in bits) or len(bits) > 7:
+            raise ValueError('Expected seven classical measurement bits')
+        if type(count) is not int or count < 0:
+            raise ValueError('Expected nonnegative integer measurement counts')
+        bits = bits.zfill(7)
+        normalized[bits] = normalized.get(bits, 0) + count
+    print('Recovery experiment complete. Gameplay uses the exact ideal model.', flush=True)
+    return json.dumps({'version': 1, **spec, 'shots': shots, 'backend': name,
+                       'counts': normalized})

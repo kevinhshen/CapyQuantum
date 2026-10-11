@@ -10,7 +10,7 @@ Players protect a quantum memory by reading *parity checks*, which indicate whet
 
 ⚛ **Connect gameplay with quantum experiments**
 
-The project uses **Qiskit reference circuits** on the selected simulator. Results separate **rhythm performance**, **correction accuracy**, and **preservation of the original quantum information**, helping players understand the consequences of their choices.
+The project runs a **live Qiskit recovery experiment** on the selected simulator and teaches corrections through an **exact ideal quantum model**. Results distinguish **rhythm performance**, **correction accuracy**, **ideal-model preservation**, and the separate live experiment, helping players understand what each result means.
 
 📚 **Learn at your own pace**
 
@@ -60,7 +60,7 @@ Multiple corrections can be played as chords or short sequences. Their key order
 
 Perfect, Great, and Good use windows of **45 / 90 / 145 ms** and award **300 / 200 / 100 points** for correct corrections. A perfectly timed wrong-lane flip earns zero, adds an error, and breaks the combo. Repeated keydown events are ignored; separate taps apply separate X operations.
 
-The report separates **correct-on-beat accuracy**, **correction-choice accuracy**, **combo**, **timing**, **whole-register restoration**, and **quantum reference preservation**. Accuracy weights Perfect / Great / Good as `1 / ⅔ / ⅓` and penalizes stray input. A stray near a live packet can apply an extra X; out-of-window strays penalize rhythm without changing a resolved memory.
+The report separates **correct-on-beat accuracy**, **correction-choice accuracy**, **combo**, **timing**, **whole-register restoration**, and **ideal-model preservation**. Accuracy weights Perfect / Great / Good as `1 / ⅔ / ⅓` and penalizes stray input. A stray near a live packet can apply an extra X; out-of-window strays penalize rhythm without changing a resolved memory.
 
 Song charts follow exact melody attacks and audible percussion accents. The backing melody stays on its audio clock through early, late, wrong, and missed input; short unpitched feedback uses the separate effects channel. Tempo changes, note judgement, and animation share the beat-to-seconds timeline. Supported browsers use audio output timestamps to align visible cues and input with heard sound.
 
@@ -74,40 +74,41 @@ Keyboard controls, visible focus, labeled touch controls, text/symbol clues, liv
 
 ## ⚛ How the quantum simulator is used
 
-**Run → quantum experiments → reference bank → gameplay**
+**Run → one live recovery experiment → exact-model gameplay**
 
-The simulator calculates quantum measurement outcomes used by the game. It runs a batch of reference experiments when Qollab starts the project, and gameplay reuses those results.
+When you press **Run**, Qollab supplies your selected backend to `main.js`. The Qiskit function `run_reference` in `quantum/rhythm.py` submits **one circuit in one job, repeated for 64 shots**. A *shot* is one circuit execution ending in measurement.
 
-### 1. When you press Run
+### The live experiment
 
-Qollab passes the selected simulator to `main.js`, which calls the Qiskit code in `quantum/rhythm.py`. The project builds **298 circuits** covering error patterns for **3–7 data qubits**, including six-input references for the no-error and logical-flip cases.
+1. Prepare **|+⟩** and encode it across **four data qubits**.
+2. Inject a bit flip on **Q2**, then extract the three neighboring parity checks with ancillas. The ideal pattern is **≠ ≠ =**.
+3. Apply an **X correction on Q2**, undo the encoding and input preparation, and measure the data and ancillas.
 
-Each circuit prepares an input state, encodes it across the data qubits, injects an X-error pattern, and extracts neighboring parity checks using ancillas. It then undoes the encoding and input preparation and measures the register. These measurements supply both the parity outcomes and a reference for how well the original state was preserved.
+The circuit starts with **seven qubits: four data + three ancillas**. Backend routing can add physical qubits or gates. The simulator's advertised qubit capacity is not the number of gameplay lanes.
 
-All circuits are submitted in **one backend job**, with **64 shots per circuit**. A *shot* is one repetition of a circuit ending in a measurement. The resulting counts are stored in a reference bank for the current run. Circuits use **5–13 physical qubits**, including the ancillas; the simulator's displayed qubit count is its capacity, not the number our game always uses.
+The **Live quantum recovery experiment** panel reports two separate measurements: how many shots restored this specific **|+⟩ input**, and how many produced the expected parity pattern. Ideal execution gives **64/64** for both. Noise can reduce either count. *This single-input experiment is not a general fidelity estimate or a test of every logical state.*
 
-### 2. While you play
+### While you play
 
-- **Initial parity clues** are sampled from the backend's measurement counts for the packet's injected error pattern.
-- **Your key presses** apply bit flips in the JavaScript game model and update the displayed checks immediately.
-- **Correction accuracy and memories restored** are calculated from the known injected errors and your accumulated flips.
-- **Reference preservation** is looked up using the error pattern remaining after your corrections. No-error and logical-flip cases average the six input-state references.
+**Rhythm gameplay uses the exact ideal quantum model**, independently of the selected backend's noisy measurements. Parity clues, immediate X corrections, and ideal-model preservation come from that model; timing and correction choices determine your score. The preservation examples compare six input states for the no-error and logical-X cases.
 
-**Each key press does not submit a quantum job.** Music, animation, timing, scoring, and immediate correction updates run in the browser. Changing or replaying a level reuses the same bank. Use Qollab **Stop → Run** to start a fresh simulator job.
+For example, correcting Q2 returns **≠ ≠ = → = = =**. Flipping every data qubit can leave equal checks while changing the logical information; averaging six input states exposes this limitation. The game supports **3–7 data qubits**, even though the separate live experiment always uses four.
 
-For example, on an ideal simulator a bit flip on **Q2** in a four-data-qubit register gives **≠ ≠ =**. Flipping Q2 again returns the checks to **= = =** and restores the state. Flipping every data qubit afterward also leaves equal checks, but can change the logical information; the preservation references expose that limitation.
+**Key presses and level replays do not submit more quantum jobs.** Use Qollab **Stop → Run** to repeat the live experiment. Backend failures remain visible; the project does not silently replace the selected backend.
 
-### 3. What the simulator choice changes
+### What your simulator choice changes
 
-| Simulator | Reference experiments |
+| Simulator | Live recovery experiment |
 |---|---|
-| Built-in / AWS Braket local | Ideal quantum operations |
+| Built-in / AWS Braket local | Ideal operations |
 | IBM noise-model simulators | Simulated device noise, running locally |
 | IonQ remote simulators | Simulated IonQ device noise, running remotely |
 
-Start with the **free built-in simulator** for clear learning examples. A noise-model simulator can produce imperfect parity clues and lower reference preservation. These simulator options are software models; physical IonQ hardware is a separate choice. [Qollab backend documentation](https://qollab.xyz/learn/docs/compute-backends)
+Simulator choice changes the **live experiment**, while the educational gameplay stays ideal and consistent. The built-in simulator is a good first choice; paid physical hardware is not needed. [Qollab backend documentation](https://qollab.xyz/learn/docs/compute-backends)
 
-The noisy results describe **reference experiments**, not the complete gate-noise history of every player correction sequence. Each packet is a fresh register, and rhythm speed is a learning mechanic. The standalone `PLAY.html` uses recorded Qiskit results when a bank was embedded at build time; `dev.html` uses the exact JavaScript model. Neither submits a live Qollab job.
+A single circuit avoids the IonQ simulator's rejection of multi-circuit jobs and reduces the workload for browser-based IBM simulation. The complete **298-case reference bank** remains available for local Qiskit cross-checks; it is not submitted during a Qollab run.
+
+Each packet represents a fresh register. This repetition code protects against bit flips, **not phase errors**, and does not reproduce the noisy history of player keystrokes. Rhythm speed is a teaching mechanic. The standalone `PLAY.html` uses recorded Qiskit results when embedded at build time; `dev.html` uses the exact JavaScript model. Neither submits a live Qollab experiment.
 
 ## ⚛ Quantum model
 
@@ -121,7 +122,7 @@ The net residual is `injected error XOR applied corrections`. After undoing enco
 
 The bank contains **248 computational-input error patterns** and **50 additional identity/logical-X cases**, totaling **298 reference circuits**. The six inputs are `|0⟩`, `|1⟩`, `|+⟩`, `|−⟩`, `|+i⟩`, and `|−i⟩`. Zero residual preserves all six; a full-register X preserves only the two X-basis inputs, averaging one third. Other residual patterns leave the code space and give zero ideal overlap.
 
-Register restoration uses the known injected error. Displayed initial checks and preservation references come from the selected backend and can be noisy. These sampled reference experiments **do not model the complete gate-noise history of each player input sequence**. See [IBM's error-correction course](https://learning.quantum.ibm.com/course/foundations-of-quantum-error-correction/correcting-quantum-errors).
+Register restoration uses the known injected error. Gameplay checks and preservation use the exact ideal model. The selected backend measures a separate fixed recovery experiment; its noise does not change gameplay clues or scoring. Neither path models the complete noisy history of player keystrokes. See [IBM's error-correction course](https://learning.quantum.ibm.com/course/foundations-of-quantum-error-correction/correcting-quantum-errors).
 
 ## ▶ Qollab upload
 
@@ -137,7 +138,7 @@ The packager creates body-only HTML and combines the visual theme with `feedback
 
 **`QOLLAB_PROJECT.md` becomes the packaged `README.md`.** When creating a project, Qollab imports it as the Project Card write-up. When adding files to an existing project, Qollab skips README; paste the write-up into Project Card separately. [Qollab upload documentation](https://qollab.xyz/learn/docs/upload-your-files)
 
-Press **Run**, select a free simulator, and wait for setup. `main.js` imports `quantum.rhythm` and calls `.callPromising` with the provided backend. The runtime sends **one job with 298 circuits at 64 shots each**, using H/S/S†/X/Z/CX gates, terminal measurements, and **5–13 physical qubits**. Replaying levels reuses the bank. Press Qollab **Stop → Run** for a fresh backend job.
+Press **Run**, select a free simulator, and wait for setup. `main.js` imports `quantum.rhythm` and calls `run_reference.callPromising` with the provided backend. The runtime sends **one seven-qubit circuit at 64 shots**, using H/X/CX gates and terminal measurements. The game uses its exact ideal model for all lane counts. Press Qollab **Stop → Run** for a fresh backend experiment.
 
 No Aer, paid hardware, storage, POST requests, workers, API keys, or credentials are required. Settings and scores last for the current run. Backend errors stay visible instead of silently switching simulators.
 
@@ -159,9 +160,9 @@ npm test
 npm run test:quantum
 ```
 
-The quantum check needs `.venv` or `QISKIT_PYTHON` pointing to Qiskit Python. Local verification on October 11 passed **39 tests**, covering decoding, lane counts, charts, timing, audio, chords, sequences, holds, pause/resume, wrong inputs, and malformed references. The Qiskit cross-check passed **1,638 complete complex statevectors** (1,488 residual/six-input combinations plus 150 correction circuits) and **one 298-circuit BasicSimulator job**.
+The quantum check needs `.venv` or `QISKIT_PYTHON` pointing to Qiskit Python. Local verification on October 11 passed **41 tests**, covering decoding, lane counts, charts, timing, audio, chords, sequences, holds, pause/resume, wrong inputs, and malformed references. The Qiskit cross-check passed **1,638 complete complex statevectors** (1,488 residual/six-input combinations plus 150 correction circuits) and **one 298-circuit BasicSimulator job**.
 
-Live Qollab/IonQ execution, perceptual audio quality, device latency, human difficulty balance, and educational effectiveness require separate checks. See [REVISION_NOTES.md](REVISION_NOTES.md) for earlier verification history.
+The optional `tests/check_backends.py` check passed native execution on BasicSimulator, Braket, and all eight IBM fake backends, plus offline IonQ single-circuit serialization. It requires additional provider libraries only in the test environment. Live Qollab checks also passed **all 14 free simulator choices**, with startup/run times of **6.9–43.9 seconds** in these observed runs. See [COMPATIBILITY.md](COMPATIBILITY.md) for the per-model results. Paid physical hardware, perceptual audio quality, device latency, human difficulty balance, and educational effectiveness require separate checks. See [REVISION_NOTES.md](REVISION_NOTES.md) for earlier verification history.
 
 ### Add levels or adjust effects
 

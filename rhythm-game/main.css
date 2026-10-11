@@ -129,3 +129,9 @@ dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;bo
 .home-sequence b{display:inline-block}.home-sequence{color:#a7b7c5}
 @media(max-height:800px) and (min-width:851px){.state-sphere{max-height:280px}.sphere-caption{margin-bottom:8px}}
 @media(max-width:600px){.state-sphere{max-height:300px}.sphere-caption{font-size:8px}.sphere-caption button{font-size:8px}}
+
+/* Keep live measurements distinct from the ideal rhythm-game model. */
+.backend-experiment { position:relative; max-width:960px; margin:16px auto; padding:20px 24px; border:1px solid #405166; border-radius:12px; background:#101923; color:#dfe8ef; line-height:1.6; }
+.backend-experiment h2 { margin:0 0 12px; font-size:1.1rem; }
+.backend-experiment p { margin:10px 0; }
+.backend-experiment[hidden], .garden-game[data-state="playing"] .backend-experiment, .garden-game[data-state="practice"] .backend-experiment, .garden-game[data-state="result"] .backend-experiment { display:none; }

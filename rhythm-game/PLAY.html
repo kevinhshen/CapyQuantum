@@ -130,6 +130,12 @@ dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;bo
 @media(max-height:800px) and (min-width:851px){.state-sphere{max-height:280px}.sphere-caption{margin-bottom:8px}}
 @media(max-width:600px){.state-sphere{max-height:300px}.sphere-caption{font-size:8px}.sphere-caption button{font-size:8px}}
 
+/* Keep live measurements distinct from the ideal rhythm-game model. */
+.backend-experiment { position:relative; max-width:960px; margin:16px auto; padding:20px 24px; border:1px solid #405166; border-radius:12px; background:#101923; color:#dfe8ef; line-height:1.6; }
+.backend-experiment h2 { margin:0 0 12px; font-size:1.1rem; }
+.backend-experiment p { margin:10px 0; }
+.backend-experiment[hidden], .garden-game[data-state="playing"] .backend-experiment, .garden-game[data-state="practice"] .backend-experiment, .garden-game[data-state="result"] .backend-experiment { display:none; }
+
 /* A bounded effect pool. Theme files can override the --fx-* colors on .highway. */
 .highway{--fx-hit:var(--accent,var(--green,#608542));--fx-second:var(--cyan,var(--peach,#d58d63));--fx-error:var(--danger,#a54d35)}
 .hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}
@@ -262,6 +268,30 @@ function makeBank(specs, rows, random = Math.random) {
 function seeded(seed) {
   let value = seed >>> 0;
   return () => { value += 0x6D2B79F5; let t = value; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+
+
+// The backend experiment and ideal gameplay results remain separate.
+function summarizeReference(value) {
+  if (!value || value.version !== 1 || value.d !== 4 || value.state !== '+' ||
+      value.error !== 2 || value.fix !== 2 || typeof value.backend !== 'string' || !value.backend ||
+      !Number.isInteger(value.shots) || value.shots < 1 || value.shots > 1024 ||
+      !value.counts || Array.isArray(value.counts) || typeof value.counts !== 'object') {
+    throw new Error('Invalid live quantum experiment');
+  }
+  const expected = syndrome(value.error, value.d);
+  let total = 0, recovered = 0, parityMatched = 0;
+  for (const [bits, count] of Object.entries(value.counts)) {
+    if (!/^[01]{7}$/.test(bits) || !Number.isInteger(count) || count < 0) {
+      throw new Error('Invalid live quantum measurement counts');
+    }
+    const measured = [...bits].reverse().map(Number);
+    total += count;
+    if (measured.slice(0, value.d).every(bit => bit === 0)) recovered += count;
+    if (expected.every((bit, i) => measured[value.d + i] === bit)) parityMatched += count;
+  }
+  if (total !== value.shots) throw new Error('Incomplete live quantum experiment');
+  return { ...value, recovered, parityMatched, expected };
 }
 
 // One shared musical timeline for chart validation, judgement and audio.
@@ -1266,7 +1296,8 @@ async function startGame(root, engine) {
     <section id="levels-page" class="page levels-page" aria-labelledby="levels-title" hidden><div class="page-heading"><button id="levels-home" class="back">← Home</button><div><div class="eyebrow">PLAY</div><h1 id="levels-title" tabindex="-1">Choose a level</h1></div></div><div class="level-layout"><div id="level-list" class="level-list" aria-label="Levels"></div><aside id="map-letter" class="level-detail"><div class="level-detail-content"><div class="eyebrow" id="level-difficulty">LEVEL DETAILS</div><h2 id="level-title">Twinkle, Twinkle, Little Star</h2><p id="level-description"></p><label class="field" hidden>MAP<select id="map-select" aria-label="Map"></select></label><label class="field">PHYSICAL QUBITS<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}" ${d === 4 ? 'selected' : ''}>${d} lanes · correct up to ${Math.floor((d - 1) / 2)} bit flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm"></span><span id="map-duration"></span><span id="map-notes"></span></div><div id="chart-preview" class="chart-preview" aria-label="Timing preview"></div><p class="small-note">Timing preview · taller marks indicate chords.</p></div><div class="level-detail-actions"><button id="play" class="primary" disabled>Preparing Qiskit…</button><button id="practice" class="subtle" disabled>Untimed practice</button></div></aside></div></section>
     <section id="learn-page" class="page learn-page" aria-labelledby="learn-title" hidden><div class="page-heading"><button id="learn-home" class="back">← Home</button><div><div class="eyebrow">LEARN</div><h1 id="learn-title" tabindex="-1">Quantum, one idea at a time</h1></div></div><div class="learn-layout"><nav id="lesson-tabs" class="lesson-tabs" aria-label="Lessons"></nav><article id="lesson-body" class="lesson-body"></article></div></section>
     <section id="settings-page" class="page settings-page" aria-labelledby="settings-title" hidden><div class="page-heading"><button id="settings-home" class="back">← Home</button><div><div class="eyebrow">SETTINGS</div><h1 id="settings-title" tabindex="-1">Make it comfortable</h1></div></div><div id="settings-body" class="settings-body"></div></section>
-    <p id="load-status" class="runtime-status" role="status" aria-live="polite">Preparing quantum reference experiments.</p>
+    <aside id="backend-experiment" class="backend-experiment" hidden></aside>
+    <p id="load-status" class="runtime-status" role="status" aria-live="polite">Preparing the quantum experiment. Noisy simulators can take longer to start.</p>
     <div id="practice-hint" class="practice-hint" hidden><span>✧</span><p id="practice-text">Read the clues, then catch the notes.</p><button id="practice-next" hidden>Continue [W]</button></div>
     <div class="bottom-note"><span>✧ This effort is supported by Qollab & IonQ</span><span id="bottom-status">Bit-flip repetition code · educational simulation</span></div>
     <div id="live" class="sr-only" role="status" aria-live="polite"></div>
@@ -1344,6 +1375,11 @@ async function startGame(root, engine) {
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
   function menuStatus(text) { $('load-status').textContent = text; }
+  function experimentDetails() {
+    const reference = engine.reference;
+    if (!reference) return '';
+    return `<h2>Live quantum recovery experiment</h2><p>We encoded <b>|+⟩</b> across four data qubits, injected a bit flip on <b>Q2</b>, measured the neighbouring checks, and applied an X correction on Q2.</p><p><b>State recovery: ${reference.recovered}/${reference.shots} shots (${pct(reference.recovered / reference.shots)})</b><br>Checks matched ≠ ≠ = in ${reference.parityMatched}/${reference.shots} shots.</p><p class="small-note">Measured on ${html(reference.backend)} with seven circuit qubits before backend routing. These are results of one fixed experiment, not your gameplay score or a test of every input state. Rhythm gameplay and the six-state preservation examples use the exact ideal model.</p>`;
+  }
   function setState(state) {
     mode = state; main.dataset.state = state;
     for (const page of ['home', 'levels', 'learn', 'settings']) $(`${page}-page`).hidden = state !== page;
@@ -1504,7 +1540,7 @@ async function startGame(root, engine) {
     music.stop(); feedback.reset(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
     const result = run.summary(); $('notes').innerHTML = ''; $('count-in').textContent = '';
     const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#dceb55"/>`).join('');
-    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✓' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#192737"/><path d="M12 45H448" stroke="#647487" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
+    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✓' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#192737"/><path d="M12 45H448" stroke="#647487" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean ideal-model preservation: ${pct(result.fidelity)}. Source: ${html(engine.reference ? "Exact ideal quantum model" : engine.label)}. This compares six input states for no-error and logical-X cases. Each packet is a fresh encoded register. ${engine.reference ? "The live backend experiment below is a separate measurement, not a simulation of your keystrokes." : ""}</p>${experimentDetails()}<p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
     $('again').onclick = () => start(false); $('choose-result').onclick = toMenu;
     emit('map-end', { mapId: map.id, practice, summary: result }); announce(`${map.title} complete. ${result.restored} of ${result.packets} memories restored.`);
   }
@@ -1526,7 +1562,7 @@ async function startGame(root, engine) {
     $('lesson-tabs').innerHTML = lessons.map((lesson, i) => `<button data-lesson="${i}" aria-current="${index === i ? 'step' : 'false'}"><small>0${i + 1}</small>${lesson[0]}</button>`).join('');
     root.querySelectorAll('[data-lesson]').forEach(button => button.onclick = () => { showLesson(Number(button.dataset.lesson)); $('lesson-heading').focus(); });
     const lesson = lessons[index];
-    $('lesson-body').innerHTML = `<div class="eyebrow">LESSON ${index + 1} OF 4</div><h2 id="lesson-heading" tabindex="-1">${lesson[0]}</h2><p>${lesson[1]}</p><div class="lesson-note">${lesson[2]}</div>${index === 3 ? `<div class="parity-lab"><label class="field">INJECTED ERROR<select id="lab-error"><option value="0">No error</option><option value="1">Q1</option><option value="2" selected>Q2</option><option value="4">Q3</option><option value="8">Q4</option></select></label><div id="lab-checks" class="lab-checks"></div><div class="lab-keys">${[0,1,2,3].map(q => `<button data-lab-lane="${q}">X on Q${q+1}</button>`).join('')}</div><p id="lab-result" role="status" aria-live="polite"></p><div class="lab-actions"><button id="lab-reset">Reset corrections</button><button id="lab-all">Flip all</button></div><small>Reference preservation averages six test input states. Equal checks alone cannot confirm recovery.</small></div>` : `<div class="lesson-visual">${index === 0 ? 'α|0⟩ + β|1⟩' : index === 1 ? 'X: |0⟩ ↔ |1⟩' : 'α|0000⟩ + β|1111⟩'}</div>`}<div class="lesson-actions"><button id="lesson-next" class="primary">${index === 3 ? 'Choose a level →' : 'Next idea →'}</button><a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/correcting-quantum-errors/introduction" target="_blank" rel="noopener">Learn more at IBM Quantum ↗</a></div>`;
+    $('lesson-body').innerHTML = `<div class="eyebrow">LESSON ${index + 1} OF 4</div><h2 id="lesson-heading" tabindex="-1">${lesson[0]}</h2><p>${lesson[1]}</p><div class="lesson-note">${lesson[2]}</div>${index === 3 ? `<div class="parity-lab"><label class="field">INJECTED ERROR<select id="lab-error"><option value="0">No error</option><option value="1">Q1</option><option value="2" selected>Q2</option><option value="4">Q3</option><option value="8">Q4</option></select></label><div id="lab-checks" class="lab-checks"></div><div class="lab-keys">${[0,1,2,3].map(q => `<button data-lab-lane="${q}">X on Q${q+1}</button>`).join('')}</div><p id="lab-result" role="status" aria-live="polite"></p><div class="lab-actions"><button id="lab-reset">Reset corrections</button><button id="lab-all">Flip all</button></div><small>Ideal-model preservation averages six test input states. Equal checks alone cannot confirm recovery.</small></div>` : `<div class="lesson-visual">${index === 0 ? 'α|0⟩ + β|1⟩' : index === 1 ? 'X: |0⟩ ↔ |1⟩' : 'α|0000⟩ + β|1111⟩'}</div>`}<div class="lesson-actions"><button id="lesson-next" class="primary">${index === 3 ? 'Choose a level →' : 'Next idea →'}</button><a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/correcting-quantum-errors/introduction" target="_blank" rel="noopener">Learn more at IBM Quantum ↗</a></div>`;
     $('lesson-next').onclick = () => index === 3 ? navigate('levels') : showLesson(index + 1);
     if (index === 3) {
       $('lab-error').value = String(labError);
@@ -1541,7 +1577,7 @@ async function startGame(root, engine) {
     const residual = labError ^ labApplied;
     const checks = Array.from({ length: 3 }, (_, i) => (residual >> i & 1) ^ (residual >> (i + 1) & 1));
     $('lab-checks').innerHTML = [0,1,2,3].map(q => `<span>Q${q+1}</span>${q < 3 ? `<b>${checks[q] ? '≠' : '='}</b>` : ''}`).join('');
-    $('lab-result').textContent = `${checks.every(x => !x) ? 'Checks equal.' : 'Checks differ.'} ${bank ? `Reference preservation: ${pct(bank.fidelity(labError, labApplied, 4))}. ${residual === 0 ? 'Original encoded state restored.' : residual === 15 ? 'Logical X remains: quiet checks can hide an error.' : 'A bit-flip error remains.'}` : 'Qiskit reference is loading.'}`;
+    $('lab-result').textContent = `${checks.every(x => !x) ? 'Checks equal.' : 'Checks differ.'} ${bank ? `Ideal-model preservation: ${pct(bank.fidelity(labError, labApplied, 4))}. ${residual === 0 ? 'Original encoded state restored.' : residual === 15 ? 'Logical X remains: quiet checks can hide an error.' : 'A bit-flip error remains.'}` : 'Quantum setup is loading.'}`;
   }
   function tuning() {
     navigate('settings');
@@ -1608,6 +1644,7 @@ async function startGame(root, engine) {
   requestAnimationFrame(frame);
   try {
     const specs = allSpecs(); bank = makeBank(specs, await engine.run(specs));
+    if (engine.reference) { $('backend-experiment').innerHTML = experimentDetails(); $('backend-experiment').hidden = false; }
     $('play').disabled = $('practice').disabled = false; $('play').innerHTML = 'Play level <span>→</span>';
     menuStatus(engine.label); if (lessonIndex === 3) drawLab(); $('bottom-status').textContent = 'Bit-flip repetition code · educational simulation';
   } catch (error) { menuStatus(`Quantum setup failed: ${error.message}. On Qollab, select a free simulator and Run again.`); }

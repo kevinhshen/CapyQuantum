@@ -1,5 +1,7 @@
 # Qubit Tempo — learn quantum error correction through rhythm
 
+**Demo video:** [Watch Qubit Tempo](https://drive.google.com/file/d/1ZAGesFAq3CTCUjCGP0y8OCDTDSiJbviY/view?usp=sharing)
+
 ## About
 
 **Qubit Tempo** is an interactive rhythm game that makes **quantum error correction** easier to understand through music and hands-on learning.
@@ -10,7 +12,7 @@ Players protect a quantum memory by reading *parity checks*, which indicate whet
 
 ⚛ **Connect gameplay with quantum experiments**
 
-The project uses **Qiskit reference circuits** on the selected simulator. Results separate **rhythm performance**, **correction accuracy**, and **preservation of the original quantum information**, helping players understand the consequences of their choices.
+The project runs a **live Qiskit recovery experiment** on the selected simulator and teaches corrections through an **exact ideal quantum model**. Results distinguish **rhythm performance**, **correction accuracy**, **ideal-model preservation**, and the separate live experiment, helping players understand what each result means.
 
 📚 **Learn at your own pace**
 
@@ -24,7 +26,7 @@ With **ten song levels** and support for **three to seven data qubits**, Qubit T
 
 1. Use a recent Chrome or Edge browser, or another browser supported by Qollab's runtime.
 2. Click **Run**, choose the free **Built-in simulator**, and start the run. You can also choose a free simulator from the **Remotely run simulators** group for IonQ; hardware is not required.
-3. Wait for the quantum reference experiments to finish. Follow the six-step tutorial, or skip it to reach Home.
+3. Wait for the live quantum recovery experiment to finish. Follow the six-step tutorial, or skip it to reach Home.
 4. Select **Start experience**, choose a level, and press **Play**. Start with **Twinkle, Twinkle, Little Star**, or use **Untimed practice** to learn the checks without a timing score.
 5. Use **D, F, J, K** for the default four qubits. Press the key for the qubit you want to flip when its packet reaches the recovery line. Hold the chosen key for long notes. Equal checks can mean no correction is needed.
 
@@ -34,42 +36,41 @@ The game has ten synthesized song levels and supports 3–7 data qubits. The key
 
 ## ⚛ How the quantum simulator is used
 
-**Run → quantum experiments → reference bank → gameplay**
+**Run → one live recovery experiment → exact-model gameplay**
 
-The simulator calculates quantum measurement outcomes used by the game. It runs a batch of reference experiments when Qollab starts the project, and gameplay reuses those results.
+When you press **Run**, Qollab supplies your selected backend to `main.js`. The Qiskit function `run_reference` in `quantum/rhythm.py` submits **one circuit in one job, repeated for 64 shots**. A *shot* is one circuit execution ending in measurement.
 
-### 1. When you press Run
+### The live experiment
 
-Qollab passes the selected simulator to `main.js`, which calls the Qiskit code in `quantum/rhythm.py`. The project builds **298 circuits** covering error patterns for **3–7 data qubits**, including six-input references for the no-error and logical-flip cases.
+1. Prepare **|+⟩** and encode it across **four data qubits**.
+2. Inject a bit flip on **Q2**, then extract the three neighboring parity checks with ancillas. The ideal pattern is **≠ ≠ =**.
+3. Apply an **X correction on Q2**, undo the encoding and input preparation, and measure the data and ancillas.
 
-Each circuit prepares an input state, encodes it across the data qubits, injects an X-error pattern, and extracts neighboring parity checks using ancillas. It then undoes the encoding and input preparation and measures the register. These measurements supply both the parity outcomes and a reference for how well the original state was preserved.
+The circuit starts with **seven qubits: four data + three ancillas**. Backend routing can add physical qubits or gates. The simulator's advertised qubit capacity is not the number of gameplay lanes.
 
-All circuits are submitted in **one backend job**, with **64 shots per circuit**. A *shot* is one repetition of a circuit ending in a measurement. The resulting counts are stored in a reference bank for the current run. Circuits use **5–13 physical qubits**, including the ancillas; the simulator's displayed qubit count is its capacity, not the number our game always uses.
+The **Live quantum recovery experiment** panel reports two separate measurements: how many shots restored this specific **|+⟩ input**, and how many produced the expected parity pattern. Ideal execution gives **64/64** for both. Noise can reduce either count. *This single-input experiment is not a general fidelity estimate or a test of every logical state.*
 
-### 2. While you play
+### While you play
 
-- **Initial parity clues** are sampled from the backend's measurement counts for the packet's injected error pattern.
-- **Your key presses** apply bit flips in the JavaScript game model and update the displayed checks immediately.
-- **Correction accuracy and memories restored** are calculated from the known injected errors and your accumulated flips.
-- **Reference preservation** is looked up using the error pattern remaining after your corrections. No-error and logical-flip cases average the six input-state references.
+**Rhythm gameplay uses the exact ideal quantum model**, independently of the selected backend's noisy measurements. Parity clues, immediate X corrections, and ideal-model preservation come from that model; timing and correction choices determine your score. The preservation examples compare six input states for the no-error and logical-X cases.
 
-**Each key press does not submit a quantum job.** Music, animation, timing, scoring, and immediate correction updates run in the browser. Changing or replaying a level reuses the same bank. Use Qollab **Stop → Run** to start a fresh simulator job.
+For example, correcting Q2 returns **≠ ≠ = → = = =**. Flipping every data qubit can leave equal checks while changing the logical information; averaging six input states exposes this limitation. The game supports **3–7 data qubits**, even though the separate live experiment always uses four.
 
-For example, on an ideal simulator a bit flip on **Q2** in a four-data-qubit register gives **≠ ≠ =**. Flipping Q2 again returns the checks to **= = =** and restores the state. Flipping every data qubit afterward also leaves equal checks, but can change the logical information; the preservation references expose that limitation.
+**Key presses and level replays do not submit more quantum jobs.** Use Qollab **Stop → Run** to repeat the live experiment. Backend failures remain visible; the project does not silently replace the selected backend.
 
-### 3. What the simulator choice changes
+### What your simulator choice changes
 
-| Simulator | Reference experiments |
+| Simulator | Live recovery experiment |
 |---|---|
-| Built-in / AWS Braket local | Ideal quantum operations |
+| Built-in / AWS Braket local | Ideal operations |
 | IBM noise-model simulators | Simulated device noise, running locally |
 | IonQ remote simulators | Simulated IonQ device noise, running remotely |
 
-Start with the **free built-in simulator** for clear learning examples. A noise-model simulator can produce imperfect parity clues and lower reference preservation. These simulator options are software models; physical IonQ hardware is a separate choice. [Qollab backend documentation](https://qollab.xyz/learn/docs/compute-backends)
+Simulator choice changes the **live experiment**, while the educational gameplay stays ideal and consistent. The built-in simulator is a good first choice; paid physical hardware is not needed. [Qollab backend documentation](https://qollab.xyz/learn/docs/compute-backends)
 
-The noisy results describe **reference experiments**, not the complete gate-noise history of every player correction sequence. Each packet is a fresh register, and rhythm speed is a learning mechanic. The standalone `PLAY.html` uses recorded Qiskit results when a bank was embedded at build time; `dev.html` uses the exact JavaScript model. Neither submits a live Qollab job.
+A single circuit avoids the IonQ simulator's rejection of multi-circuit jobs and reduces the workload for browser-based IBM simulation. The complete **298-case reference bank** remains available for local Qiskit cross-checks; it is not submitted during a Qollab run.
 
-The repetition code guarantees correction of `floor((d−1)/2)` bit flips for `d` data qubits. Four qubits guarantee one correction; seven guarantee three. This code does not protect against phase errors.
+Each packet represents a fresh register. This repetition code protects against bit flips, **not phase errors**, and does not reproduce the noisy history of player keystrokes. Rhythm speed is a teaching mechanic. The standalone `PLAY.html` uses recorded Qiskit results when embedded at build time; `dev.html` uses the exact JavaScript model. Neither submits a live Qollab experiment.
 
 ## Understand and extend it
 
@@ -92,7 +93,7 @@ The October 10–11 rhythm-game work adds the vertical recovery interaction, 3�
 
 ## Validation and limits
 
-Local verification on October 11 passed **39 gameplay, timing, chart, audio, and visual-model tests**, plus a Qiskit cross-check of **1,638 complex statevectors** and the **298-circuit BasicSimulator batch**. Live Qollab/IonQ execution must be verified separately; this write-up does not claim it has already passed. Educational effectiveness and difficulty balance have not been established by a user study.
+Local verification on October 11 passed **41 gameplay, timing, chart, audio, visual-model, and measurement-validation tests**, plus a Qiskit cross-check of **1,638 complex statevectors** and the **298-circuit BasicSimulator batch**. Live Qollab verification on October 11 passed **all 14 free simulator choices**: built-in, AWS Braket, eight IBM models, and four IonQ models. Each completed the live experiment and enabled gameplay. Paid physical hardware was not tested. Queue times and platform availability can still vary. Educational effectiveness and difficulty balance have not been established by a user study.
 
 Application code and documentation are released under the **MIT license** in `LICENSE`. Qiskit retains its own Apache-2.0 license.
 
