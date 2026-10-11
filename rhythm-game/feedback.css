@@ -1,0 +1,23 @@
+/* A bounded effect pool. Theme files can override the --fx-* colors on .highway. */
+.highway{--fx-hit:var(--accent,var(--green,#608542));--fx-second:var(--cyan,var(--peach,#d58d63));--fx-error:var(--danger,#a54d35)}
+.hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}
+.lane-effect{position:absolute;bottom:92px;left:calc((var(--lane) + .5)*100%/var(--lanes));width:0;height:0;color:var(--fx-hit)}
+.lane-flare{position:absolute;left:-36px;bottom:0;width:72px;height:120px;background:linear-gradient(0deg,var(--fx-hit),transparent);transform-origin:bottom;opacity:0}
+.hit-ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border:3px solid currentColor;border-radius:50%;opacity:0}
+.hit-echo{border-width:1px;color:var(--fx-second)}.hit-core{position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;background:var(--fx-hit);opacity:0}
+.hit-petal{position:absolute;left:-5px;top:-2px;width:12px;height:4px;border-radius:2px;background:var(--fx-hit);opacity:0}
+.hit-petal:nth-child(2n){background:var(--fx-second)}
+.miss-wash{position:absolute;left:0;right:0;bottom:74px;height:46px;background:var(--fx-error);opacity:0}
+.miss-fragments{position:absolute;left:3%;right:3%;bottom:92px;display:flex;gap:6px;height:12px}
+.miss-fragments i{flex:1;border:1px solid var(--fx-error);background:var(--fx-error);border-radius:3px;opacity:0}
+.judgement[data-kind=miss],.judgement[data-kind=wrong]{color:var(--fx-error)}
+.receptors button{position:relative;touch-action:none}.receptor-flash{position:absolute;inset:0;border-radius:inherit;background:var(--fx-hit);opacity:0;pointer-events:none}
+.receptor-flash[data-kind=wrong]{background:var(--fx-error)}
+.timing-feedback{position:absolute;top:calc(52% + 38px);width:100%;text-align:center;font:10px ui-monospace,monospace;color:var(--fx-hit);pointer-events:none;z-index:5}
+.streak-feedback{position:absolute;bottom:160px;width:100%;text-align:center;font:700 15px ui-monospace,monospace;letter-spacing:2px;color:var(--fx-hit);pointer-events:none;z-index:5;opacity:0}
+.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
+
+/* Opacity-only contact pulse; the ribbon itself supplies the hold progress. */
+.receptors button.holding::before{content:"";position:absolute;inset:-5px;border:2px solid var(--fx-hit);border-radius:inherit;pointer-events:none;animation:hold-contact .6s ease-in-out infinite alternate}
+@keyframes hold-contact{from{opacity:.25}to{opacity:.85}}
+.garden-game[data-reduced=true] .receptors button.holding::before{animation:none;opacity:.6}

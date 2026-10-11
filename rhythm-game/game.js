@@ -59,7 +59,7 @@ export async function startGame(root, engine) {
     }
     if (!run.combo) comboMilestone = 0;
     const milestone = Math.floor(run.combo / 10);
-    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · BLOOM`; }
+    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(milestone * 10); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · BLOOM`; }
     else if (!run.combo) $('combo-label').textContent = 'COMBO';
   }
   function clearInputs() { held.clear(); laneSources.clear(); receptors.forEach(button => button.classList.remove('pressed', 'holding')); }
@@ -194,7 +194,7 @@ export async function startGame(root, engine) {
     receptors[lane].classList.add('pressed');
 
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
-    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type); judgementUntil = performance.now() + 450;
+    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type, !practice && event.correct && event.type === 'hit' ? event.delta * 1000 : null); judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
       music.hit(lane); feedback.hit(lane, event.timing);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
@@ -337,7 +337,7 @@ export async function startGame(root, engine) {
       }
       if (['playing', 'practice'].includes(mode)) drawNotes(time);
     }
-    if (now > judgementUntil) $('judgement').textContent = '';
+    if (now > judgementUntil && judgement.textContent) feedback.clearJudge();
     art.draw(dt, beat, still); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

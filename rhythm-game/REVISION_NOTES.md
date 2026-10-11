@@ -52,3 +52,23 @@ Recorded soundtracks play continuously with short original unpitched tap/error s
 Optimization: a fixed effect-element pool per lane; replacement/cancellation of active animations; cached receptor/parity DOM references and highway dimensions; outcome events consumed once instead of scanning all holds/results every frame; cached garden scenery; bounded decorative particles and input audio allocation; reusable tap samples and disconnected completed audio graphs. These are implementation-level improvements, not a claim of a measured FPS gain on all devices.
 
 Validation: 27 automated tests pass. Chrome checks cover keyboard hits, misses, hold release, pause/resume, separate volume controls, recorded WAV decoding with no pitched effect tones, mixed hold/missed-head chords, mobile touch, reduced motion and no horizontal overflow. A 200-input stress check retained the same 39 effect elements for four lanes, kept animations bounded and cleared them after completion. An unchanged garden reused its scenery cache across successive frames. No browser errors were recorded. Rebuilt the recorded-Qiskit standalone player and 21-file Qollab package. Sound balance with the team's actual songs and live Qollab execution still need human/platform verification.
+
+## Stronger animation feedback on main — October 11
+
+Added double expanding rings, a quick lane flare and center flash, directional particle streaks, a sharper receptor rebound, early/late timing text, hold-contact pulses, and a ten-note streak banner. Perfect/Great/Good scale the burst strength; hold completion gets a larger burst. Misses wash the recovery line and fade the whole packet; wrong corrections briefly shake only the pressed receptor. Miss effects keep correction lanes concealed.
+
+The effects now live in independent `feedback.js`/`feedback.css` files. Colors follow theme variables. All three modular entry pages, the standalone builder and Qollab packager include the separate stylesheet. A complete theme replacement can retain the animation layer; layout changes may still require positioning adjustments.
+
+An initial CPU-throttled comparison exposed allocation overhead from creating animations for every hit. The final implementation reuses one browser Animation object per target through a weak cache, precomputes particle paths, and tracks only active animations for pause/reset. Finished effects drop out of the active set; replacing a keyframe sequence does not allocate another Animation object.
+
+Final local Chrome measurement, 1440×900, seven lanes, 190 BPM, 30 triple-note packets (90 corrections), approximately 9.5 seconds sampled:
+
+| Version | Frame interval median / p95 | Frames over 25 ms | Key handler median / p95 | Long tasks |
+|---|---|---|---|---|
+| Earlier pooled feedback | 16.7 / 16.8 ms | 0 | 0.3 / 0.8 ms | 0 |
+| Stronger feedback with animation reuse | 16.7 / 16.8 ms | 0 | 0.2 / 0.5 ms | 0 |
+| Stronger feedback, 4× CPU throttle | 16.7 / 16.8 ms | 3 (maximum 33.4 ms) | 0.7 / 1.8 ms | 0 |
+
+All three runs scored 27,000, reached 90 combo and restored all 30 packets. The seven-lane overlay remained at 85 elements; the four-lane overlay remained at 52 elements through 200 rapid inputs. These are local synthetic browser measurements, not physical input-latency measurements or a guarantee for every phone/GPU. Actual low-end devices and song balance still need playtesting.
+
+Validation: 27 automated tests pass. Browser checks cover successful hits, misses, early hold release, hold completion, pause/resume, combo milestones, effect cleanup, mobile touch, reduced motion, audio volume controls and recorded-song decoding without pitched hit effects. Visual screenshots checked hit, miss, hold and streak states. The standalone player retains recorded Qiskit results; the package now has 22 runtime files, each below its size limit. Quantum circuits and scoring rules are unchanged.

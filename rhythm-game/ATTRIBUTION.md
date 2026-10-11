@@ -23,3 +23,5 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 - **Hold-note revision:** Codex added sustain input/scoring, neutral hold ribbons, a sixth tutorial step, chart validation/tests and the team authoring rules at the user’s direction. The first five animation sequences retain the teammate attribution above.
 
 - **Hit-feedback revision (October 11):** Codex added pooled hit/miss/hold animations, combo reactions, separate audio buses and volume controls, original unpitched tap samples for recordings, cached scenery, and regression tests at the user’s direction. No new external assets or runtime libraries.
+
+- **Animation refinement on main (October 11):** Codex added original layered hit bursts, hold-contact pulses, timing labels and streak banners, separated theme/effect styles, and measured/optimized animation reuse at the user's direction. No osu! assets, sounds, code or new runtime libraries were used.

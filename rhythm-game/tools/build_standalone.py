@@ -16,7 +16,7 @@ else:
     engine = 'const playerEngine = localEngine;'
 script = '\n'.join(modules) + '\n' + engine + "\nawait startGame(document.getElementById('app'), playerEngine);"
 script = script.replace('</script', '<\\/script')
-css = (ROOT / 'main.css').read_text()
+css = (ROOT / 'main.css').read_text() + '\n' + (ROOT / 'feedback.css').read_text()
 html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qubit Tempo · CapyQuantum</title><style>' + css + '</style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">' + script + '</script></body></html>'
 (ROOT / 'PLAY.html').write_text(html, encoding='utf-8')
 print('Created PLAY.html with ' + ('recorded Qiskit BasicSimulator results.' if cache.exists() else 'the exact local JS simulator.'))
