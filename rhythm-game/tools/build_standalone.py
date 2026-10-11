@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 modules = []
-for name in ('model.js', 'timing.js', 'maps.js', 'rhythm.js', 'audio.js', 'garden.js', 'feedback.js', 'content.js', 'tutorial.js', 'game.js'):
+for name in ('model.js', 'timing.js', 'maps.js', 'rhythm.js', 'audio.js', 'garden.js', 'sphere.js', 'feedback.js', 'content.js', 'tutorial.js', 'game.js'):
     source = re.sub(r'^import .*?;\n', '', (ROOT / name).read_text(), flags=re.M)
     modules.append(re.sub(r'\bexport\s+', '', source))
 cache = ROOT / 'qiskit-results.json'

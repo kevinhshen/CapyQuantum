@@ -31,7 +31,7 @@ h1{font-size:38px;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}h2{font
 .home-page{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:9%;align-items:center;max-width:1380px;margin:auto}
 .home-copy{padding:10px 0}.home-copy .eyebrow{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:1.6px}
 .home-copy .eyebrow>span{display:block;width:5px;height:20px;background:var(--accent)}
-.home-page h1{font-size:clamp(64px,6.8vw,110px);font-weight:200;letter-spacing:.12em;line-height:1.06;margin:28px 0}.home-page h1>span{color:var(--accent);letter-spacing:0}
+.home-page h1{font-size:clamp(64px,6.8vw,110px);font-weight:200;letter-spacing:.12em;line-height:1.06;margin:20px 0}.home-page h1>span{color:var(--accent);letter-spacing:0}
 .home-intro{font-size:21px!important;line-height:1.55!important;color:#d3dce5;letter-spacing:.1px}.home-explainer{margin:20px 0 24px;font-size:14px!important}
 .home-actions{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;max-width:440px}.home-actions .primary{grid-column:1/-1}.home-actions button{min-height:47px;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:12px}.home-actions button>span{font-size:19px}
 .primary{background:#eef1f4;border:1px solid #eef1f4;border-left:5px solid var(--accent);color:#10151b;font:12px var(--mono);letter-spacing:1.2px;padding:17px 22px;text-align:left;border-radius:0}
@@ -97,6 +97,29 @@ dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;bo
 @media(max-width:420px){.hud{gap:7px}.brand{font-size:12px;letter-spacing:1px;gap:7px}.hud nav button{width:28px;height:29px}.score-pill{padding:4px 6px}.score-pill b{font-size:13px}.parity-lamp{width:19px;height:19px;font-size:15px}.packet-tag{font-size:6px}.qubit-orbit{width:19px;height:19px}.qubit-orbit:after{inset:7px}.tut-note{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .garden-game[data-reduced=true] *,.garden-game[data-reduced=true] *::before,.garden-game[data-reduced=true] *::after{animation:none!important;transition:none!important}.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
+
+/* Motion polish stays in menus; correction packets retain their timing geometry. */
+.page:not([hidden]){animation:pageReveal .42s cubic-bezier(.2,.7,.2,1) both}
+@keyframes pageReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.home-demo{position:relative}.state-sphere{max-height:380px;touch-action:pan-y}
+.sphere-reticle{color:#607789;stroke-width:.7;opacity:.6;transform-origin:260px 198px;animation:reticleOrbit 90s linear infinite}
+@keyframes reticleOrbit{to{transform:rotate(360deg)}}
+.state-sphere[data-motion=paused] .sphere-reticle{animation-play-state:paused}
+.sphere-state{filter:drop-shadow(0 0 4px #dceb5525)}
+.sphere-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:29px;margin:0 0 12px;font:9px/1.5 var(--mono);color:var(--muted)}
+.sphere-caption button{border:0;border-bottom:1px solid #536675;background:transparent;border-radius:0;padding:3px 0;font:9px var(--mono);color:var(--cyan);white-space:nowrap;min-height:24px}
+.sphere-caption button:hover{color:var(--accent);border-color:var(--accent)}.sphere-caption button:disabled{color:var(--muted);opacity:.8}
+.home-actions button span{transition:transform .2s ease}.home-actions button:hover span{transform:translateX(4px)}
+.primary{position:relative;isolation:isolate;overflow:hidden;transition:background .2s,border-color .2s,box-shadow .2s}
+.primary:hover{box-shadow:0 0 24px #dceb551a}.primary:before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 20%,#fff5 50%,transparent 80%);transform:translateX(-110%);pointer-events:none;z-index:-1}
+.primary:hover:before{animation:buttonSweep .65s ease-out}@keyframes buttonSweep{to{transform:translateX(110%)}}
+.level-card{transition:border-color .2s,background .2s,transform .2s}.level-card:hover{transform:translateX(3px);background:#162330;border-color:var(--cyan)}.level-card.selected:hover{border-color:var(--accent);background:#dceb5518}
+.level-arrow{transition:transform .2s}.level-card:hover .level-arrow{transform:translateX(3px)}
+.lesson-tabs button:hover{border-color:var(--cyan)}.hud nav button:hover{color:var(--accent);border-color:var(--accent)}
+.register-example{border-image:linear-gradient(90deg,#dceb5560,#60778950,transparent) 1}
+.home-sequence b{display:inline-block}.home-sequence{color:#a7b7c5}
+@media(max-height:800px) and (min-width:851px){.state-sphere{max-height:280px}.sphere-caption{margin-bottom:8px}}
+@media(max-width:600px){.state-sphere{max-height:300px}.sphere-caption{font-size:8px}.sphere-caption button{font-size:8px}}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -590,6 +613,7 @@ class TempoGarden {
   constructor(canvas) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.particles = []; this.blooms = 0; this.palette = 0; this.cheer = 0;
+    this.ambientTime = 0;
     this.scenery = document.createElement('canvas'); this.sceneryKey = ''; this.resize();
   }
   resize() {
@@ -636,7 +660,7 @@ class TempoGarden {
       c.fillStyle = i < this.blooms ? '#dceb5580' : '#8fabbc28'; c.fillRect(x, y, 1.4, 1.4);
     }
   }
-  draw(dt, beat = 0, reduced = false) {
+  draw(dt, beat = 0, reduced = false, ambient = false) {
     const c = this.ctx, w = this.w, h = this.h;
     const key = `${this.canvas.width}/${this.canvas.height}/${this.blooms}`;
     if (this.sceneryKey !== key) {
@@ -645,6 +669,17 @@ class TempoGarden {
       this.drawScenery(cached); this.sceneryKey = key;
     }
     c.drawImage(this.scenery, 0, 0, w, h); this.cheer = Math.max(0, this.cheer - dt);
+    if (!reduced && ambient) {
+      this.ambientTime += dt;
+      for (let i = 0; i < 2; i++) {
+        const travel = (this.ambientTime * .065 + i * .5) % 1;
+        const x = w * (.12 + travel * .72), y = h * (.76 + .045 * Math.sin(travel * Math.PI * 2 + i));
+        const signal = c.createRadialGradient(x, y, 0, x, y, 32);
+        signal.addColorStop(0, '#82d2dc14'); signal.addColorStop(1, '#82d2dc00');
+        c.fillStyle = signal; c.fillRect(x - 32, y - 32, 64, 64);
+        c.fillStyle = '#82d2dc55'; c.fillRect(x, y, 2, 2);
+      }
+    }
     if (!reduced && beat > 0) {
       const pulse = (Math.sin(beat * Math.PI * 2) + 1) / 2;
       c.strokeStyle = `rgba(220,235,85,${.015 + pulse * .025})`; c.lineWidth = 1;
@@ -658,6 +693,81 @@ class TempoGarden {
       c.beginPath(); c.moveTo(p.x - 3, p.y); c.lineTo(p.x + 3, p.y); c.moveTo(p.x, p.y - 3); c.lineTo(p.x, p.y + 3); c.stroke();
     }
     c.globalAlpha = 1;
+  }
+}
+
+// A rotating VIEW of one fixed pure state, not a simulation of evolving hardware.
+const SPHERE_RADIUS = 143, SPHERE_CENTER = [260, 198];
+const orbitPoint = (theta, phi) => [Math.sin(theta) * Math.cos(phi), Math.sin(theta) * Math.sin(phi), Math.cos(theta)];
+const sphereLoops = [
+  ...Array.from({length:8}, (_, i) => Array.from({length:65}, (_, j) => orbitPoint(j / 64 * Math.PI * 2, i / 8 * Math.PI))),
+  ...Array.from({length:7}, (_, i) => Array.from({length:65}, (_, j) => orbitPoint((i + 1) / 8 * Math.PI, j / 64 * Math.PI * 2))),
+];
+
+// Orthographic projection preserves geometry while the camera turns about z.
+function projectBlochPoint([x, y, z], yaw, elevation = .24) {
+  const horizontal = x * Math.cos(yaw) - y * Math.sin(yaw);
+  const away = x * Math.sin(yaw) + y * Math.cos(yaw);
+  return {x:260 + SPHERE_RADIUS * horizontal, y:198 - SPHERE_RADIUS * (z * Math.cos(elevation) - away * Math.sin(elevation)), depth:away * Math.cos(elevation) + z * Math.sin(elevation)};
+}
+
+class BlochSphere {
+  constructor(svg, toggle) {
+    this.svg = svg; this.toggle = toggle; this.yaw = -.35; this.elapsed = 0;
+    this.offset = [0, 0]; this.target = [0, 0]; this.paused = false; this.reduced = false;
+    this.back = svg.querySelector('[data-mesh-back]'); this.front = svg.querySelector('[data-mesh-front]');
+    this.axes = svg.querySelector('[data-axes]'); this.vector = svg.querySelector('[data-vector]');
+    this.tip = svg.querySelector('[data-state-tip]'); this.halo = svg.querySelector('[data-state-halo]');
+    this.guide = svg.querySelector('[data-state-guide]'); this.state = svg.querySelector('.sphere-state');
+    this.label = svg.querySelector('[data-state-label]'); this.xLabel = svg.querySelector('[data-axis-x]'); this.yLabel = svg.querySelector('[data-axis-y]');
+    toggle.addEventListener('click', () => { this.paused = !this.paused; this.updateToggle(); });
+    svg.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || this.paused || this.reduced) return;
+      const bounds = svg.getBoundingClientRect();
+      this.target = [(e.clientX - bounds.left) / bounds.width * .4 - .2, (e.clientY - bounds.top) / bounds.height * .12 - .06];
+    });
+    svg.addEventListener('pointerleave', () => { this.target = [0, 0]; });
+    this.render(); this.updateToggle();
+  }
+  updateToggle() {
+    this.toggle.textContent = this.reduced ? 'Rotation off' : this.paused ? 'Resume rotation' : 'Pause rotation';
+    this.toggle.setAttribute('aria-pressed', String(this.paused || this.reduced)); this.toggle.disabled = this.reduced;
+    this.svg.dataset.motion = this.reduced || this.paused ? 'paused' : 'rotating';
+  }
+  frame(dt, reduced, visible) {
+    if (reduced !== this.reduced) { this.reduced = reduced; this.target = [0, 0]; this.updateToggle(); }
+    if (!visible || reduced || this.paused) return;
+    this.elapsed += dt;
+    // Share the game's frame loop, but only rebuild these paths at 30 fps.
+    if (this.elapsed < 1 / 30) return;
+    const step = this.elapsed; this.elapsed = 0; this.yaw += step * .16;
+    const ease = 1 - Math.exp(-step * 4);
+    this.offset = this.offset.map((value, i) => value + (this.target[i] - value) * ease);
+    this.render();
+  }
+  render() {
+    const project = v => projectBlochPoint(v, this.yaw + this.offset[0], .24 + this.offset[1]);
+    const pathPoint = p => `${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
+    const paths = ['', ''];
+    for (const loop of sphereLoops) {
+      let last = project(loop[0]), previousSide = -1;
+      for (const v of loop.slice(1)) {
+        const next = project(v), side = (last.depth + next.depth) / 2 >= 0 ? 1 : 0;
+        if (side !== previousSide) paths[side] += `M${pathPoint(last)}`;
+        paths[side] += `L${pathPoint(next)}`; last = next; previousSide = side;
+      }
+    }
+    this.back.setAttribute('d', paths[0]); this.front.setAttribute('d', paths[1]);
+    this.axes.setAttribute('d', [[1.22,0,0],[0,1.22,0],[0,0,1.14]].map(v => `M${pathPoint(project(v.map(x => -x)))}L${pathPoint(project(v))}`).join(''));
+    const v = orbitPoint(.88, .72), tip = project(v), foot = project([v[0], v[1], 0]);
+    const dx = tip.x - SPHERE_CENTER[0], dy = tip.y - SPHERE_CENTER[1], length = Math.hypot(dx,dy);
+    const ux = dx / length, uy = dy / length;
+    this.vector.setAttribute('d', `M260 198L${pathPoint(tip)}M${(tip.x - ux * 10 + uy * 4).toFixed(2)} ${(tip.y - uy * 10 - ux * 4).toFixed(2)}L${pathPoint(tip)}L${(tip.x - ux * 10 - uy * 4).toFixed(2)} ${(tip.y - uy * 10 + ux * 4).toFixed(2)}`);
+    for (const circle of [this.tip, this.halo]) { circle.setAttribute('cx', tip.x.toFixed(2)); circle.setAttribute('cy', tip.y.toFixed(2)); }
+    this.guide.setAttribute('d', `M${pathPoint(tip)}L${pathPoint(foot)}L260 198`);
+    this.state.setAttribute('opacity', tip.depth < 0 ? '.58' : '1');
+    this.label.setAttribute('x', (tip.x + (dx < 0 ? -35 : 17)).toFixed(2)); this.label.setAttribute('y', (tip.y - 9).toFixed(2));
+    for (const [label, v] of [[this.xLabel,[1.29,0,0]],[this.yLabel,[0,1.29,0]]]) { const p = project(v); label.setAttribute('x', p.x.toFixed(2)); label.setAttribute('y', p.y.toFixed(2)); }
   }
 }
 
@@ -864,20 +974,17 @@ function initTutorial(root, onLessons) {
 
 
 const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-// A schematic single-qubit Bloch sphere, separate from the encoded-register example.
+// The mesh and state vector are projected in sphere.js; poles stay identifiable.
 const stateSphere = `<svg class="state-sphere" viewBox="0 0 520 400" role="img" aria-labelledby="sphere-title sphere-desc">
-  <title id="sphere-title">Single-qubit state space</title><desc id="sphere-desc">A wireframe Bloch sphere with zero and one at its poles and a highlighted example state vector psi. This illustrates a single qubit, not the four-qubit register below.</desc>
+  <title id="sphere-title">Single-qubit state space</title><desc id="sphere-desc">A rotating view of a Bloch sphere: zero and one are its poles, and psi marks one fixed pure state on its surface. This illustration is separate from the four-qubit register below; it is not live quantum data.</desc>
   <defs><radialGradient id="sphere-glow"><stop stop-color="#deeb4922"/><stop offset="1" stop-color="#deeb4900"/></radialGradient></defs>
   <circle cx="260" cy="198" r="178" fill="url(#sphere-glow)"/>
-  <g class="sphere-mesh" fill="none" stroke="currentColor" stroke-width=".7">
-    <circle cx="260" cy="198" r="143"/>
-    ${[30, 58, 88, 118].map(r => `<ellipse cx="260" cy="198" rx="${r}" ry="143"/>`).join('')}
-    ${[-108, -72, -36, 0, 36, 72, 108].map(y => `<ellipse cx="260" cy="${198 + y}" rx="${(143 ** 2 - y ** 2) ** .5}" ry="${(143 ** 2 - y ** 2) ** .5 * .23}"/>`).join('')}
-  </g>
-  <g class="sphere-axes" fill="none" stroke="currentColor" stroke-dasharray="3 5"><path d="M260 35V365M80 240L437 155M89 141L434 254"/></g>
-  <g class="sphere-state" fill="none" stroke="currentColor"><path d="M260 198L347 97" stroke-width="2"/><path d="M337 102L347 97L345 108" stroke-width="2"/><circle cx="347" cy="97" r="6" fill="currentColor"/><circle class="state-halo" cx="347" cy="97" r="17"/><path d="M347 114V190L260 198" stroke-dasharray="3 5" opacity=".4"/></g>
+  <g class="sphere-reticle" fill="none" stroke="currentColor"><circle cx="260" cy="198" r="165" stroke-dasharray="1 14"/><path d="M74 198H92M428 198H446M260 12V30M260 366V384"/></g>
+  <g class="sphere-mesh" fill="none" stroke="currentColor" stroke-width=".7"><path data-mesh-back opacity=".23"/><circle cx="260" cy="198" r="143" opacity=".55"/><path data-mesh-front opacity=".8"/></g>
+  <g class="sphere-axes" fill="none" stroke="currentColor" stroke-dasharray="3 5"><path data-axes/></g>
+  <g class="sphere-state" fill="none" stroke="currentColor"><path data-state-guide stroke-dasharray="3 5" opacity=".28"/><path data-vector stroke-width="1.8"/><circle data-state-tip r="5" fill="currentColor"/><circle data-state-halo r="13" opacity=".35"/></g>
   <circle cx="260" cy="198" r="3" fill="#e8edf2"/>
-  <g class="sphere-labels" fill="currentColor"><text x="250" y="25">|0⟩</text><text x="250" y="385">|1⟩</text><text x="368" y="95" class="psi-label">|ψ⟩</text><text x="438" y="153">x</text><text x="437" y="263">y</text></g>
+  <g class="sphere-labels" fill="currentColor"><text x="271" y="37">|0⟩</text><text x="271" y="374">|1⟩</text><text data-state-label class="psi-label">|ψ⟩</text><text data-axis-x>x</text><text data-axis-y>y</text></g>
 </svg>`;
 const pct = n => `${(n * 100).toFixed(1)}%`;
 async function startGame(root, engine) {
@@ -890,6 +997,7 @@ async function startGame(root, engine) {
       <div class="home-demo">
         <div class="demo-caption"><span class="signal-dot"></span> SINGLE-QUBIT STATE SPACE <span class="figure-number">FIG. 01</span></div>
         ${stateSphere}
+        <div class="sphere-caption"><span>Pure states lie on the surface.</span><button id="sphere-motion" type="button" aria-pressed="false">Pause rotation</button></div>
         <div class="register-example" role="img" aria-label="Four physical qubits. A bit flip on Q2 makes both adjacent parity checks different; one X correction on Q2 repairs this example.">
           <div class="demo-caption">ENCODED REGISTER <span class="figure-number">Q1 — Q4</span></div>
           <div class="memory-art"><span>Q1</span><i class="alert">≠</i><span class="fault">Q2</span><i class="alert">≠</i><span>Q3</span><i>=</i><span>Q4</span></div>
@@ -909,6 +1017,8 @@ async function startGame(root, engine) {
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
+  const sphere = new BlochSphere(root.querySelector('.state-sphere'), $('sphere-motion'));
+  const reducedPreference = matchMedia('(prefers-reduced-motion: reduce)');
   const highway = root.querySelector('.highway'), judgement = $('judgement'), comboDisplay = root.querySelector('.combo-display');
   const feedback = new HitFeedback(highway, judgement, comboDisplay);
   let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
@@ -957,8 +1067,10 @@ async function startGame(root, engine) {
     }
   }
   let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
-  let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let approach = 2.4, offsetMs = 0, still = reducedPreference.matches;
   let paused = false, pausedAt = 0, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
+  main.dataset.reduced = String(still);
+  reducedPreference.addEventListener('change', e => { still = e.matches; feedback.reduced = still; main.dataset.reduced = String(still); if ($('static-mode')) $('static-mode').checked = still; });
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
   function menuStatus(text) { $('load-status').textContent = text; }
@@ -1216,7 +1328,9 @@ async function startGame(root, engine) {
       if (['playing', 'practice'].includes(mode)) drawNotes(time);
     }
     if (now > judgementUntil) $('judgement').textContent = '';
-    art.draw(dt, beat, still); requestAnimationFrame(frame);
+    const menuVisible = ['home', 'levels', 'learn', 'settings'].includes(mode) && !document.hidden && !$('tutorial').open && !$('dialog').open;
+    sphere.frame(dt, still, mode === 'home' && menuVisible);
+    art.draw(dt, beat, still, menuVisible && !sphere.paused); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
   try {

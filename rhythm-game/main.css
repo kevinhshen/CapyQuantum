@@ -31,7 +31,7 @@ h1{font-size:38px;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}h2{font
 .home-page{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:9%;align-items:center;max-width:1380px;margin:auto}
 .home-copy{padding:10px 0}.home-copy .eyebrow{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:1.6px}
 .home-copy .eyebrow>span{display:block;width:5px;height:20px;background:var(--accent)}
-.home-page h1{font-size:clamp(64px,6.8vw,110px);font-weight:200;letter-spacing:.12em;line-height:1.06;margin:28px 0}.home-page h1>span{color:var(--accent);letter-spacing:0}
+.home-page h1{font-size:clamp(64px,6.8vw,110px);font-weight:200;letter-spacing:.12em;line-height:1.06;margin:20px 0}.home-page h1>span{color:var(--accent);letter-spacing:0}
 .home-intro{font-size:21px!important;line-height:1.55!important;color:#d3dce5;letter-spacing:.1px}.home-explainer{margin:20px 0 24px;font-size:14px!important}
 .home-actions{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;max-width:440px}.home-actions .primary{grid-column:1/-1}.home-actions button{min-height:47px;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:12px}.home-actions button>span{font-size:19px}
 .primary{background:#eef1f4;border:1px solid #eef1f4;border-left:5px solid var(--accent);color:#10151b;font:12px var(--mono);letter-spacing:1.2px;padding:17px 22px;text-align:left;border-radius:0}
@@ -97,3 +97,26 @@ dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;bo
 @media(max-width:420px){.hud{gap:7px}.brand{font-size:12px;letter-spacing:1px;gap:7px}.hud nav button{width:28px;height:29px}.score-pill{padding:4px 6px}.score-pill b{font-size:13px}.parity-lamp{width:19px;height:19px;font-size:15px}.packet-tag{font-size:6px}.qubit-orbit{width:19px;height:19px}.qubit-orbit:after{inset:7px}.tut-note{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .garden-game[data-reduced=true] *,.garden-game[data-reduced=true] *::before,.garden-game[data-reduced=true] *::after{animation:none!important;transition:none!important}.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
+
+/* Motion polish stays in menus; correction packets retain their timing geometry. */
+.page:not([hidden]){animation:pageReveal .42s cubic-bezier(.2,.7,.2,1) both}
+@keyframes pageReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.home-demo{position:relative}.state-sphere{max-height:380px;touch-action:pan-y}
+.sphere-reticle{color:#607789;stroke-width:.7;opacity:.6;transform-origin:260px 198px;animation:reticleOrbit 90s linear infinite}
+@keyframes reticleOrbit{to{transform:rotate(360deg)}}
+.state-sphere[data-motion=paused] .sphere-reticle{animation-play-state:paused}
+.sphere-state{filter:drop-shadow(0 0 4px #dceb5525)}
+.sphere-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:29px;margin:0 0 12px;font:9px/1.5 var(--mono);color:var(--muted)}
+.sphere-caption button{border:0;border-bottom:1px solid #536675;background:transparent;border-radius:0;padding:3px 0;font:9px var(--mono);color:var(--cyan);white-space:nowrap;min-height:24px}
+.sphere-caption button:hover{color:var(--accent);border-color:var(--accent)}.sphere-caption button:disabled{color:var(--muted);opacity:.8}
+.home-actions button span{transition:transform .2s ease}.home-actions button:hover span{transform:translateX(4px)}
+.primary{position:relative;isolation:isolate;overflow:hidden;transition:background .2s,border-color .2s,box-shadow .2s}
+.primary:hover{box-shadow:0 0 24px #dceb551a}.primary:before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 20%,#fff5 50%,transparent 80%);transform:translateX(-110%);pointer-events:none;z-index:-1}
+.primary:hover:before{animation:buttonSweep .65s ease-out}@keyframes buttonSweep{to{transform:translateX(110%)}}
+.level-card{transition:border-color .2s,background .2s,transform .2s}.level-card:hover{transform:translateX(3px);background:#162330;border-color:var(--cyan)}.level-card.selected:hover{border-color:var(--accent);background:#dceb5518}
+.level-arrow{transition:transform .2s}.level-card:hover .level-arrow{transform:translateX(3px)}
+.lesson-tabs button:hover{border-color:var(--cyan)}.hud nav button:hover{color:var(--accent);border-color:var(--accent)}
+.register-example{border-image:linear-gradient(90deg,#dceb5560,#60778950,transparent) 1}
+.home-sequence b{display:inline-block}.home-sequence{color:#a7b7c5}
+@media(max-height:800px) and (min-width:851px){.state-sphere{max-height:280px}.sphere-caption{margin-bottom:8px}}
+@media(max-width:600px){.state-sphere{max-height:300px}.sphere-caption{font-size:8px}.sphere-caption button{font-size:8px}}

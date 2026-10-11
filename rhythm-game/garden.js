@@ -4,6 +4,7 @@ export class TempoGarden {
   constructor(canvas) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.particles = []; this.blooms = 0; this.palette = 0; this.cheer = 0;
+    this.ambientTime = 0;
     this.scenery = document.createElement('canvas'); this.sceneryKey = ''; this.resize();
   }
   resize() {
@@ -50,7 +51,7 @@ export class TempoGarden {
       c.fillStyle = i < this.blooms ? '#dceb5580' : '#8fabbc28'; c.fillRect(x, y, 1.4, 1.4);
     }
   }
-  draw(dt, beat = 0, reduced = false) {
+  draw(dt, beat = 0, reduced = false, ambient = false) {
     const c = this.ctx, w = this.w, h = this.h;
     const key = `${this.canvas.width}/${this.canvas.height}/${this.blooms}`;
     if (this.sceneryKey !== key) {
@@ -59,6 +60,17 @@ export class TempoGarden {
       this.drawScenery(cached); this.sceneryKey = key;
     }
     c.drawImage(this.scenery, 0, 0, w, h); this.cheer = Math.max(0, this.cheer - dt);
+    if (!reduced && ambient) {
+      this.ambientTime += dt;
+      for (let i = 0; i < 2; i++) {
+        const travel = (this.ambientTime * .065 + i * .5) % 1;
+        const x = w * (.12 + travel * .72), y = h * (.76 + .045 * Math.sin(travel * Math.PI * 2 + i));
+        const signal = c.createRadialGradient(x, y, 0, x, y, 32);
+        signal.addColorStop(0, '#82d2dc14'); signal.addColorStop(1, '#82d2dc00');
+        c.fillStyle = signal; c.fillRect(x - 32, y - 32, 64, 64);
+        c.fillStyle = '#82d2dc55'; c.fillRect(x, y, 2, 2);
+      }
+    }
     if (!reduced && beat > 0) {
       const pulse = (Math.sin(beat * Math.PI * 2) + 1) / 2;
       c.strokeStyle = `rgba(220,235,85,${.015 + pulse * .025})`; c.lineWidth = 1;

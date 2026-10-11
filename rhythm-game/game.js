@@ -1,3 +1,4 @@
+import { BlochSphere } from './sphere.js';
 import { initTutorial } from './tutorial.js';
 import { learningPath } from './content.js';
 import { beatToSeconds, secondsToBeat } from './timing.js';
@@ -9,20 +10,17 @@ import { TempoGarden } from './garden.js';
 import { HitFeedback } from './feedback.js';
 
 const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-// A schematic single-qubit Bloch sphere, separate from the encoded-register example.
+// The mesh and state vector are projected in sphere.js; poles stay identifiable.
 const stateSphere = `<svg class="state-sphere" viewBox="0 0 520 400" role="img" aria-labelledby="sphere-title sphere-desc">
-  <title id="sphere-title">Single-qubit state space</title><desc id="sphere-desc">A wireframe Bloch sphere with zero and one at its poles and a highlighted example state vector psi. This illustrates a single qubit, not the four-qubit register below.</desc>
+  <title id="sphere-title">Single-qubit state space</title><desc id="sphere-desc">A rotating view of a Bloch sphere: zero and one are its poles, and psi marks one fixed pure state on its surface. This illustration is separate from the four-qubit register below; it is not live quantum data.</desc>
   <defs><radialGradient id="sphere-glow"><stop stop-color="#deeb4922"/><stop offset="1" stop-color="#deeb4900"/></radialGradient></defs>
   <circle cx="260" cy="198" r="178" fill="url(#sphere-glow)"/>
-  <g class="sphere-mesh" fill="none" stroke="currentColor" stroke-width=".7">
-    <circle cx="260" cy="198" r="143"/>
-    ${[30, 58, 88, 118].map(r => `<ellipse cx="260" cy="198" rx="${r}" ry="143"/>`).join('')}
-    ${[-108, -72, -36, 0, 36, 72, 108].map(y => `<ellipse cx="260" cy="${198 + y}" rx="${(143 ** 2 - y ** 2) ** .5}" ry="${(143 ** 2 - y ** 2) ** .5 * .23}"/>`).join('')}
-  </g>
-  <g class="sphere-axes" fill="none" stroke="currentColor" stroke-dasharray="3 5"><path d="M260 35V365M80 240L437 155M89 141L434 254"/></g>
-  <g class="sphere-state" fill="none" stroke="currentColor"><path d="M260 198L347 97" stroke-width="2"/><path d="M337 102L347 97L345 108" stroke-width="2"/><circle cx="347" cy="97" r="6" fill="currentColor"/><circle class="state-halo" cx="347" cy="97" r="17"/><path d="M347 114V190L260 198" stroke-dasharray="3 5" opacity=".4"/></g>
+  <g class="sphere-reticle" fill="none" stroke="currentColor"><circle cx="260" cy="198" r="165" stroke-dasharray="1 14"/><path d="M74 198H92M428 198H446M260 12V30M260 366V384"/></g>
+  <g class="sphere-mesh" fill="none" stroke="currentColor" stroke-width=".7"><path data-mesh-back opacity=".23"/><circle cx="260" cy="198" r="143" opacity=".55"/><path data-mesh-front opacity=".8"/></g>
+  <g class="sphere-axes" fill="none" stroke="currentColor" stroke-dasharray="3 5"><path data-axes/></g>
+  <g class="sphere-state" fill="none" stroke="currentColor"><path data-state-guide stroke-dasharray="3 5" opacity=".28"/><path data-vector stroke-width="1.8"/><circle data-state-tip r="5" fill="currentColor"/><circle data-state-halo r="13" opacity=".35"/></g>
   <circle cx="260" cy="198" r="3" fill="#e8edf2"/>
-  <g class="sphere-labels" fill="currentColor"><text x="250" y="25">|0⟩</text><text x="250" y="385">|1⟩</text><text x="368" y="95" class="psi-label">|ψ⟩</text><text x="438" y="153">x</text><text x="437" y="263">y</text></g>
+  <g class="sphere-labels" fill="currentColor"><text x="271" y="37">|0⟩</text><text x="271" y="374">|1⟩</text><text data-state-label class="psi-label">|ψ⟩</text><text data-axis-x>x</text><text data-axis-y>y</text></g>
 </svg>`;
 const pct = n => `${(n * 100).toFixed(1)}%`;
 export async function startGame(root, engine) {
@@ -35,6 +33,7 @@ export async function startGame(root, engine) {
       <div class="home-demo">
         <div class="demo-caption"><span class="signal-dot"></span> SINGLE-QUBIT STATE SPACE <span class="figure-number">FIG. 01</span></div>
         ${stateSphere}
+        <div class="sphere-caption"><span>Pure states lie on the surface.</span><button id="sphere-motion" type="button" aria-pressed="false">Pause rotation</button></div>
         <div class="register-example" role="img" aria-label="Four physical qubits. A bit flip on Q2 makes both adjacent parity checks different; one X correction on Q2 repairs this example.">
           <div class="demo-caption">ENCODED REGISTER <span class="figure-number">Q1 — Q4</span></div>
           <div class="memory-art"><span>Q1</span><i class="alert">≠</i><span class="fault">Q2</span><i class="alert">≠</i><span>Q3</span><i>=</i><span>Q4</span></div>
@@ -54,6 +53,8 @@ export async function startGame(root, engine) {
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
+  const sphere = new BlochSphere(root.querySelector('.state-sphere'), $('sphere-motion'));
+  const reducedPreference = matchMedia('(prefers-reduced-motion: reduce)');
   const highway = root.querySelector('.highway'), judgement = $('judgement'), comboDisplay = root.querySelector('.combo-display');
   const feedback = new HitFeedback(highway, judgement, comboDisplay);
   let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
@@ -102,8 +103,10 @@ export async function startGame(root, engine) {
     }
   }
   let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
-  let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let approach = 2.4, offsetMs = 0, still = reducedPreference.matches;
   let paused = false, pausedAt = 0, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
+  main.dataset.reduced = String(still);
+  reducedPreference.addEventListener('change', e => { still = e.matches; feedback.reduced = still; main.dataset.reduced = String(still); if ($('static-mode')) $('static-mode').checked = still; });
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
   function menuStatus(text) { $('load-status').textContent = text; }
@@ -361,7 +364,9 @@ export async function startGame(root, engine) {
       if (['playing', 'practice'].includes(mode)) drawNotes(time);
     }
     if (now > judgementUntil) $('judgement').textContent = '';
-    art.draw(dt, beat, still); requestAnimationFrame(frame);
+    const menuVisible = ['home', 'levels', 'learn', 'settings'].includes(mode) && !document.hidden && !$('tutorial').open && !$('dialog').open;
+    sphere.frame(dt, still, mode === 'home' && menuVisible);
+    art.draw(dt, beat, still, menuVisible && !sphere.paused); requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
   try {
