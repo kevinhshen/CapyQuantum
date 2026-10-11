@@ -1179,36 +1179,123 @@ function getMap(id, d = 3) {
   const entry = mapRegistry.get(id); if (!entry) throw new Error('Unknown map.');
   return entry.fixed ? structuredClone(entry.fixed) : validateMap(entry.build(d));
 }
-function gardenMap(id, title, bpm, duration, density, d) {
+// Minimum real-time breathing room between memory packets, how far apart the taps of a burst fall, how
+// often a multi-flip packet appears, and how many flips it may carry. Faster songs get more room, not less.
+const PACING = {
+  gentle:  { gap: 1.0,  burst: .5,  multiEvery: 4, maxFlips: 3 },
+  steady:  { gap: .95,  burst: .5,  multiEvery: 4, maxFlips: 3 },
+  fast:    { gap: 1.05, burst: .55, multiEvery: 6, maxFlips: 2 },
+  driving: { gap: 1.0,  burst: .55, multiEvery: 6, maxFlips: 2 },
+};
+function gardenMap(id, title, bpm, duration, density, d, extra = {}) {
   const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
+  // The tune plays across the whole level. Every falling packet is snapped onto one note of it and "owns" that note:
+  // fixing the packet plays the note, a wrong flip plays an out-of-key note. Notes no packet owns are played by the backing track,
+  // so the melody never stops.
+  const tune = extra.tune ? parseTune(extra.tune) : null, onsets = [];
+  const sections = extra.sections ?? [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 0 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }];
+  if (tune) for (let loop = 0; loop * tune.length < duration; loop++) for (const n of tune.notes) if (loop * tune.length + n.at < duration) onsets.push({ at: loop * tune.length + n.at, n, taken: false });
+  // Pacing is set in real seconds, not beats, so a fast tempo (or a tempo climb) never crowds the player.
+  // A packet is only placed once the previous one has been finished for `gapSeconds`; phrase hits that
+  // land too soon are skipped, and the backing track plays their melody notes instead.
+  const timeline = { bpm, tempoChanges: extra.tempoChanges ?? [] }, pace = PACING[density] ?? PACING.steady;
+  // The same spacing at every qubit count keeps the packet pattern comparable between 3 and 7 qubits.
+  // A small tolerance stops a gap that lands exactly on a beat from flipping between "kept" and "skipped".
+  const maxFlips = Math.min(capacity, pace.maxFlips), burstBeats = Math.min(1, Math.max(.5, Math.ceil(pace.burst * bpm / 60 * 4) / 4));
+  const floorBeat = () => secondsToBeat(timeline, beatToSeconds(timeline, lastEnd) + pace.gap - .04);
+  const claimNote = (beat, floor) => {
+    let best = null;
+    for (const o of onsets) if (!o.taken && o.at >= floor && o.at <= duration - 3 && Math.abs(o.at - beat) <= 1.25 && (!best || Math.abs(o.at - beat) < best.dist)) best = { o, dist: Math.abs(o.at - beat), snapped: true };
+    if (best) best.o.taken = true;
+    // No free note close enough: double the nearest melody note instead; the backing track keeps playing it.
+    else for (const o of onsets) if (!best || Math.abs(o.at - beat) < best.dist) best = { o, dist: Math.abs(o.at - beat), snapped: false };
+    return best;
+  };
+  const songFields = (o, owns) => {
+    const transpose = ([...sections].reverse().find(x => x.beat <= o.at) || sections[0]).transpose, midi = o.n.midi + transpose;
+    const key = new Set(tune.notes.map(x => (x.midi + transpose) % 12));
+    return { note: midi, noteBeats: o.n.dur, ...(owns ? { tuneBeat: o.at } : {}), wrongNote: [1, -1, 6, -2, 2].map(k => midi + k).find(m => !key.has(m % 12)) ?? midi + 1 };
+  };
+  let lastEnd = 0;
   // Authored phrases repeat every eight beats; rests and syncopation vary by section.
   const phrases = density === 'gentle' ? [[0, 2, 3.5, 6], [0, 1.5, 4, 6.5]]
     : density === 'steady' ? [[0, 1, 2.5, 4, 6, 7], [0, 1.5, 3, 4.5, 6, 7]]
+    // 'driving' never gaps under one beat, so 150+ BPM songs still leave 300 ms between correction windows.
+    : density === 'driving' ? [[0, 1, 2, 3.5, 4.5, 5.5, 6.5], [0, 1, 2.5, 3.5, 4.5, 5.5, 7]]
     : [[0, .75, 1.5, 3, 4, 4.75, 6, 7], [0, 1, 1.75, 3, 4.5, 5.25, 6, 7]];
   let index = 0;
   for (let bar = 4; bar < duration - 2; bar += 8) {
     const phrase = phrases[Math.floor((bar - 4) / 8) % phrases.length];
     for (let i = 0; i < phrase.length; i++, index++) {
-      const beat = bar + phrase[i]; if (beat >= duration - 2) break;
+      let beat = bar + phrase[i]; if (beat >= duration - 2) break;
       const gap = (phrase[i + 1] ?? 8) - phrase[i];
-      const count = index % 11 === 8 ? 0 : index > 3 && index % 4 === 3 ? capacity : 1;
+      const count = index % 11 === 8 ? 0 : index > 3 && index % pace.multiEvery === pace.multiEvery - 1 ? maxFlips : 1;
       const lanes = [];
       while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
-      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5;
-      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 ? Math.min(1, gap - .75) : 0;
-      events.push({ id: `p${index}`, beat, error: lanes, steps: burst ? lanes.map((lane, i) => ({ offset: i * .25, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [] });
+      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5 && density !== 'driving';
+      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 && density !== 'driving' ? Math.min(1, gap - .75) : 0;
+      const claim = tune ? claimNote(beat, floorBeat()) : null;
+      if (claim?.snapped) beat = claim.o.at;
+      if (beat < floorBeat() - 1e-9) { if (claim?.snapped) claim.o.taken = false; continue; }
+      if (beat >= duration - 3) { if (claim?.snapped) claim.o.taken = false; break; }
+      const steps = burst ? lanes.map((lane, i) => ({ offset: i * burstBeats, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [];
+      events.push({ id: `p${index}`, beat, error: lanes, ...(claim ? songFields(claim.o, claim.snapped) : {}), steps });
+      lastEnd = beat + Math.max(0, ...steps.map(st => st.offset + (st.holdBeats || 0)));
     }
   }
-  return { version: 1, id, title, artist: 'CapyQuantum · original synthesized music', bpm, qubits: d, durationBeats: duration,
-    tempoChanges: id === 'lantern-waltz' ? [{ beat: 40, bpm: 124 }, { beat: 64, bpm: 112 }] : [],
-    events, sections: [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 5 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }],
-    music: { composer: 'garden-lofi', gain: .72, offsetSeconds: 0 } };
+  return { version: 1, id, title, artist: extra.artist ?? 'CapyQuantum · original synthesized music', description: extra.description, bpm, qubits: d, durationBeats: duration,
+    tempoChanges: extra.tempoChanges ?? [],
+    events, sections, songMode: Boolean(tune),
+    music: { composer: `song-${id}`, gain: .72, offsetSeconds: 0 } };
 }
-for (const [id, title, bpm, duration, density] of [
-  ['morning-dew', 'Morning dew', 86, 56, 'gentle'],
-  ['lantern-waltz', 'Lantern glow', 112, 80, 'steady'],
-  ['firefly-rush', 'Firefly rush', 138, 96, 'fast'],
-]) mapRegistry.set(id, { title, artist: 'CapyQuantum', build: d => gardenMap(id, title, bpm, duration, density, d) });
+
+// Ten levels, easiest to hardest. Tunes are written as "NOTE:beats" (R = rest). All melodies are
+// public domain: nursery rhymes first, then classical.
+const SONG_LEVELS = [
+  { id: 'twinkle', title: 'Twinkle, Twinkle, Little Star', artist: 'Traditional · nursery rhyme', bpm: 90, beats: 96, density: 'gentle',
+    description: 'Level 1 · nursery rhyme. Short phrases and generous gaps for learning the parity checks.',
+    tune: 'C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2',
+    bass: [48, 53, 53, 55, 48, 55, 48, 55, 48, 53, 53, 48], bassBeats: 4 },
+  { id: 'mary-lamb', title: 'Mary Had a Little Lamb', artist: 'Traditional · nursery rhyme', bpm: 100, beats: 80, density: 'gentle',
+    description: 'Level 2 · nursery rhyme. A steady stepwise tune with a little more to do between phrases.',
+    tune: 'E4:1 D4:1 C4:1 D4:1 E4:1 E4:1 E4:2 D4:1 D4:1 D4:2 E4:1 G4:1 G4:2 E4:1 D4:1 C4:1 D4:1 E4:1 E4:1 E4:1 E4:1 D4:1 D4:1 E4:1 D4:1 C4:4',
+    bass: [48, 48, 55, 48, 48, 48, 55, 48], bassBeats: 4 },
+  { id: 'row-boat', title: 'Row, Row, Row Your Boat', artist: 'Traditional · nursery rhyme', bpm: 116, beats: 96, density: 'gentle', beatsPerBar: 3,
+    description: 'Level 3 · nursery rhyme. A brighter, buoyant three-beat swing with smoother phrasing and a lively finish.',
+    tune: 'C4:1 C4:1 C4:1 D4:.5 E4:1.5 E4:1.5 D4:.5 E4:1 F4:.5 G4:2 G4:1 E4:1 C5:1 C5:1 C5:1 G4:1 G4:1 G4:1 E4:1 E4:1 E4:1 C4:1 C4:1 C4:1 G4:1 F4:.5 E4:1 D4:.5 C4:2',
+    bass: [48, 48, 48, 55, 48, 48, 55, 48], bassBeats: 3 },
+  { id: 'ode-to-joy', title: 'Ode to Joy', artist: 'Ludwig van Beethoven · classical', bpm: 108, beats: 96, density: 'steady',
+    description: 'Level 4 · classical. A familiar march with offbeat corrections arriving between the beats.',
+    tune: 'E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:.5 D4:2 E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 D4:1.5 C4:.5 C4:2',
+    bass: [48, 48, 48, 55, 48, 48, 55, 48], bassBeats: 4 },
+  { id: 'fur-elise', title: 'Für Elise', artist: 'Ludwig van Beethoven · classical', bpm: 84, beats: 96, density: 'steady', beatsPerBar: 3,
+    description: 'Level 5 · classical. A slowed-down, easier take on the famous theme, with longer holds and changing gaps.',
+    tune: 'E5:.25 D#5:.25 E5:.25 D#5:.25 E5:.25 B4:.25 D5:.25 C5:.25 A4:.5 C4:.25 E4:.25 A4:.5 B4:.5 E4:.25 G#4:.25 B4:.25 C5:.5 R:.25 E5:.25 D#5:.25 E5:.25 D#5:.25 E5:.25 B4:.25 D5:.25 C5:.25 A4:.5 C4:.25 E4:.25 A4:.5 B4:.5 E4:.25 C5:.25 B4:.25 A4:1 R:.75',
+    bass: [57, 52, 57, 52], bassBeats: 3 },
+  { id: 'canon-in-d', title: 'Canon in D', artist: 'Johann Pachelbel · classical', bpm: 96, beats: 112, density: 'steady',
+    description: 'Level 6 · classical. A long, flowing build: slow half notes, then quarters, then running eighths.',
+    tune: 'F#5:2 E5:2 D5:2 C#5:2 B4:2 A4:2 B4:2 C#5:2 D5:1 F#5:1 A5:1 G5:1 F#5:1 D5:1 F#5:1 E5:1 D5:1 B4:1 D5:1 A4:1 G4:1 B4:1 A4:1 G4:1 D5:.5 F#5:.5 A5:.5 F#5:.5 A4:.5 C#5:.5 E5:.5 C#5:.5 B4:.5 D5:.5 F#5:.5 D5:.5 F#4:.5 A4:.5 C#5:.5 A4:.5 G4:.5 B4:.5 D5:.5 B4:.5 D5:.5 F#5:.5 A5:.5 F#5:.5 G4:.5 B4:.5 D5:.5 B4:.5 A4:.5 C#5:.5 E5:.5 C#5:.5',
+    bass: [50, 57, 59, 54, 55, 50, 55, 57], bassBeats: 2 },
+  { id: 'eine-kleine', title: 'Eine kleine Nachtmusik', artist: 'Wolfgang Amadeus Mozart · classical', bpm: 116, beats: 112, density: 'steady',
+    description: 'Level 7 · classical. A clearer, more recognizable opening theme followed by contrasting rising and falling phrases.',
+    tune: 'G4:1 D5:1 G4:1 D5:1 G4:.5 B4:.5 D5:1 G5:2 D5:1 B4:1 G4:1 D5:1 G4:1 D5:1 G4:.5 B4:.5 D5:1 G5:2 F#5:1 E5:1 D5:1 C5:1 A4:1 C5:1 E5:1 A5:2 E5:1 C5:1 A4:1 D5:1 F#5:1 A5:1 D5:1 F#5:1 A5:2',
+    bass: [55, 55, 48, 50, 55, 55], bassBeats: 4 },
+  { id: 'sugar-plum', title: 'Dance of the Sugar Plum Fairy', artist: 'Pyotr Tchaikovsky · The Nutcracker', bpm: 96, beats: 112, density: 'fast',
+    description: 'Level 8 · classical. Light, staccato triplets that tumble downward, with the odd burst or two-flip chord between them.',
+    tune: 'F5:.5 D5:.5 F5:.5 E5:.5 C#5:1 D5:1 C5:.5 C5:.5 C5:1 B4:.5 B4:.5 B4:1 A#4:.5 A#4:.5 A#4:1 A4:2 F5:.5 D5:.5 F5:.5 E5:.5 A#4:1 A4:1 F5:.5 F5:.5 F5:1 E5:.5 E5:.5 E5:1 D5:.5 D5:.5 D5:1 D5:2',
+    bass: [50, 57, 50, 57, 50, 57], bassBeats: 4 },
+  { id: 'turkish-march', title: 'Rondo alla Turca', artist: 'Wolfgang Amadeus Mozart · classical', bpm: 120, beats: 120, density: 'fast',
+    description: 'Level 9 · classical. A longer, varied rondo-inspired melody with changing runs, register shifts, and contrasting phrases.',
+    tune: 'B4:.5 A4:.5 G#4:.5 A4:.5 C5:.5 E5:.5 A5:1 G#5:.5 A5:.5 B5:.5 C6:.5 D6:1 C6:.5 B5:.5 A5:.5 G#5:.5 A5:1 E5:.5 C#5:.5 E5:.5 A5:.5 C6:1 B5:.5 A5:.5 G#5:.5 A5:.5 B5:1 E5:1 C#5:.5 D5:.5 E5:.5 F#5:.5 G#5:1 A5:1 R:.5 E5:.5 C#5:.5 A4:.5 B4:.5 C#5:.5 D5:.5 E5:1 A5:1 E5:1 C#5:1 A4:2',
+    bass: [57, 52, 57, 52, 57], bassBeats: 2 },
+  { id: 'beethoven-fifth', title: "Symphony No. 5 in C Minor", artist: 'Ludwig van Beethoven · classical', bpm: 148, beats: 128, density: 'driving', pulse: true,
+    description: 'Level 10 · expert finale. Beethoven’s famous four-note fate motif drives a relentless, high-pressure correction challenge.',
+    tune: 'G4:.75 G4:.75 G4:.75 Eb4:2.5 F4:.75 F4:.75 F4:.75 D4:2.5 G4:.75 G4:.75 G4:.75 Eb4:2.5 F4:.75 F4:.75 F4:.75 D4:2.5 G4:.75 G4:.75 G4:.75 Eb4:2 F4:.75 F4:.75 F4:.75 D4:2 G4:.75 G4:.75 G4:.75 Eb4:2.5 F4:.75 F4:.75 F4:.75 D4:2.5 Bb4:1 Bb4:1 Bb4:1 G4:2 Ab4:1 Ab4:1 Ab4:1 F4:2 G4:.75 G4:.75 G4:.75 Eb4:2 F4:.75 F4:.75 F4:.75 D4:2 G4:1 Bb4:1 D5:1 G5:2 F5:1 Eb5:1 D5:1 C5:2',
+    bass: [43, 43, 38, 43, 41, 41, 36, 41], bassBeats: 1,
+    tempoChanges: [{ beat: 32, bpm: 160 }, { beat: 64, bpm: 172 }, { beat: 96, bpm: 184 }],
+    sections: [{ beat: 0, label: 'Fate Motif', intensity: .75, transpose: 0 }, { beat: 32, label: 'Relentless', intensity: .85, transpose: 0 }, { beat: 64, label: 'Fortissimo', intensity: .95, transpose: 0 }, { beat: 96, label: 'Finale', intensity: 1, transpose: 0 }] }
+];
+for (const level of SONG_LEVELS) mapRegistry.set(level.id, { title: level.title, artist: level.artist, build: d => gardenMap(level.id, level.title, level.bpm, level.beats, level.density, d, level) });
 
 // Timing cues do not reveal correction lanes. Players decode parity themselves.
 const WINDOWS = { perfect: .045, great: .09, good: .145 };
@@ -1220,7 +1307,8 @@ class RhythmRun {
     this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
     for (const event of map.events) {
       const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
-      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), at: beatToSeconds(map, event.beat),
+      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), note: event.note, wrongNote: event.wrongNote, songDone: false,
+        noteSeconds: Math.min(1.1, Math.max(.25, (beatToSeconds(map, event.beat + (event.noteBeats || 1)) - beatToSeconds(map, event.beat)) * .92)), at: beatToSeconds(map, event.beat),
         end: beatToSeconds(map, event.beat + Math.max(0, ...event.steps.map(s => s.offset + (s.holdBeats || 0)))) + WINDOWS.good, done: false, notes: [] };
       const steps = event.steps.length ? event.steps : [{ offset: 0, lanes: [] }];
       steps.forEach((step, order) => {
@@ -1331,6 +1419,43 @@ registerComposer('garden-lofi', (tick, { tone, noise, section }) => {
   if (tick % 16 === 0) [0, 3, 7, 10].forEach(n => tone(midiHz(root + n), 1.6, .018, 'sine'));
 
 });
+// Backing tracks (bass, drums) plus the melody notes the player does not own. 1 tick = a sixteenth note; AudioContext time comes from beatToSeconds so tempo changes stay in sync.
+const NOTE_BASE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+function parseTune(text) {
+  let beat = 0; const notes = [];
+  for (const token of text.trim().split(/\s+/)) {
+    const [name, length] = token.split(':'), dur = Number(length);
+    if (name !== 'R') { const m = /^([A-G])(#|b)?(\d)$/.exec(name); notes.push({ at: beat, dur, midi: 12 * (Number(m[3]) + 1) + NOTE_BASE[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) }); }
+    beat += dur;
+  }
+  return { notes, length: beat };
+}
+// Plays the melody on its own wherever the player is not responsible for a note, so the song never goes silent.
+const ownedNotes = new WeakMap();
+function melodyPlayer(text) {
+  const tune = parseTune(text), loopTicks = Math.round(tune.length * 4), byTick = new Map(tune.notes.map(n => [Math.round(n.at * 4), n]));
+  return (tick, { tone, map, section }) => {
+    const note = byTick.get(tick % loopTicks); if (!note) return;
+    let owned = ownedNotes.get(map); if (!owned) ownedNotes.set(map, owned = new Set(map.events.filter(e => e.tuneBeat != null).map(e => Math.round(e.tuneBeat * 4))));
+    if (owned.has(tick)) return;
+    tone(midiHz(note.midi + section.transpose), Math.max(.09, (beatToSeconds(map, tick / 4 + note.dur) - beatToSeconds(map, tick / 4)) * .94), .075 * (.7 + .3 * section.intensity), 'triangle');
+  };
+}
+function tuneComposer(song) {
+  const melody = melodyPlayer(song.tune), loopTicks = Math.round(parseTune(song.tune).length * 4);
+  const barTicks = Math.round((song.beatsPerBar ?? 4) * 4), spanTicks = Math.round(song.bassBeats * 4);
+  return (tick, ctx) => {
+    const { tone, noise, map, section } = ctx; melody(tick, ctx);
+    const lt = tick % loopTicks, secs = beats => beatToSeconds(map, (tick + beats * 4) / 4) - beatToSeconds(map, tick / 4), i = section.intensity;
+    if (lt % spanTicks === 0) {
+      const root = song.bass[Math.floor(lt / spanTicks) % song.bass.length] + section.transpose;
+      tone(midiHz(root - 12), Math.min(Math.max(.1, secs(song.bassBeats) * .9), 1.6), .07, 'triangle');
+    }
+    if (song.pulse ? tick % 4 === 0 : tick % barTicks === 0) tone(95, .15, .1 * (.6 + .4 * i), 'sine', 38);
+    if (tick % 4 === 2) noise(.03, .008 + .008 * i, 7000);
+  };
+}
+for (const level of SONG_LEVELS) registerComposer(`song-${level.id}`, tuneComposer(level));
 class MusicTransport {
   constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; }
   async init() {
@@ -1363,8 +1488,15 @@ class MusicTransport {
       const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.master);
       source.start(this.origin + this.leadIn, offset); this.nodes.add(source); this.external = true;
     } else this.external = false;
-    this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
+    this.melody = map.songMode ? [] : map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
     this.melodyIndex = 0;
+    // Every melody note a packet owns is silent until the player fixes it. If the player never touches the
+    // packet, the band plays that note itself, on time and in the same voice as the backing melody, so the tune never has a hole.
+    this.fills = new Map(); this.fillSkip = new Set(); this.fillCovered = new Set(); this.fillIndex = 0;
+    this.fillQueue = map.events.filter(e => e.note != null && e.tuneBeat != null && e.error.length).map(e => {
+      const section = [...map.sections].reverse().find(s => s.beat <= e.tuneBeat) || map.sections[0];
+      return { id: e.id, beat: e.tuneBeat, midi: e.note, seconds: Math.max(.09, (beatToSeconds(map, e.tuneBeat + (e.noteBeats || 1)) - beatToSeconds(map, e.tuneBeat)) * .94), gain: .075 * (.7 + .3 * section.intensity) };
+    }).sort((a, b) => a.beat - b.beat);
     this.timer = setInterval(() => this.schedule(), 25); this.schedule();
   }
   time() { return this.context.currentTime - this.origin - this.leadIn; }
@@ -1379,6 +1511,15 @@ class MusicTransport {
       if (at >= limit) break;
       this.melodyIndex++;
       if (at >= this.context.currentTime) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][note.lane]), note.holdBeats ? beatToSeconds(this.map, note.beat + note.holdBeats) - beatToSeconds(this.map, note.beat) : .2, .055, 'triangle', null, at);
+    }
+    // Band fills: scheduled just ahead of time so they land exactly on the beat, and cancelled if the player takes the note first.
+    while (this.fillIndex < this.fillQueue.length) {
+      const fill = this.fillQueue[this.fillIndex], at = this.origin + this.leadIn + beatToSeconds(this.map, fill.beat);
+      if (at >= limit) break;
+      this.fillIndex++;
+      if (this.fillSkip.has(fill.id)) continue;
+      this.fillCovered.add(fill.id);
+      if (at >= this.context.currentTime) this.fills.set(fill.id, { ...this.tone(midiHz(fill.midi), fill.seconds, fill.gain, 'triangle', null, at), at });
     }
     while (this.origin + this.leadIn + beatToSeconds(this.map, this.tick / 4) < limit) {
       const tick = this.tick++, at = this.origin + this.leadIn + beatToSeconds(this.map, tick / 4);
@@ -1399,7 +1540,18 @@ class MusicTransport {
     gain.gain.setValueAtTime(.0001, at); gain.gain.linearRampToValueAtTime(volume, at + .008); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
     osc.connect(gain); gain.connect(this.master); osc.start(at); osc.stop(at + duration + .01);
     this.nodes.add(osc); osc.onended = () => this.nodes.delete(osc);
+    return { osc, gain };
   }
+  // The player pressed something on this packet (right or wrong), so the band must not also play its note.
+  claimFill(id) {
+    if (!this.fillSkip) return;
+    this.fillSkip.add(id); this.fillCovered.delete(id);
+    const fill = this.fills.get(id); if (!fill) return;
+    this.fills.delete(id);
+    if (fill.at > this.context.currentTime) { try { fill.osc.stop(this.context.currentTime); fill.gain.disconnect(); } catch {} }
+  }
+  // True when the band already played (or is about to play) this packet's note, so nothing else should sound for it.
+  bandCovered(id) { return Boolean(this.fillCovered?.has(id)); }
   noise(duration, volume, frequency, at) {
     const source = this.context.createBufferSource(), filter = this.context.createBiquadFilter(), gain = this.context.createGain();
     source.buffer = this.noiseBuffer; filter.type = 'highpass'; filter.frequency.value = frequency;
@@ -1408,6 +1560,11 @@ class MusicTransport {
     this.nodes.add(source); source.onended = () => this.nodes.delete(source);
   }
   memory(restored, index) { if (!this.running || this.paused) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth'); }
+  songNote(midi, seconds, ok) {
+    if (!this.context || this.paused) return;
+    if (ok) { this.tone(midiHz(midi), seconds, .12, 'triangle'); this.tone(midiHz(midi + 12), seconds * .6, .03, 'sine'); }
+    else this.tone(midiHz(midi), Math.min(seconds, .45), .06, 'sawtooth');
+  }
   errorTone(lane) { if (this.context && !this.paused) this.tone(180 + lane * 15, .16, .03, 'sawtooth'); }
   hit(lane) { if (this.running && !this.paused) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][lane]), .16, .035, 'sine'); }
   setMuted(muted) { this.muted = muted; if (this.master) this.master.gain.value = muted ? 0 : this.map?.music.gain ?? .7; }
@@ -1481,10 +1638,10 @@ class TempoGarden {
 
 // Preserve the teammate's tutorial presets in source, rather than editing PLAY.html.
 const learningPath = [
-  { name: 'Seedling', map: 'morning-dew', qubits: 3, description: 'Read the checks slowly; one bit flip.' },
-  { name: 'Sprout', map: 'lantern-waltz', qubits: 4, description: 'Four lanes and offbeat corrections.' },
-  { name: 'Sapling', map: 'lantern-waltz', qubits: 5, description: 'Two bit flips; chords and short sequences.' },
-  { name: 'Bloom', map: 'firefly-rush', qubits: 7, description: 'Seven lanes and up to three bit flips.' },
+  { name: 'Seedling', map: 'twinkle', qubits: 3, description: 'Read the checks slowly; one bit flip.' },
+  { name: 'Sprout', map: 'ode-to-joy', qubits: 4, description: 'Four lanes and offbeat corrections.' },
+  { name: 'Sapling', map: 'canon-in-d', qubits: 5, description: 'Two bit flips; chords and short sequences.' },
+  { name: 'Bloom', map: 'sugar-plum', qubits: 7, description: 'Seven lanes and up to three bit flips.' },
 ];
 
 // Animated tutorial adapted from teammate commit 414d9d6.
@@ -1623,7 +1780,7 @@ const pct = n => `${(n * 100).toFixed(1)}%`;
 async function startGame(root, engine) {
   root.innerHTML = `<main class="garden-game" data-state="home">
     <canvas id="garden" aria-hidden="true"></canvas>
-    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
+    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Twinkle, Twinkle, Little Star</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
     <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
     <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
     <section id="home-page" class="page home-page" aria-labelledby="home-title">
@@ -1643,6 +1800,13 @@ async function startGame(root, engine) {
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
   let reported = new Set(), reportedHolds = new Set();
   const laneSources = new Map();
+  // Plays the packet's song note: the right pitch when it is repaired, an out-of-key pitch when it is not.
+  function songNote(packet, ok) {
+    if (!packet || packet.note == null) return false;
+    music.songNote(ok ? packet.note : packet.wrongNote, packet.noteSeconds, ok);
+    if (ok) packet.songDone = true;
+    return true;
+  }
   function reportPackets() {
     run.notes.filter(n => n.holdSuccess !== undefined).forEach(note => {
       if (reportedHolds.has(note.id)) return; reportedHolds.add(note.id);
@@ -1651,7 +1815,7 @@ async function startGame(root, engine) {
       announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
       emit(note.holdSuccess ? 'hold-complete' : 'hold-break', { lane: note.heldLane, packetId: note.packet.id });
     });
-    run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } });
+    run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) { const p = run.packets.find(x => x.id === result.id); if (p?.note != null) { if (!p.songDone && !music.bandCovered(p.id)) songNote(p, result.restored); p.songDone = true; } else music.memory(result.restored, run.results.indexOf(result)); } emit('packet-resolved', result); } });
   }
   function clearInputs() { held.clear(); laneSources.clear(); root.querySelectorAll('[data-lane]').forEach(button => button.classList.remove('pressed', 'holding')); }
   function inputDown(lane, source) {
@@ -1669,7 +1833,7 @@ async function startGame(root, engine) {
       $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo); drawNotes(currentTime());
     }
   }
-  let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
+  let bank = null, run = null, mode = 'home', map = getMap('twinkle', 4), practice = false, practiceIndex = 0, practiceTime = 0;
   let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let paused = false, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
@@ -1685,7 +1849,7 @@ async function startGame(root, engine) {
   }
   function navigate(page) { closeDialog(); setState(page); $(`${page === 'home' ? 'home' : page}-title`)?.focus(); }
 
-  function populateMaps(selected = $('map-select').value || 'morning-dew') {
+  function populateMaps(selected = $('map-select').value || 'twinkle') {
     $('map-select').innerHTML = listMaps().map(m => `<option value="${html(m.id)}">${html(m.title)}</option>`).join(''); $('map-select').value = selected; renderLevelList();
   }
   function refreshMap() {
@@ -1709,7 +1873,7 @@ async function startGame(root, engine) {
     });
     $('level-difficulty').textContent = 'LEVEL DETAILS';
     $('level-title').textContent = map.title;
-    $('level-description').textContent = map.description || ({ 'morning-dew': 'Short phrases and generous gaps for learning the checks.', 'lantern-waltz': 'Practice offbeats, changing gaps, and longer musical phrases.', 'firefly-rush': 'Faster syncopation and short rests. Try wider lanes for chords and rapid corrections.' })[map.id] || 'A team-authored map. Use untimed practice to learn its correction patterns.';
+    $('level-description').textContent = map.description || 'A team-authored map. Use untimed practice to learn its correction patterns.';
     const holdCount = map.events.reduce((total, event) => total + event.steps.reduce((n, step) => n + (step.holdBeats ? step.lanes.length : 0), 0), 0);
     $('map-notes').textContent = `${map.events.reduce((n, e) => n + e.steps.reduce((a, step) => a + step.lanes.length, 0), 0)} notes · ${holdCount} holds`;
     $('chart-preview').innerHTML = `<svg viewBox="0 0 400 45" role="img" aria-label="Correction times across this level"><path d="M0 38H400" stroke="currentColor" opacity=".2"/>${map.events.flatMap(e => e.steps.map(step => `<path d="M${(e.beat + step.offset) / map.durationBeats * 400} 38v-${9 + step.lanes.length * 7}" stroke="currentColor" stroke-width="3"/>`)).join('')}</svg>`;
@@ -1777,7 +1941,7 @@ async function startGame(root, engine) {
   function act(lane) {
     if (!run || paused || !['playing', 'practice'].includes(mode)) return;
     const time = currentTime() + (practice ? 0 : offsetMs / 1000);
-    const event = run.press(lane, time); reportPackets();
+    const event = run.press(lane, time); if (!practice && event.packet) music.claimFill(event.packet.id); reportPackets();
     if (event.type === 'hold-resume') { announce(`Continue holding qubit ${lane + 1}. No extra X gate applied.`); drawNotes(currentTime()); return; }
     root.querySelector(`[data-lane="${lane}"]`).classList.add('pressed');
 
@@ -1785,11 +1949,11 @@ async function startGame(root, engine) {
     $('judgement').textContent = event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
     $('judgement').dataset.kind = event.correct === false ? 'stray' : event.type; judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
-      if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane);
+      if (!(event.packet && event.packet.applied === event.packet.error && songNote(event.packet, true))) { if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane); }
       const r = $('receptors').getBoundingClientRect(), deck = $('deck').getBoundingClientRect();
       art.burst(deck.left + (lane + .5) * deck.width / map.qubits, r.top, lane);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
-    } else { music.errorTone?.(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
+    } else { if (!songNote(event.packet || run.packets.find(p => !p.done && p.end >= time), false)) music.errorTone?.(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
     if (event.packet) announce(`Qubit ${lane + 1} flipped. Checks: ${run.checks(event.packet).map(b => b ? 'different' : 'same').join(', ')}.`);
     if (practice) { const remaining = run.cues.find(c => c.packet === run.packets[practiceIndex] && c.notes.some(n => !n.done)); if (remaining) practiceTime = remaining.at; drawNotes(practiceTime); }
   }
@@ -1839,7 +2003,7 @@ async function startGame(root, engine) {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
     if (!paused) { paused = true; run.suspendHolds(); clearInputs(); await music.pause(); }
-    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
+    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>Every memory that falls is the next note of the song. Repair it and you play the right note; flip the wrong qubit and an out-of-key note rings out instead. If you press nothing at all, the band plays that note for you so the tune never stops, but a skipped note still costs you the rhythm credit.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
     ['A qubit', 'A bit is 0 or 1. A qubit can be in a superposition α|0⟩ + β|1⟩. Measuring it in the 0/1 basis gives one outcome, with probabilities |α|² and |β|².', 'A qubit does not reveal two readable answers at once. Quantum algorithms control amplitudes and interference before measurement.'],
@@ -1915,7 +2079,8 @@ async function startGame(root, engine) {
     if (run && ['playing', 'practice'].includes(mode) && !paused) {
       const time = currentTime(), adjusted = time + (practice ? 0 : offsetMs / 1000); beat = secondsToBeat(map, time);
       if (!practice) {
-        run.advance(adjusted); reportPackets(); $('score').textContent = String(run.score).padStart(6, '0');
+        run.advance(adjusted); for (const p of run.packets) if (!p.songDone && !p.done && !p.error && !p.applied && adjusted >= p.at) songNote(p, true);
+        reportPackets(); $('score').textContent = String(run.score).padStart(6, '0');
         const progress = Math.max(0, Math.min(100, beat / map.durationBeats * 100)); $('song-fill').style.width = `${progress}%`; root.querySelector('.song-progress').setAttribute('aria-valuenow', String(Math.round(progress)));
         $('combo').textContent = String(run.combo);
         const section = [...map.sections].reverse().find(s => s.beat <= beat);
