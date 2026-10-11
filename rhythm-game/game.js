@@ -45,8 +45,7 @@ export async function startGame(root, engine) {
     <section id="levels-page" class="page levels-page" aria-labelledby="levels-title" hidden><div class="page-heading"><button id="levels-home" class="back">← Home</button><div><div class="eyebrow">PLAY</div><h1 id="levels-title" tabindex="-1">Choose a level</h1></div></div><div class="level-layout"><div id="level-list" class="level-list" aria-label="Levels"></div><aside id="map-letter" class="level-detail"><div class="level-detail-content"><div class="eyebrow" id="level-difficulty">LEVEL DETAILS</div><h2 id="level-title">Twinkle, Twinkle, Little Star</h2><p id="level-description"></p><label class="field" hidden>MAP<select id="map-select" aria-label="Map"></select></label><label class="field">PHYSICAL QUBITS<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}" ${d === 4 ? 'selected' : ''}>${d} lanes · correct up to ${Math.floor((d - 1) / 2)} bit flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm"></span><span id="map-duration"></span><span id="map-notes"></span></div><div id="chart-preview" class="chart-preview" aria-label="Timing preview"></div><p class="small-note">Timing preview · taller marks indicate chords.</p></div><div class="level-detail-actions"><button id="play" class="primary" disabled>Preparing Qiskit…</button><button id="practice" class="subtle" disabled>Untimed practice</button></div></aside></div></section>
     <section id="learn-page" class="page learn-page" aria-labelledby="learn-title" hidden><div class="page-heading"><button id="learn-home" class="back">← Home</button><div><div class="eyebrow">LEARN</div><h1 id="learn-title" tabindex="-1">Quantum, one idea at a time</h1></div></div><div class="learn-layout"><nav id="lesson-tabs" class="lesson-tabs" aria-label="Lessons"></nav><article id="lesson-body" class="lesson-body"></article></div></section>
     <section id="settings-page" class="page settings-page" aria-labelledby="settings-title" hidden><div class="page-heading"><button id="settings-home" class="back">← Home</button><div><div class="eyebrow">SETTINGS</div><h1 id="settings-title" tabindex="-1">Make it comfortable</h1></div></div><div id="settings-body" class="settings-body"></div></section>
-    <aside id="backend-experiment" class="backend-experiment" hidden></aside>
-    <p id="load-status" class="runtime-status" role="status" aria-live="polite">Preparing the quantum experiment. Noisy simulators can take longer to start.</p>
+    <p id="load-status" class="runtime-status" role="status" aria-live="polite"><span id="load-status-text">Preparing the quantum experiment. Noisy simulators can take longer to start.</span> <button id="backend-experiment" class="backend-experiment" hidden>Live results ↗</button></p>
     <div id="practice-hint" class="practice-hint" hidden><span>✧</span><p id="practice-text">Read the clues, then catch the notes.</p><button id="practice-next" hidden>Continue [W]</button></div>
     <div class="bottom-note"><span>✧ This effort is supported by Qollab & IonQ</span><span id="bottom-status">Bit-flip repetition code · educational simulation</span></div>
     <div id="live" class="sr-only" role="status" aria-live="polite"></div>
@@ -123,7 +122,7 @@ export async function startGame(root, engine) {
   reducedPreference.addEventListener('change', e => { still = e.matches; feedback.reduced = still; main.dataset.reduced = String(still); if ($('static-mode')) $('static-mode').checked = still; });
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
-  function menuStatus(text) { $('load-status').textContent = text; }
+  function menuStatus(text) { $('load-status-text').textContent = text; }
   function experimentDetails() {
     const reference = engine.reference;
     if (!reference) return '';
@@ -393,7 +392,13 @@ export async function startGame(root, engine) {
   requestAnimationFrame(frame);
   try {
     const specs = allSpecs(); bank = makeBank(specs, await engine.run(specs));
-    if (engine.reference) { $('backend-experiment').innerHTML = experimentDetails(); $('backend-experiment').hidden = false; }
+    if (engine.reference) {
+      $('backend-experiment').hidden = false;
+      $('backend-experiment').onclick = () => {
+        showDialog(experimentDetails().replace('<h2>', '<h2 id="dialog-title">'), '<button id="close-experiment" class="primary">Back to game</button>');
+        $('close-experiment').onclick = closeDialog;
+      };
+    }
     $('play').disabled = $('practice').disabled = false; $('play').innerHTML = 'Play level <span>→</span>';
     menuStatus(engine.label); if (lessonIndex === 3) drawLab(); $('bottom-status').textContent = 'Bit-flip repetition code · educational simulation';
   } catch (error) { menuStatus(`Quantum setup failed: ${error.message}. On Qollab, select a free simulator and Run again.`); }

@@ -86,7 +86,7 @@ When you press **Run**, Qollab supplies your selected backend to `main.js`. The 
 
 The circuit starts with **seven qubits: four data + three ancillas**. Backend routing can add physical qubits or gates. The simulator's advertised qubit capacity is not the number of gameplay lanes.
 
-The **Live quantum recovery experiment** panel reports two separate measurements: how many shots restored this specific **|+⟩ input**, and how many produced the expected parity pattern. Ideal execution gives **64/64** for both. Noise can reduce either count. *This single-input experiment is not a general fidelity estimate or a test of every logical state.*
+Open **Live results ↗** to view the **Live quantum recovery experiment**. It reports two separate measurements: how many shots restored this specific **|+⟩ input**, and how many produced the expected parity pattern. Ideal execution gives **64/64** for both. Noise can reduce either count. *This single-input experiment is not a general fidelity estimate or a test of every logical state.*
 
 ### While you play
 
