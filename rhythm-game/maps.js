@@ -1,5 +1,5 @@
 import { LEVELS, parseTune } from './songs.js';
-import { beatToSeconds, secondsToBeat } from './timing.js';
+import { beatToSeconds } from './timing.js';
 import { COUNTS, seeded, weight, syndrome, decode } from './model.js';
 
 const mapRegistry = new Map();
@@ -90,151 +90,72 @@ export function getMap(id, d = 3) {
   const entry = mapRegistry.get(id); if (!entry) throw new Error('Unknown map.');
   return entry.fixed ? structuredClone(entry.fixed) : validateMap(entry.build(d));
 }
-// Minimum real-time breathing room between memory packets, how far apart the taps of a burst fall, how
-// often a multi-flip packet appears, and how many flips it may carry. Faster songs get more room, not less.
-const PACING = {
-  gentle:  { gap: 1.0,  burst: .5,  multiEvery: 4, maxFlips: 3 },
-  steady:  { gap: .95,  burst: .5,  multiEvery: 4, maxFlips: 3 },
-  fast:    { gap: 1.05, burst: .55, multiEvery: 6, maxFlips: 2 },
-  driving: { gap: 1.0,  burst: .55, multiEvery: 6, maxFlips: 2 },
-};
-function songMap(id, title, bpm, duration, density, d, extra = {}) {
-  const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
-  // The tune plays across the whole level. Every falling packet is snapped onto one note of it and "owns" that note:
-  // fixing the packet plays the note, a wrong flip plays an out-of-key note. Notes no packet owns are played by the backing track,
-  // so the melody never stops.
-  const tune = extra.tune ? parseTune(extra.tune) : null, onsets = [];
-  const sections = extra.sections ?? [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 0 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }];
-  if (tune) for (let loop = 0; loop * tune.length < duration; loop++) for (const n of tune.notes) if (loop * tune.length + n.at < duration) onsets.push({ at: loop * tune.length + n.at, n, taken: false });
-  // Pacing is set in real seconds, not beats, so a fast tempo (or a tempo climb) never crowds the player.
-  // A packet is only placed once the previous one has been finished for `gapSeconds`; phrase hits that
-  // land too soon are skipped, and the backing track plays their melody notes instead.
-  const timeline = { bpm, tempoChanges: extra.tempoChanges ?? [] }, pace = PACING[density] ?? PACING.steady;
-  // The same spacing at every qubit count keeps the packet pattern comparable between 3 and 7 qubits.
-  // A small tolerance stops a gap that lands exactly on a beat from flipping between "kept" and "skipped".
-  const maxFlips = Math.min(capacity, extra.maxFlips ?? pace.maxFlips), burstBeats = Math.min(1, Math.max(.5, Math.ceil(pace.burst * bpm / 60 * 4) / 4));
-  const floorBeat = () => secondsToBeat(timeline, beatToSeconds(timeline, lastEnd) + pace.gap - .04);
-  const claimNote = (beat, floor) => {
-    let best = null;
-    for (const o of onsets) if (!o.taken && o.at >= floor && o.at <= duration - 3 && Math.abs(o.at - beat) <= 1.25 && (!best || Math.abs(o.at - beat) < best.dist)) best = { o, dist: Math.abs(o.at - beat), snapped: true };
-    if (best) best.o.taken = true;
-    // No free note close enough: double the nearest melody note instead; the backing track keeps playing it.
-    else for (const o of onsets) if (!best || Math.abs(o.at - beat) < best.dist) best = { o, dist: Math.abs(o.at - beat), snapped: false };
-    return best;
-  };
-  const songFields = (o, owns) => {
-    const transpose = ([...sections].reverse().find(x => x.beat <= o.at) || sections[0]).transpose, midi = o.n.midi + transpose;
-    const key = new Set(tune.notes.map(x => (x.midi + transpose) % 12));
-    return { note: midi, noteBeats: o.n.dur, ...(owns ? { tuneBeat: o.at } : {}), wrongNote: [1, -1, 6, -2, 2].map(k => midi + k).find(m => !key.has(m % 12)) ?? midi + 1 };
-  };
-  let lastEnd = 0;
-  // Authored phrases repeat every eight beats; rests and syncopation vary by section.
-  const phrases = density === 'gentle' ? [[0, 2, 3.5, 6], [0, 1.5, 4, 6.5]]
-    : density === 'steady' ? [[0, 1, 2.5, 4, 6, 7], [0, 1.5, 3, 4.5, 6, 7]]
-    // 'driving' never gaps under one beat, so 150+ BPM songs still leave 300 ms between correction windows.
-    : density === 'driving' ? [[0, 1, 2, 3.5, 4.5, 5.5, 6.5], [0, 1, 2.5, 3.5, 4.5, 5.5, 7]]
-    : [[0, .75, 1.5, 3, 4, 4.75, 6, 7], [0, 1, 1.75, 3, 4.5, 5.25, 6, 7]];
-  let index = 0;
-  for (let bar = 4; bar < duration - 2; bar += 8) {
-    const phrase = phrases[Math.floor((bar - 4) / 8) % phrases.length];
-    for (let i = 0; i < phrase.length; i++, index++) {
-      let beat = bar + phrase[i]; if (beat >= duration - 2) break;
-      const gap = (phrase[i + 1] ?? 8) - phrase[i];
-      const count = index % 11 === 8 ? 0 : index > 3 && index % pace.multiEvery === pace.multiEvery - 1 ? maxFlips : 1;
-      const lanes = [];
-      while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
-      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5 && density !== 'driving';
-      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 && density !== 'driving' ? Math.min(1, gap - .75) : 0;
-      const claim = tune ? claimNote(beat, floorBeat()) : null;
-      if (claim?.snapped) beat = claim.o.at;
-      if (beat < floorBeat() - 1e-9) { if (claim?.snapped) claim.o.taken = false; continue; }
-      if (beat >= duration - 3) { if (claim?.snapped) claim.o.taken = false; break; }
-      const steps = burst ? lanes.map((lane, i) => ({ offset: i * burstBeats, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [];
-      events.push({ id: `p${index}`, beat, error: lanes, ...(claim ? songFields(claim.o, claim.snapped) : {}), steps });
-      lastEnd = beat + Math.max(0, ...steps.map(st => st.offset + (st.holdBeats || 0)));
-    }
-  }
-  return { version: 1, id, title, artist: extra.artist ?? 'CapyQuantum · original synthesized music', description: extra.description, bpm, qubits: d, durationBeats: duration,
-    tempoChanges: extra.tempoChanges ?? [],
-    events, sections, songMode: Boolean(tune),
-    music: { composer: `song-${id}`, gain: .72, offsetSeconds: 0 } };
-}
-
-
-
-// Level difficulty is a chart property, independent of soundtrack BPM. Later levels
-// demand more corrections per second, with chords/sequences introduced gradually.
-function progressiveMap(level, number, d) {
+// Charts are authored in musical beats. Seconds only validate safety; they never
+// invent a cue time or move it away from the soundtrack.
+function songMap(level, number, d) {
   const timeline = { bpm: level.bpm, tempoChanges: level.tempoChanges ?? [] };
-  const duration = beatToSeconds(timeline, level.beats);
-  const rate = [0, 0, .70, .90, 1.10, 1.32, 1.55, 1.80, 2.05, 2.30][number - 1];
-  const count = Math.floor(duration * rate);
-  const start = beatToSeconds(timeline, 4), end = beatToSeconds(timeline, level.beats - 3);
-  const minimumGap = [.80, .65, .52, .45, .38, .34, .31, .31][number - 3];
-  // Phrase shapes: clusters of quick corrections, syncopated pauses, and a
-  // longer breath at the phrase boundary. These replace uniform time spacing.
-  const phraseShapes = number < 6 ? [[0, .35, 0, 1.2, .4, 2.2], [.4, 0, 1.4, 0, .7, 1.8]]
-    : number < 9 ? [[0, 0, .3, 0, 1.4, 0, .35, 3.0], [0, .8, 0, .3, 0, 1.7, 0, 2.0]]
-    : [[0, 0, .25, 0, .5, 0, .25, 3.5], [0, .9, 0, 0, 2.2, 0, .4, 1.2], [0, 0, 0, 1.8, 0, .65, 0, 2.5]];
-  const weights = Array.from({length: count - 1}, (_, i) => {
-    const length = phraseShapes[0].length;
-    const shape = phraseShapes[Math.floor(i / length) % phraseShapes.length][i % length];
-    return shape * (number === 10 ? 1.5 - .8 * i / (count - 2) : 1);
-  });
-  const weightSum = weights.reduce((sum, value) => sum + value, 0);
-  const breathingRoom = end - start - minimumGap * (count - 1);
-  const slots = []; let at = start;
-  for (let i = 0; i < count; i++) {
-    if (i) at += minimumGap + breathingRoom * weights[i - 1] / weightSum;
-    // Snap to the musical eighth-beat grid. Short runs stay within the timing
-    // windows' safe separation rather than collapsing into overlapping packets.
-    let beat = Math.round(secondsToBeat(timeline, at) * 8) / 8;
-    if (i && beatToSeconds(timeline, beat) - slots[i - 1].at < minimumGap) {
-      beat = Math.ceil(secondsToBeat(timeline, slots[i - 1].at + minimumGap) * 8) / 8;
-    }
-    slots.push({ beat, at: beatToSeconds(timeline, beat) });
-  }
-  const tune = level.tune ? parseTune(level.tune) : null, onsets = [];
-  if (tune) for (let loop = 0; loop * tune.length < level.beats; loop++) for (const note of tune.notes) {
+  const tune = parseTune(level.tune), candidates = new Map();
+  for (let loop = 0; loop * tune.length < level.beats; loop++) for (const note of tune.notes) {
     const beat = loop * tune.length + note.at;
-    if (beat < level.beats) onsets.push({ ...note, beat, atSeconds: beatToSeconds(timeline, beat) });
+    if (beat >= 4 && beat < level.beats - 2) candidates.set(beat, { beat, note, anchor: 'melody' });
   }
-  // Move a cue to a nearby melody onset only when it keeps safe packet spacing.
-  const claimed = new Set();
-  for (let i = 0; i < slots.length; i++) {
-    const slot = slots[i], note = onsets.reduce((best, n) => !claimed.has(n.beat) && Math.abs(n.atSeconds - slot.at) < .14 && (!best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at)) ? n : best, null);
-    if (note && note.atSeconds - (slots[i - 1]?.at ?? 0) >= minimumGap && (slots[i + 1]?.at ?? duration) - note.atSeconds >= minimumGap) {
-      slot.beat = note.beat; slot.at = note.atSeconds; slot.owned = note; claimed.add(note.beat);
-    }
+  // Later charts also use the audible kick/hi-hat pulse. Melody cues take
+  // precedence when both instruments sound at exactly the same beat.
+  if (number >= 6) for (let beat = 4; beat < level.beats - 2; beat += number >= 9 ? .5 : 1) {
+    if (!candidates.has(beat)) candidates.set(beat, { beat, anchor: 'pulse' });
   }
+  const sections = level.sections ?? [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 0 }, { beat: level.beats - 12, label: 'Outro', intensity: .65, transpose: 0 }];
+  const minimumBeats = [2.5, 2, 2, 1.25, 1, 1, .75, .5, .5, .25][number - 1];
+  const multiEvery = number < 5 ? Infinity : [8, 6, 5, 4, 3, 2][number - 5];
   const random = seeded(20261011 + number * 101 + d), capacity = Math.floor((d - 1) / 2);
-  const multiEvery = number < 5 ? Infinity : [8, 7, 6, 4, 3, 2][number - 5];
+  const attacks = [...candidates.values()].sort((a,b)=>a.beat-b.beat);
+  const slots = []; let lastBeat = -Infinity;
+  for (const candidate of attacks) {
+    // Phrase boundaries retain occasional breaths. Keep the finale's last
+    // section dense; no seconds-based interpolation or nearest-note fallback.
+    const phrase = Math.floor(candidate.beat / (level.beatsPerBar ?? 4));
+    const rest = number >= 6 && !(number === 10 && candidate.beat >= 96) && phrase % 4 === 3 && candidate.beat % (level.beatsPerBar ?? 4) >= (level.beatsPerBar ?? 4) - 1;
+    if (rest || candidate.beat - lastBeat < minimumBeats - 1e-9) continue;
+    if (slots.length && beatToSeconds(timeline, candidate.beat) - beatToSeconds(timeline, lastBeat) < .301) continue;
+    slots.push(candidate); lastBeat = candidate.beat;
+  }
   const events = slots.map((slot, i) => {
     const flips = i % multiEvery === multiEvery - 1 ? Math.min(capacity, number >= 9 ? 3 : 2) : 1;
     const lanes = []; while (lanes.length < flips) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
-    const nextAt = slots[i + 1]?.at ?? duration;
-    const room = nextAt - slot.at - .32;
-    const burstSpan = .16 * (lanes.length - 1);
-    const burst = number >= 6 && lanes.length > 1 && Math.floor(i / multiEvery) % 2 === 1 && room > burstSpan;
-    let holdBeats = 0;
-    if (lanes.length === 1 && i % 10 === 3) {
-      const available = secondsToBeat(timeline, slot.at + Math.min(.65, room)) - slot.beat;
-      holdBeats = Math.floor(Math.min(1, available) * 4) / 4;
-      if (holdBeats < .5 || beatToSeconds(timeline, slot.beat + holdBeats) - slot.at < .3) holdBeats = 0;
+    const nextBeat = slots[i+1]?.beat ?? level.beats;
+    const at = beatToSeconds(timeline, slot.beat), nextAt = beatToSeconds(timeline, nextBeat);
+    // Sequence taps must also coincide with actual musical sounds, never a
+    // constant 160 ms offset. Only use a sequence when room remains afterwards.
+    const sequence = []; let sequenceAt = at;
+    for (const candidate of lanes.length > 1 ? attacks : []) {
+      const candidateAt = beatToSeconds(timeline,candidate.beat);
+      if (candidate.beat > slot.beat && candidate.beat-slot.beat <= 2 && candidate.beat < nextBeat && candidateAt-sequenceAt >= .085 && nextAt-candidateAt >= .301) {
+        sequence.push(candidate); sequenceAt=candidateAt;
+        if (sequence.length === lanes.length-1) break;
+      }
     }
-    const steps = burst ? lanes.map((lane, j) => ({ offset: j ? secondsToBeat(timeline, slot.at + j * .16) - slot.beat : 0, lanes: [lane] })) : [{ offset: 0, lanes, holdBeats }];
-    const note = slot.owned ?? onsets.reduce((best, n) => !best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at) ? n : best, null);
-    const melody = note ? { note: note.midi, noteBeats: note.dur, wrongNote: [1,-1,6,-2,2].map(k => note.midi+k).find(m => !tune.notes.some(n => n.midi % 12 === m % 12)) ?? note.midi+1, ...(slot.owned ? { tuneBeat: slot.beat } : {}) } : {};
-    return { id: `p${i}`, beat: slot.beat, error: lanes, steps, ...melody };
+    const burst = number >= 6 && lanes.length > 1 && Math.floor(i/multiEvery)%2 === 1 && sequence.length === lanes.length-1;
+    let holdBeats = 0;
+    if (lanes.length === 1 && slot.note?.dur >= 1 && i % 8 === 3) {
+      // Quarter-beat sustain tails share the music grid and stay inside the note.
+      for (let length = Math.min(2,slot.note.dur); length >= .5; length -= .25) {
+        const tail = beatToSeconds(timeline,slot.beat+length);
+        if (tail-at >= .3 && nextAt-tail >= .301) { holdBeats=length; break; }
+      }
+    }
+    const steps = burst ? lanes.map((lane,j)=>({offset:j ? sequence[j-1].beat-slot.beat : 0,lanes:[lane]})) : [{offset:0,lanes,holdBeats}];
+    const transpose = [...sections].reverse().find(section=>section.beat<=slot.beat).transpose;
+    const midi = (slot.note?.midi ?? level.bass[Math.floor(slot.beat/level.bassBeats)%level.bass.length]) + transpose;
+    const wrongNote = [1,-1,6,-2,2].map(k=>midi+k).find(m=>!tune.notes.some(n=>(n.midi+transpose)%12===m%12)) ?? midi+1;
+    return {id:`p${i}`,beat:slot.beat,error:lanes,steps,note:midi,wrongNote,noteBeats:slot.note?.dur??.5,
+      anchor:slot.anchor,...(slot.note ? {tuneBeat:slot.beat} : {})};
   });
-  const challenge = number === 10 ? 'Expert finale: rapid runs, offbeat corrections, and brief rests that tighten toward the finish. Wider lanes add frequent multi-flip chords.' : number < 5 ? 'Short rhythmic runs, changing gaps, and holds.' : number < 8 ? 'Quick bursts and offbeat phrases; wider lanes add chords and short sequences.' : 'Rapid streams interrupted by brief rests; wider lanes add frequent multi-flip challenges.';
-  return { version: 1, id: level.id, title: level.title, artist: level.artist, level: number,
-    description: `Level ${number} · ${challenge}`, bpm: level.bpm, qubits: d, durationBeats: level.beats,
-    tempoChanges: timeline.tempoChanges, events, songMode: Boolean(tune),
-    sections: level.sections ?? [{ beat: 0, label: 'Intro', intensity: .5 }, { beat: Math.floor(level.beats / 2), label: 'Build', intensity: .85 }],
-    music: { composer: `song-${level.id}`, gain: .72, offsetSeconds: 0 } };
+  const challenge = number === 10 ? 'Expert finale: follow the fate motif and accelerating beat. Wider lanes add frequent multi-flip chords.' : number < 5 ? 'Follow the melody, with room to read the checks.' : number < 8 ? 'Follow melody phrases and beat accents; wider lanes add chords.' : 'Dense melody and offbeat accents, with brief phrase breaks.';
+  return {version:1,id:level.id,title:level.title,artist:level.artist,level:number,
+    description:`Level ${number} · ${challenge}`,bpm:level.bpm,qubits:d,durationBeats:level.beats,
+    tempoChanges:timeline.tempoChanges,events,sections,songMode:true,
+    music:{composer:`song-${level.id}`,gain:.72,offsetSeconds:0,chartSynchronized:true}};
 }
 for (const [i, level] of LEVELS.entries()) mapRegistry.set(level.id, {
-  title: level.title, artist: level.artist,
-  build: d => i < 2 ? { ...songMap(level.id, level.title, level.bpm, level.beats, level.density, d, { ...level, maxFlips: 1 }), level: i + 1 } : progressiveMap(level, i + 1, d)
+  title:level.title,artist:level.artist,build:d=>songMap(level,i+1,d)
 });

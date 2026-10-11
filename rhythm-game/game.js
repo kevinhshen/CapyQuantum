@@ -59,7 +59,7 @@ export async function startGame(root, engine) {
   const feedback = new HitFeedback(highway, judgement, comboDisplay);
   let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
   const laneSources = new Map();
-  // Plays the packet's song note: the right pitch when it is repaired, an out-of-key pitch when it is not.
+  // Synchronized songs use unpitched feedback; practice demonstrates the note.
   function songNote(packet, ok) {
     if (!packet || packet.note == null) return false;
     music.songNote(ok ? packet.note : packet.wrongNote, packet.noteSeconds, ok);
@@ -89,7 +89,7 @@ export async function startGame(root, engine) {
       const result = run.results[reportedResults];
       if (!practice) {
         const packet = run.packets[reportedResults];
-        if (packet.note != null) { if (!packet.songDone && !music.bandCovered(packet.id)) songNote(packet, result.restored); packet.songDone = true; }
+        if (packet.note != null) { if (!map.music.chartSynchronized && !packet.songDone && !music.bandCovered(packet.id)) songNote(packet, result.restored); packet.songDone = true; }
         else music.memory(result.restored, reportedResults);
       }
       emit('packet-resolved', result);
@@ -291,7 +291,7 @@ export async function startGame(root, engine) {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
     if (!paused) { paused = true; pausedAt = performance.now(); feedback.pause(true); run.suspendHolds(); clearInputs(); await music.pause(); }
-    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>In the song levels, repair a memory to play its melody note. A wrong correction plays an out-of-key note. If you skip a note, the backing track plays it on time, but you still lose rhythm credit.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
+    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>The music keeps its rhythm while you play. Falling cues match melody notes or audible beat accents. Correct and incorrect presses give short sound feedback; missed cues lose rhythm credit without shifting the song.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
     ['A qubit', 'A bit is 0 or 1. A qubit can be in a superposition α|0⟩ + β|1⟩. Measuring it in the 0/1 basis gives one outcome, with probabilities |α|² and |β|².', 'A qubit does not reveal two readable answers at once. Quantum algorithms control amplitudes and interference before measurement.'],

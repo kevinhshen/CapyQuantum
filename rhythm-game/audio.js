@@ -23,7 +23,7 @@ function melodyPlayer(text) {
   return (tick, { tone, map, section }) => {
     const note = byTick.get(tick % loopTicks); if (!note) return;
     let owned = ownedNotes.get(map); if (!owned) ownedNotes.set(map, owned = new Set(map.events.filter(e => e.tuneBeat != null).map(e => Math.round(e.tuneBeat * 4))));
-    if (owned.has(tick)) return;
+    if (!map.music.chartSynchronized && owned.has(tick)) return;
     tone(midiHz(note.midi + section.transpose), Math.max(.09, (beatToSeconds(map, tick / 4 + note.dur) - beatToSeconds(map, tick / 4)) * .94), .075 * (.7 + .3 * section.intensity), 'triangle');
   };
 }
@@ -37,7 +37,7 @@ function tuneComposer(song) {
       const root = song.bass[Math.floor(lt / spanTicks) % song.bass.length] + section.transpose;
       tone(midiHz(root - 12), Math.min(Math.max(.1, secs(song.bassBeats) * .9), 1.6), .07, 'triangle');
     }
-    if (song.pulse ? tick % 4 === 0 : tick % barTicks === 0) tone(95, .15, .1 * (.6 + .4 * i), 'sine', 38);
+    if (song.pulse || map.music.chartSynchronized ? tick % 4 === 0 : tick % barTicks === 0) tone(95, .15, .1 * (.6 + .4 * i), 'sine', 38);
     if (tick % 4 === 2) noise(.03, .008 + .008 * i, 7000);
   };
 }
@@ -86,21 +86,30 @@ export class MusicTransport {
     } else this.external = false;
     this.melody = map.songMode ? [] : map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
     this.melodyIndex = 0;
-    // Every melody note a packet owns is silent until the player fixes it. If the player never touches the
-    // packet, the band plays that note itself, on time and in the same voice as the backing melody, so the tune never has a hole.
+    // Custom interactive composers can reserve melody notes for input. Built-in
+    // synchronized songs play the full backing melody without cancellable fills.
     this.fills = new Map(); this.fillSkip = new Set(); this.fillCovered = new Set(); this.fillIndex = 0;
-    this.fillQueue = map.events.filter(e => e.note != null && e.tuneBeat != null && e.error.length).map(e => {
+    this.fillQueue = map.events.filter(e => !map.music.chartSynchronized && e.note != null && e.tuneBeat != null && e.error.length).map(e => {
       const section = [...map.sections].reverse().find(s => s.beat <= e.tuneBeat) || map.sections[0];
       return { id: e.id, beat: e.tuneBeat, midi: e.note, seconds: Math.max(.09, (beatToSeconds(map, e.tuneBeat + (e.noteBeats || 1)) - beatToSeconds(map, e.tuneBeat)) * .94), gain: .075 * (.7 + .3 * section.intensity) };
     }).sort((a, b) => a.beat - b.beat);
     this.timer = setInterval(() => this.schedule(), 25); this.schedule();
   }
-  time() { return this.context.currentTime - this.origin - this.leadIn; }
+  time() {
+    if (this.paused && Number.isFinite(this.pausedTime)) return this.pausedTime;
+    let heardTime = this.context.currentTime;
+    const stamp = this.context.getOutputTimestamp?.();
+    if (stamp?.contextTime > 0 && stamp.performanceTime > 0) {
+      const elapsed = (performance.now() - stamp.performanceTime) / 1000;
+      if (elapsed >= 0 && elapsed < .25) heardTime = Math.min(heardTime, stamp.contextTime + elapsed);
+    }
+    return heardTime - this.origin - this.leadIn;
+  }
   schedule() {
     if (!this.running || this.paused) return;
     const limit = this.context.currentTime + .12;
     // A throttled timer resumes at the current tick, rather than playing a backlog.
-    this.tick = Math.max(this.tick, Math.floor(secondsToBeat(this.map, this.time()) * 4));
+    this.tick = Math.max(this.tick, Math.floor(secondsToBeat(this.map, this.context.currentTime - this.origin - this.leadIn) * 4));
     // A chart melody shares every authored correction time, including offbeats.
     while (!this.external && this.melodyIndex < this.melody.length) {
       const note = this.melody[this.melodyIndex], at = this.origin + this.leadIn + beatToSeconds(this.map, note.beat);
@@ -160,9 +169,10 @@ export class MusicTransport {
     if (!this.context || this.paused || this.muted || !this.effectsVolume || this.nodes.size >= 64) return;
     const source = this.context.createBufferSource(); source.buffer = this.tapBuffers[error ? 1 : 0]; source.connect(this.effectsBus); source.start(); this.track(source);
   }
-  memory(restored, index) { if (!this.running || this.paused || this.external || this.muted || !this.effectsVolume) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth', null, this.context.currentTime, this.effectsBus); }
+  memory(restored, index) { if (!this.running || this.paused || this.external || this.map?.music.chartSynchronized || this.muted || !this.effectsVolume) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth', null, this.context.currentTime, this.effectsBus); }
   songNote(midi, seconds, ok) {
     if (!this.context || this.paused || this.external || this.muted || !Number.isFinite(midi)) return;
+    if (this.running && this.map?.music.chartSynchronized) { this.tap(!ok); return; }
     if (ok) {
       // A repaired song note belongs to the melody; effects volume never mutes the tune.
       if (!this.musicVolume) return;
@@ -173,7 +183,7 @@ export class MusicTransport {
   errorTone() { this.tap(true); }
   hit(lane) {
     if (!this.context || this.paused || this.muted || !this.effectsVolume || this.nodes.size >= 64) return;
-    if (this.external) this.tap();
+    if (this.external || this.map?.music.chartSynchronized) this.tap();
     else this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][lane]), .16, .035, 'sine', null, this.context.currentTime, this.effectsBus);
   }
   updateGains() {
@@ -184,7 +194,7 @@ export class MusicTransport {
   }
   setVolumes(musicVolume, effectsVolume) { this.musicVolume = Math.max(0, Math.min(1, musicVolume)); this.effectsVolume = Math.max(0, Math.min(1, effectsVolume)); this.updateGains(); }
   setMuted(muted) { this.muted = muted; this.updateGains(); }
-  async pause() { this.paused = true; if (this.context) await this.context.suspend(); }
+  async pause() { this.pausedTime = this.context ? this.time() : 0; this.paused = true; if (this.context) await this.context.suspend(); }
   async resume() { if (this.context) await this.context.resume(); this.paused = false; }
   stop() { clearInterval(this.timer); this.running = false; for (const node of this.nodes) { try { node.stop(); } catch {} } this.nodes.clear(); }
 }

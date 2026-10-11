@@ -138,10 +138,12 @@ Before merging:
 
 This effort is supported by Qollab & IonQ
 
-## Built-in progression
+## Built-in progression and synchronization
 
-The catalog contains the ten synthesized melody lessons. The five CC0 recordings and the three original garden tracks are retired. All ten songs support 3–7 lanes. Levels 1 and 2 use single-flip packets at every lane count to keep the introductory steps easier than level 3.
+The catalog contains the ten synthesized melody lessons. The five CC0 recordings and the three original garden tracks are retired. All ten songs support 3–7 lanes.
 
-From level 3 onward, correction density increases at every level for the same lane count. Target packets per song second are 0.70, 0.90, 1.10, 1.32, 1.55, 1.80, 2.05, and 2.30. Symphony No. 5 has over three times the single-lane correction demand of level 3, ramps up toward its finish, and introduces frequent multi-flip chords at wider lane counts (up to three flips at seven lanes). The soundtrack retains its 148 → 160 → 172 → 184 BPM climb.
+Cue times come directly from the melody's beat positions, with audible kick/hi-hat accents added to later charts. Sequence taps use the same musical candidate positions. No elapsed-time interpolation, approximate nearest-note snapping, or artificial average note-rate target is used. A candidate that is too close for safe input is skipped rather than moved. Long melody notes can supply holds, whose tails remain on the musical grid.
 
-Charts alternate authored phrase shapes: short runs, syncopated gaps, and breathing space. The minimum run interval tightens from 800 ms in level 3 to 310 ms in levels 9–10 before musical-grid rounding; early levels remain slower. Phrases snap to the eighth-beat grid and nearby melody onsets when safe. Symphony No. 5 shortens its pauses toward the finale. The validator still requires 300 ms after the previous correction/hold tail. Early levels mix taps and holds; later levels emphasize rapid reading and corrections. Human difficulty still needs playtesting; these are measured chart-density targets rather than player skill ratings.
+Later charts select more musical accents and more multi-flip packets. Exact density depends on the tune, so it need not increase at every adjacent level. Symphony No. 5 remains a dense expert finale, with its 148 → 160 → 172 → 184 BPM climb, frequent multi-flip chords at wider lane counts, and fewer phrase rests in its final section. Synchronization takes priority over a prescribed average difficulty number.
+
+The backing tune runs independently of player input. Hit feedback is unpitched and on the effects bus; missed/wrong/early/late inputs cannot retime the melody. Untimed practice still demonstrates note pitches. Audio output timestamps align rendering/judgement to heard audio where supported, with AudioContext time as the fallback. Existing 300 ms packet separation, 85 ms same-lane sequence spacing, and hold rules still apply.

@@ -40,3 +40,5 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 - **Ten-song difficulty revision:** at the user's direction, Codex removed the five CC0 recordings from the active catalog, source assets, and runtime package, and widened levels 3–10 with increasing correction density, more frequent multi-flip charts, and an accelerating Symphony No. 5 finale. Earlier contribution notes above describe the integration history.
 
 - **Rhythmic phrase revision:** Codex replaced nearly uniform level 3–10 timing with alternating run/rest patterns, syncopated gaps, and faster clustered corrections, while preserving safe packet spacing, melody ownership, and the difficulty progression.
+
+- **Music synchronization revision:** Codex replaced time-spaced chart generation with exact melody/percussion onset selection, anchored sequence taps to musical beats, separated input feedback from backing melody playback, and used audio output timestamps for visual/input timing when supported. The previous average-density targets are superseded by synchronization.

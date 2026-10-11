@@ -82,7 +82,7 @@ For a hold, add `holdBeats` to a step: `{ offset: 0, lanes: [1], holdBeats: 2 }`
 
 ## Synthesized music and hooks
 
-`registerComposer` from `audio.js` receives a sixteenth-note tick and `{ at, context, map, section, tone, noise }`. `at` comes from the shared tempo timeline. Helpers connect to the controlled output so mute/pause/stop remain consistent. The default soundtrack also schedules a short melody at each authored correction time, making offbeats audible even when the player misses them.
+`registerComposer` from `audio.js` receives a sixteenth-note tick and `{ at, context, map, section, tone, noise }`. `at` comes from the shared tempo timeline. Helpers connect to the controlled output so mute/pause/stop remain consistent. Custom non-song charts can schedule a short melody at each correction. The ten built-in song charts set `music.chartSynchronized: true`: their cues select real melody/percussion onsets and the full backing melody plays independently of input. Correct/wrong presses use unpitched effects during play; practice can still demonstrate pitches.
 
 `window.QubitTempo` exposes `registerMap`, `registerComposer`, `maps`, `selectMap` (on Home/Levels), `state`, and `on(type, handler)`. Event types: `map-start`, `note-hit`, `note-miss`, `hold-complete`, `hold-break`, `wrong-correction`, `stray-input`, `packet-resolved`, `section-change`, and `map-end`. `note-miss` fires once per missed timing cue with `packetId` and `cueId`, and no solution lane. Recorded music uses unpitched effects automatically. These are developer hooks. Player controls do not expose content editing.
 

@@ -7,7 +7,7 @@ import { MusicTransport } from '../audio.js';
 import { beatToSeconds } from '../timing.js';
 const bank = {sample:(e,d)=>Array.from({length:d-1},(_,i)=>(e>>i&1)^(e>>(i+1)&1)),fidelity:(e,a)=>e===a?1:0};
 
-test('all ten songs validate, preserve melody ownership and recover at every lane count', () => {
+test('all ten songs validate, preserve melody pitches and recover at every lane count', () => {
   assert.equal(SONG_LEVELS.length,10);
   assert.deepEqual(listMaps().slice(0,10).map(x=>x.id),SONG_LEVELS.map(x=>x.id));
   for (const song of SONG_LEVELS) for (const d of [3,4,5,6,7]) {
@@ -50,21 +50,18 @@ test('melody and wrong-note feedback honor separate volumes, mute, pause and rec
 });
 
 
-test('ten-song campaign removes CC0 tracks and widens difficulty from level 3 at every lane count', () => {
-  assert.deepEqual(listMaps().map(x=>x.id),LEVELS.map(x=>x.id));
-  assert.equal(LEVELS.length,10);
+test('ten-song campaign keeps musical timing and an expert finale at every lane count', () => {
+  assert.deepEqual(listMaps().map(x=>x.id),LEVELS.map(x=>x.id));assert.equal(LEVELS.length,10);
   for(const id of ['cubed-loop','funked-up','oldskool-synth','mecha-march','chiptune-1234'])assert.throws(()=>getMap(id),/Unknown map/);
   for(const d of [3,4,5,6,7]) {
-    let previousRate=0,previousPackets=0,hasBurst=false,hasChord=false;
+    let hasBurst=false,hasChord=false;
     for(const [i,song] of LEVELS.entries()) {
       const map=getMap(song.id,d),run=new RhythmRun(map,bank);
-      assert.equal(map.level,i+1);assert.equal(map.qubits,d);
+      assert.equal(map.level,i+1);assert.equal(map.qubits,d);assert.equal(map.music.chartSynchronized,true);
       hasBurst ||= map.events.some(e=>e.steps.length>1);hasChord ||= map.events.some(e=>e.steps.some(s=>s.lanes.length>1));
       assert.equal(map.music.url,undefined);assert.equal(map.songMode,true);
-      const seconds=beatToSeconds(map,map.durationBeats),rate=run.notes.length/seconds,packets=map.events.length/seconds;
-      {assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
       for(const note of run.notes){assert.equal(run.press(note.lane,note.at).correct,true);if(note.holding)run.release(note.heldLane,note.endAt);}
-      run.advance(seconds+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
+      run.advance(beatToSeconds(map,map.durationBeats)+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
     }
     if(d>=5){assert.ok(hasBurst);assert.ok(hasChord);}
     const intro=new RhythmRun(getMap('row-boat',d),bank),finale=new RhythmRun(getMap('beethoven-fifth',d),bank);
@@ -75,26 +72,63 @@ test('ten-song campaign removes CC0 tracks and widens difficulty from level 3 at
   }
 });
 
-
-test('Symphony No. 5 grows denser toward its expert finish while remaining playable',()=>{
-  const map=getMap('beethoven-fifth',4),times=map.events.map(e=>beatToSeconds(map,e.beat));
-  const gaps=times.slice(1).map((t,i)=>t-times[i]);
-  const mean=xs=>xs.reduce((a,b)=>a+b,0)/xs.length;
-  assert.ok(mean(gaps.slice(-32))<mean(gaps.slice(0,32))*.9);
-  assert.ok(Math.min(...gaps)>=.3);
-  assert.ok(map.events.length>=100);
+test('every cue head and sequence step coincides with a melody or audible percussion onset',()=>{
+  for(const song of LEVELS) {
+    const map=getMap(song.id,7),tune=parseTune(song.tune);
+    for(const event of map.events) for(const step of event.steps) {
+      const beat=event.beat+step.offset,local=beat%tune.length;
+      const melody=tune.notes.find(n=>Math.abs(n.at-local)<1e-9);
+      const pulse=Math.abs(beat*2-Math.round(beat*2))<1e-9;
+      assert.ok(melody || pulse,`${song.id}: cue at ${beat} has no musical sound`);
+      assert.ok(Math.abs(beat*4-Math.round(beat*4))<1e-9);
+      if(event.anchor==='melody' && step.offset===0){assert.ok(melody);assert.equal(event.tuneBeat,beat);assert.equal(event.note,melody.midi);}
+    }
+  }
 });
 
-
-test('later charts alternate rapid runs and rests rather than uniform intervals',()=>{
-  for(const song of LEVELS.slice(2)) {
-    const map=getMap(song.id,4),times=map.events.map(e=>beatToSeconds(map,e.beat));
-    const gaps=times.slice(1).map((time,i)=>time-times[i]).sort((a,b)=>a-b);
-    const fast=gaps[Math.floor(gaps.length*.1)],slow=gaps[Math.floor(gaps.length*.9)];
-    assert.ok(slow>fast*1.5,`${song.id} lacks meaningful rhythmic contrast: ${slow}/${fast}`);
-    assert.ok(gaps[0]>=.3);
+test('backing melody sounds exactly at chart onsets even when cues are owned or missed',()=>{
+  for(const song of LEVELS) {
+    const map=getMap(song.id,7),run=new RhythmRun(map,bank);
+    for(const event of map.events.filter(e=>e.anchor==='melody')) {
+      const expected=beatToSeconds(map,event.beat),audio=new MusicTransport(),calls=[];
+      audio.context={currentTime:expected-.01};audio.map=map;audio.origin=0;audio.leadIn=0;
+      audio.running=true;audio.external=false;audio.tick=Math.round(event.beat*4);
+      audio.melody=[];audio.melodyIndex=0;audio.fillQueue=[];audio.fillIndex=0;
+      audio.noise=()=>{};audio.tone=(...args)=>{calls.push(args);return{}};
+      audio.schedule();
+      assert.ok(calls.some(args=>Math.abs(args[0]-440*2**((event.note-69)/12))<1e-9 && Math.abs(args[5]-expected)<1e-9),`${song.id} at ${event.beat}`);
+      assert.ok(run.cues.some(c=>Math.abs(c.at-expected)<1e-9));
+    }
   }
-  const finale=getMap('beethoven-fifth',4),gaps=finale.events.slice(1).map((e,i)=>beatToSeconds(finale,e.beat)-beatToSeconds(finale,finale.events[i].beat));
-  assert.ok(gaps.filter(g=>g<.37).length>gaps.length*.4);
-  assert.ok(gaps.some(g=>g>.65));
+});
+
+test('every musical cue including percussion and sequence taps has a sound at its exact hit time',()=>{
+  for(const song of LEVELS) {
+    const map=getMap(song.id,7);
+    for(const event of map.events) for(const step of event.steps) {
+      const beat=event.beat+step.offset,expected=beatToSeconds(map,beat),audio=new MusicTransport(),sounds=[];
+      audio.context={currentTime:expected-.01};audio.map=map;audio.origin=0;audio.leadIn=0;
+      audio.running=true;audio.external=false;audio.tick=Math.round(beat*4);
+      audio.melody=[];audio.melodyIndex=0;audio.fillQueue=[];audio.fillIndex=0;
+      audio.noise=(_duration,_gain,_frequency,at)=>sounds.push(at);
+      audio.tone=(...args)=>{sounds.push(args[5]);return{}};
+      audio.schedule();assert.ok(sounds.some(at=>Math.abs(at-expected)<1e-9),`${song.id}: no sound at ${beat}`);
+    }
+  }
+});
+
+test('Symphony No. 5 retains dense musical cues, phrase breaks, and its faster finish',()=>{
+  const map=getMap('beethoven-fifth',4),times=map.events.map(e=>beatToSeconds(map,e.beat));
+  const gaps=times.slice(1).map((t,i)=>t-times[i]),mean=xs=>xs.reduce((a,b)=>a+b,0)/xs.length;
+  assert.ok(mean(gaps.slice(-32))<mean(gaps.slice(0,32)));
+  assert.ok(Math.min(...gaps)>=.3);assert.ok(map.events.length>=100);
+  assert.ok(gaps.filter(g=>g<.37).length>gaps.length*.25);assert.ok(gaps.some(g=>g>.65));
+});
+
+test('visible/input clock tracks heard audio and freezes during pause',async()=>{
+  const audio=new MusicTransport();audio.origin=1;audio.leadIn=2;
+  audio.context={currentTime:10,async suspend(){},getOutputTimestamp:()=>({contextTime:9.9,performanceTime:performance.now()})};
+  assert.ok(Math.abs(audio.time()-6.9)<.01);
+  await audio.pause();const stopped=audio.time();audio.context.currentTime=11;assert.equal(audio.time(),stopped);
+  audio.context.getOutputTimestamp=()=>({contextTime:0,performanceTime:0});audio.paused=false;assert.equal(audio.time(),8);
 });

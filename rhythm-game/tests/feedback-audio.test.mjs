@@ -47,3 +47,16 @@ test('recorded music has unpitched hits and no recovery melody; effects routing 
     music.paused = true; music.hit(2); music.errorTone(); assert.equal(music.context.oscillators.length, 1);
   } finally { globalThis.window = original; }
 });
+
+
+test('synchronized songs keep early/late/wrong input feedback out of the backing melody', async()=>{
+  const original=globalThis.window;globalThis.window={AudioContext:FakeAudio};
+  try {
+    const music=new MusicTransport();await music.init();music.running=true;music.map={music:{chartSynchronized:true}};
+    for(const time of [.9,1.0,1.1]){music.context.currentTime=time;music.songNote(60,.5,true);music.songNote(61,.5,false);music.hit(1);music.memory(false,0);}
+    assert.equal(music.context.oscillators.length,0);
+    assert.equal(music.context.sources.length,9);
+    assert.ok(music.context.sources.every(source=>source.to===music.effectsBus));
+    music.running=false;music.songNote(60,.5,true);assert.equal(music.context.oscillators.length,2);
+  } finally {globalThis.window=original;}
+});
