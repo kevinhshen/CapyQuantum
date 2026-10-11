@@ -36,3 +36,5 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 - **More music (CC0, credited anyway):** "Funked Up" by Joth (https://opengameart.org/content/funked-up), "Oldskool (CC0)" by Of Far Different Nature (https://opengameart.org/node/107451), and "Loop" by cubedcanada (https://opengameart.org/node/88983). Transcoded to 64 kbps mono AAC; BPM/offset estimated automatically, so verify by ear.
 
 - **Progressive charts:** Codex integrated the five recorded tracks into the shared 15-level catalog, replaced the original garden tracks, and authored increasing correction density from level 3 onward. Recorded BPM/offset estimates retain the teammate's values and still require listening/playtesting.
+
+- **Ten-song difficulty revision:** at the user's direction, Codex removed the five CC0 recordings from the active catalog, source assets, and runtime package, and widened levels 3–10 with increasing correction density, more frequent multi-flip charts, and an accelerating Symphony No. 5 finale. Earlier contribution notes above describe the integration history.

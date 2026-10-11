@@ -343,20 +343,8 @@ const SONG_LEVELS = [
     sections: [{ beat: 0, label: 'Fate Motif', intensity: .75, transpose: 0 }, { beat: 32, label: 'Relentless', intensity: .85, transpose: 0 }, { beat: 64, label: 'Fortissimo', intensity: .95, transpose: 0 }, { beat: 96, label: 'Finale', intensity: 1, transpose: 0 }] }
 ];
 
-// Recorded tracks contributed on add-cc0-songs, ordered after the ten melody lessons.
-const RECORDED_LEVELS = [
-  { id: 'cubed-loop', title: 'Loop', artist: 'Cubed Canada', bpm: 66, beats: 100, file: 'cubed-loop.m4a', offset: .01,
-    credit: '"Loop" by cubedcanada, CC0 (opengameart.org/node/88983)' },
-  { id: 'funked-up', title: 'Funked Up', artist: 'Joth', bpm: 87, beats: 92, file: 'funked-up.m4a', offset: .07,
-    credit: '"Funked Up" by Joth, CC0 (opengameart.org/content/funked-up)' },
-  { id: 'oldskool-synth', title: 'Oldskool', artist: 'Of Far Different Nature', bpm: 120, beats: 58, file: 'oldskool.m4a', offset: .02,
-    credit: '"Oldskool (CC0)" by Of Far Different Nature, CC0 (opengameart.org/node/107451)' },
-  { id: 'mecha-march', title: 'Mecha Collection', artist: 'Jonathan So', bpm: 120, beats: 112, file: 'mecha-collection.m4a', offset: .07,
-    credit: '"Mecha Collection" by Jonathan So, CC0 (opengameart.org/content/mecha-collection)' },
-  { id: 'chiptune-1234', title: '1-2-3-4 (Chiptune)', artist: 'Pro Sensory', bpm: 167, beats: 168, file: 'one-two-three-four.m4a', offset: 0,
-    credit: '"1-2-3-4 (Chiptune)" by Pro Sensory, CC0 (opengameart.org/content/1-2-3-4-chiptune)' },
-];
-const LEVELS = [...SONG_LEVELS, ...RECORDED_LEVELS];
+// Shared catalog for the ten synthesized song levels.
+const LEVELS = SONG_LEVELS;
 
 
 const mapRegistry = new Map();
@@ -469,7 +457,7 @@ function songMap(id, title, bpm, duration, density, d, extra = {}) {
   const timeline = { bpm, tempoChanges: extra.tempoChanges ?? [] }, pace = PACING[density] ?? PACING.steady;
   // The same spacing at every qubit count keeps the packet pattern comparable between 3 and 7 qubits.
   // A small tolerance stops a gap that lands exactly on a beat from flipping between "kept" and "skipped".
-  const maxFlips = Math.min(capacity, pace.maxFlips), burstBeats = Math.min(1, Math.max(.5, Math.ceil(pace.burst * bpm / 60 * 4) / 4));
+  const maxFlips = Math.min(capacity, extra.maxFlips ?? pace.maxFlips), burstBeats = Math.min(1, Math.max(.5, Math.ceil(pace.burst * bpm / 60 * 4) / 4));
   const floorBeat = () => secondsToBeat(timeline, beatToSeconds(timeline, lastEnd) + pace.gap - .04);
   const claimNote = (beat, floor) => {
     let best = null;
@@ -524,14 +512,21 @@ function songMap(id, title, bpm, duration, density, d, extra = {}) {
 function progressiveMap(level, number, d) {
   const timeline = { bpm: level.bpm, tempoChanges: level.tempoChanges ?? [] };
   const duration = beatToSeconds(timeline, level.beats);
-  const rate = .55 + (number - 3) * .08;
+  const rate = [0, 0, .70, .90, 1.10, 1.32, 1.55, 1.80, 2.05, 2.30][number - 1];
   const count = Math.floor(duration * rate);
   const start = beatToSeconds(timeline, 4), end = beatToSeconds(timeline, level.beats - 3);
-  const slots = Array.from({ length: count }, (_, i) => {
-    // Eighth-beat grid keeps recorded charts rhythmic even when their tempo is slow.
-    const beat = Math.round(secondsToBeat(timeline, start + (end - start) * (i + (i && i < count - 1 ? [0, .12, -.12, .06][i % 4] : 0)) / (count - 1)) * 8) / 8;
-    return { beat, at: beatToSeconds(timeline, beat) };
-  });
+  const slots = [];
+  for (let i = 0; i < count; i++) {
+    const variation = i && i < count - 1 ? [0, .08, -.08, .04][i % 4] : 0;
+    // The finale ramps up inside the song as well as between levels.
+    const progress = ((i + variation) / (count - 1)) ** (number === 10 ? .9 : 1);
+    let beat = Math.round(secondsToBeat(timeline, start + (end - start) * progress) * 8) / 8;
+    // Dense charts retain the minimum reading interval, including grid rounding.
+    if (i && beatToSeconds(timeline, beat) - slots[i - 1].at < .34) {
+      beat = Math.ceil(secondsToBeat(timeline, slots[i - 1].at + .34) * 8) / 8;
+    }
+    slots.push({ beat, at: beatToSeconds(timeline, beat) });
+  }
   const tune = level.tune ? parseTune(level.tune) : null, onsets = [];
   if (tune) for (let loop = 0; loop * tune.length < level.beats; loop++) for (const note of tune.notes) {
     const beat = loop * tune.length + note.at;
@@ -546,9 +541,9 @@ function progressiveMap(level, number, d) {
     }
   }
   const random = seeded(20261011 + number * 101 + d), capacity = Math.floor((d - 1) / 2);
-  const multiEvery = number < 5 ? Infinity : Math.max(4, 10 - Math.floor((number - 5) / 2));
+  const multiEvery = number < 5 ? Infinity : [8, 7, 6, 4, 3, 2][number - 5];
   const events = slots.map((slot, i) => {
-    const flips = i % multiEvery === multiEvery - 1 ? Math.min(capacity, number >= 11 ? 3 : 2) : 1;
+    const flips = i % multiEvery === multiEvery - 1 ? Math.min(capacity, number >= 9 ? 3 : 2) : 1;
     const lanes = []; while (lanes.length < flips) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
     const nextAt = slots[i + 1]?.at ?? duration;
     const room = nextAt - slot.at - .32;
@@ -565,16 +560,16 @@ function progressiveMap(level, number, d) {
     const melody = note ? { note: note.midi, noteBeats: note.dur, wrongNote: [1,-1,6,-2,2].map(k => note.midi+k).find(m => !tune.notes.some(n => n.midi % 12 === m % 12)) ?? note.midi+1, ...(slot.owned ? { tuneBeat: slot.beat } : {}) } : {};
     return { id: `p${i}`, beat: slot.beat, error: lanes, steps, ...melody };
   });
-  const challenge = number < 5 ? 'Steady corrections with short holds.' : number < 8 ? 'More frequent corrections; wider lane counts introduce chords and short sequences.' : number < 11 ? 'Quicker corrections, changing rhythms, and less time to read each check.' : 'Dense, rapid corrections; wider lane counts add multi-flip challenges.';
+  const challenge = number === 10 ? 'Expert finale: relentless corrections that accelerate toward the finish. Wider lanes demand frequent multi-flip chords.' : number < 5 ? 'Steady corrections with short holds.' : number < 8 ? 'Faster corrections; wider lane counts introduce chords and short sequences.' : 'Very fast corrections and frequent multi-flip challenges on wider lanes.';
   return { version: 1, id: level.id, title: level.title, artist: level.artist, level: number,
     description: `Level ${number} · ${challenge}`, bpm: level.bpm, qubits: d, durationBeats: level.beats,
     tempoChanges: timeline.tempoChanges, events, songMode: Boolean(tune),
     sections: level.sections ?? [{ beat: 0, label: 'Intro', intensity: .5 }, { beat: Math.floor(level.beats / 2), label: 'Build', intensity: .85 }],
-    music: level.file ? { url: `./music/${level.file}`, credit: level.credit, offsetSeconds: level.offset, gain: .7 } : { composer: `song-${level.id}`, gain: .72, offsetSeconds: 0 } };
+    music: { composer: `song-${level.id}`, gain: .72, offsetSeconds: 0 } };
 }
 for (const [i, level] of LEVELS.entries()) mapRegistry.set(level.id, {
   title: level.title, artist: level.artist,
-  build: d => i < 2 ? { ...songMap(level.id, level.title, level.bpm, level.beats, level.density, d, level), level: i + 1 } : progressiveMap(level, i + 1, d)
+  build: d => i < 2 ? { ...songMap(level.id, level.title, level.bpm, level.beats, level.density, d, { ...level, maxFlips: 1 }), level: i + 1 } : progressiveMap(level, i + 1, d)
 });
 
 // Timing cues do not reveal correction lanes. Players decode parity themselves.

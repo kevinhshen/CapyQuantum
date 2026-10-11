@@ -140,8 +140,8 @@ This effort is supported by Qollab & IonQ
 
 ## Built-in progression
 
-The catalog contains ten synthesized melody lessons followed by five CC0 recordings: Loop, Funked Up, Oldskool, Mecha Collection, and 1-2-3-4 (Chiptune). Morning dew, Lantern glow, and Firefly rush are retired. All fifteen songs support 3–7 lanes.
+The catalog contains the ten synthesized melody lessons. The five CC0 recordings and the three original garden tracks are retired. All ten songs support 3–7 lanes. Levels 1 and 2 use single-flip packets at every lane count to keep the introductory steps easier than level 3.
 
-From level 3 onward, each chart has a strictly higher number of correction packets and key presses per song second than its predecessor at the same lane count. The target packet rate starts at 0.55 per second and increases by 0.08 for each level, with eighth-beat timing, small rhythmic variations, short holds, and gradually introduced multi-flip chords/sequences. Soundtrack BPM stays unchanged. Tempo conversion and the existing 300 ms packet separation rules still apply.
+From level 3 onward, correction density increases at every level for the same lane count. Target packets per song second are 0.70, 0.90, 1.10, 1.32, 1.55, 1.80, 2.05, and 2.30. Symphony No. 5 has over three times the single-lane correction demand of level 3, ramps up toward its finish, and introduces frequent multi-flip chords at wider lane counts (up to three flips at seven lanes). The soundtrack retains its 148 → 160 → 172 → 184 BPM climb.
 
-This is a measured chart-density progression, not proof that every player will find each song harder. Wider lane counts add reading and multi-key demand. Recorded track BPM and offsets came from the contributing branch's automatic estimates; validate alignment by listening before publication.
+Grid rounding preserves at least 340 ms between packet heads, and the existing validator still requires 300 ms after the previous correction/hold tail. Early levels mix taps and holds; later levels emphasize rapid reading and corrections. Human difficulty still needs playtesting; these are measured chart-density targets rather than player skill ratings.

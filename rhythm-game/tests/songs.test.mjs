@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SONG_LEVELS, LEVELS, RECORDED_LEVELS, parseTune } from '../songs.js';
+import { SONG_LEVELS, LEVELS, parseTune } from '../songs.js';
 import { getMap, listMaps } from '../maps.js';
 import { RhythmRun } from '../rhythm.js';
 import { MusicTransport } from '../audio.js';
@@ -50,21 +50,37 @@ test('melody and wrong-note feedback honor separate volumes, mute, pause and rec
 });
 
 
-test('15 levels retain five CC0 recordings and increase correction density from level 3 at every lane count', () => {
+test('ten-song campaign removes CC0 tracks and widens difficulty from level 3 at every lane count', () => {
   assert.deepEqual(listMaps().map(x=>x.id),LEVELS.map(x=>x.id));
-  assert.equal(LEVELS.length,15);assert.equal(RECORDED_LEVELS.length,5);
+  assert.equal(LEVELS.length,10);
+  for(const id of ['cubed-loop','funked-up','oldskool-synth','mecha-march','chiptune-1234'])assert.throws(()=>getMap(id),/Unknown map/);
   for(const d of [3,4,5,6,7]) {
     let previousRate=0,previousPackets=0,hasBurst=false,hasChord=false;
     for(const [i,song] of LEVELS.entries()) {
       const map=getMap(song.id,d),run=new RhythmRun(map,bank);
       assert.equal(map.level,i+1);assert.equal(map.qubits,d);
       hasBurst ||= map.events.some(e=>e.steps.length>1);hasChord ||= map.events.some(e=>e.steps.some(s=>s.lanes.length>1));
-      if(song.file){assert.equal(map.music.url,`./music/${song.file}`);assert.match(map.music.credit,/CC0/);assert.equal(map.songMode,false);}
+      assert.equal(map.music.url,undefined);assert.equal(map.songMode,true);
       const seconds=beatToSeconds(map,map.durationBeats),rate=run.notes.length/seconds,packets=map.events.length/seconds;
-      if(i>=2){assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
+      if(i>=0){assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
       for(const note of run.notes){assert.equal(run.press(note.lane,note.at).correct,true);if(note.holding)run.release(note.heldLane,note.endAt);}
       run.advance(seconds+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
     }
     if(d>=5){assert.ok(hasBurst);assert.ok(hasChord);}
+    const intro=new RhythmRun(getMap('row-boat',d),bank),finale=new RhythmRun(getMap('beethoven-fifth',d),bank);
+    const introRate=intro.notes.length/beatToSeconds(intro.map,intro.map.durationBeats),finaleRate=finale.notes.length/beatToSeconds(finale.map,finale.map.durationBeats);
+    assert.ok(finaleRate>introRate*3);assert.ok(finaleRate>2.2);
+    if(d>=5)assert.ok(finale.packets.filter(p=>p.notes.length>1).length/finale.packets.length>.4);
+    if(d===7)assert.ok(finale.packets.some(p=>p.notes.length===3));
   }
+});
+
+
+test('Symphony No. 5 grows denser toward its expert finish while remaining playable',()=>{
+  const map=getMap('beethoven-fifth',4),times=map.events.map(e=>beatToSeconds(map,e.beat));
+  const gaps=times.slice(1).map((t,i)=>t-times[i]);
+  const mean=xs=>xs.reduce((a,b)=>a+b,0)/xs.length;
+  assert.ok(mean(gaps.slice(-20))<mean(gaps.slice(0,20))*.9);
+  assert.ok(Math.min(...gaps)>=.3);
+  assert.ok(map.events.length>=100);
 });
