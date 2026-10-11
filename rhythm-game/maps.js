@@ -170,15 +170,27 @@ function progressiveMap(level, number, d) {
   const rate = [0, 0, .70, .90, 1.10, 1.32, 1.55, 1.80, 2.05, 2.30][number - 1];
   const count = Math.floor(duration * rate);
   const start = beatToSeconds(timeline, 4), end = beatToSeconds(timeline, level.beats - 3);
-  const slots = [];
+  const minimumGap = [.80, .65, .52, .45, .38, .34, .31, .31][number - 3];
+  // Phrase shapes: clusters of quick corrections, syncopated pauses, and a
+  // longer breath at the phrase boundary. These replace uniform time spacing.
+  const phraseShapes = number < 6 ? [[0, .35, 0, 1.2, .4, 2.2], [.4, 0, 1.4, 0, .7, 1.8]]
+    : number < 9 ? [[0, 0, .3, 0, 1.4, 0, .35, 3.0], [0, .8, 0, .3, 0, 1.7, 0, 2.0]]
+    : [[0, 0, .25, 0, .5, 0, .25, 3.5], [0, .9, 0, 0, 2.2, 0, .4, 1.2], [0, 0, 0, 1.8, 0, .65, 0, 2.5]];
+  const weights = Array.from({length: count - 1}, (_, i) => {
+    const length = phraseShapes[0].length;
+    const shape = phraseShapes[Math.floor(i / length) % phraseShapes.length][i % length];
+    return shape * (number === 10 ? 1.5 - .8 * i / (count - 2) : 1);
+  });
+  const weightSum = weights.reduce((sum, value) => sum + value, 0);
+  const breathingRoom = end - start - minimumGap * (count - 1);
+  const slots = []; let at = start;
   for (let i = 0; i < count; i++) {
-    const variation = i && i < count - 1 ? [0, .08, -.08, .04][i % 4] : 0;
-    // The finale ramps up inside the song as well as between levels.
-    const progress = ((i + variation) / (count - 1)) ** (number === 10 ? .9 : 1);
-    let beat = Math.round(secondsToBeat(timeline, start + (end - start) * progress) * 8) / 8;
-    // Dense charts retain the minimum reading interval, including grid rounding.
-    if (i && beatToSeconds(timeline, beat) - slots[i - 1].at < .34) {
-      beat = Math.ceil(secondsToBeat(timeline, slots[i - 1].at + .34) * 8) / 8;
+    if (i) at += minimumGap + breathingRoom * weights[i - 1] / weightSum;
+    // Snap to the musical eighth-beat grid. Short runs stay within the timing
+    // windows' safe separation rather than collapsing into overlapping packets.
+    let beat = Math.round(secondsToBeat(timeline, at) * 8) / 8;
+    if (i && beatToSeconds(timeline, beat) - slots[i - 1].at < minimumGap) {
+      beat = Math.ceil(secondsToBeat(timeline, slots[i - 1].at + minimumGap) * 8) / 8;
     }
     slots.push({ beat, at: beatToSeconds(timeline, beat) });
   }
@@ -190,8 +202,8 @@ function progressiveMap(level, number, d) {
   // Move a cue to a nearby melody onset only when it keeps safe packet spacing.
   const claimed = new Set();
   for (let i = 0; i < slots.length; i++) {
-    const slot = slots[i], note = onsets.reduce((best, n) => !claimed.has(n.beat) && Math.abs(n.atSeconds - slot.at) < .06 && (!best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at)) ? n : best, null);
-    if (note && note.atSeconds - (slots[i - 1]?.at ?? 0) >= .34 && (slots[i + 1]?.at ?? duration) - note.atSeconds >= .34) {
+    const slot = slots[i], note = onsets.reduce((best, n) => !claimed.has(n.beat) && Math.abs(n.atSeconds - slot.at) < .14 && (!best || Math.abs(n.atSeconds - slot.at) < Math.abs(best.atSeconds - slot.at)) ? n : best, null);
+    if (note && note.atSeconds - (slots[i - 1]?.at ?? 0) >= minimumGap && (slots[i + 1]?.at ?? duration) - note.atSeconds >= minimumGap) {
       slot.beat = note.beat; slot.at = note.atSeconds; slot.owned = note; claimed.add(note.beat);
     }
   }
@@ -215,7 +227,7 @@ function progressiveMap(level, number, d) {
     const melody = note ? { note: note.midi, noteBeats: note.dur, wrongNote: [1,-1,6,-2,2].map(k => note.midi+k).find(m => !tune.notes.some(n => n.midi % 12 === m % 12)) ?? note.midi+1, ...(slot.owned ? { tuneBeat: slot.beat } : {}) } : {};
     return { id: `p${i}`, beat: slot.beat, error: lanes, steps, ...melody };
   });
-  const challenge = number === 10 ? 'Expert finale: relentless corrections that accelerate toward the finish. Wider lanes demand frequent multi-flip chords.' : number < 5 ? 'Steady corrections with short holds.' : number < 8 ? 'Faster corrections; wider lane counts introduce chords and short sequences.' : 'Very fast corrections and frequent multi-flip challenges on wider lanes.';
+  const challenge = number === 10 ? 'Expert finale: rapid runs, offbeat corrections, and brief rests that tighten toward the finish. Wider lanes add frequent multi-flip chords.' : number < 5 ? 'Short rhythmic runs, changing gaps, and holds.' : number < 8 ? 'Quick bursts and offbeat phrases; wider lanes add chords and short sequences.' : 'Rapid streams interrupted by brief rests; wider lanes add frequent multi-flip challenges.';
   return { version: 1, id: level.id, title: level.title, artist: level.artist, level: number,
     description: `Level ${number} · ${challenge}`, bpm: level.bpm, qubits: d, durationBeats: level.beats,
     tempoChanges: timeline.tempoChanges, events, songMode: Boolean(tune),

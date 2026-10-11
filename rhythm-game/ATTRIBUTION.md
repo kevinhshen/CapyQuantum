@@ -38,3 +38,5 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 - **Progressive charts:** Codex integrated the five recorded tracks into the shared 15-level catalog, replaced the original garden tracks, and authored increasing correction density from level 3 onward. Recorded BPM/offset estimates retain the teammate's values and still require listening/playtesting.
 
 - **Ten-song difficulty revision:** at the user's direction, Codex removed the five CC0 recordings from the active catalog, source assets, and runtime package, and widened levels 3–10 with increasing correction density, more frequent multi-flip charts, and an accelerating Symphony No. 5 finale. Earlier contribution notes above describe the integration history.
+
+- **Rhythmic phrase revision:** Codex replaced nearly uniform level 3–10 timing with alternating run/rest patterns, syncopated gaps, and faster clustered corrections, while preserving safe packet spacing, melody ownership, and the difficulty progression.

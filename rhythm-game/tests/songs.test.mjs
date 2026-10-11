@@ -62,7 +62,7 @@ test('ten-song campaign removes CC0 tracks and widens difficulty from level 3 at
       hasBurst ||= map.events.some(e=>e.steps.length>1);hasChord ||= map.events.some(e=>e.steps.some(s=>s.lanes.length>1));
       assert.equal(map.music.url,undefined);assert.equal(map.songMode,true);
       const seconds=beatToSeconds(map,map.durationBeats),rate=run.notes.length/seconds,packets=map.events.length/seconds;
-      if(i>=0){assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
+      {assert.ok(rate>previousRate,`${d} lanes, level ${i+1}: ${rate} <= ${previousRate}`);assert.ok(packets>previousPackets);previousRate=rate;previousPackets=packets;}
       for(const note of run.notes){assert.equal(run.press(note.lane,note.at).correct,true);if(note.holding)run.release(note.heldLane,note.endAt);}
       run.advance(seconds+1);assert.equal(run.summary().grade,'S');assert.equal(run.summary().restored,map.events.length);
     }
@@ -80,7 +80,21 @@ test('Symphony No. 5 grows denser toward its expert finish while remaining playa
   const map=getMap('beethoven-fifth',4),times=map.events.map(e=>beatToSeconds(map,e.beat));
   const gaps=times.slice(1).map((t,i)=>t-times[i]);
   const mean=xs=>xs.reduce((a,b)=>a+b,0)/xs.length;
-  assert.ok(mean(gaps.slice(-20))<mean(gaps.slice(0,20))*.9);
+  assert.ok(mean(gaps.slice(-32))<mean(gaps.slice(0,32))*.9);
   assert.ok(Math.min(...gaps)>=.3);
   assert.ok(map.events.length>=100);
+});
+
+
+test('later charts alternate rapid runs and rests rather than uniform intervals',()=>{
+  for(const song of LEVELS.slice(2)) {
+    const map=getMap(song.id,4),times=map.events.map(e=>beatToSeconds(map,e.beat));
+    const gaps=times.slice(1).map((time,i)=>time-times[i]).sort((a,b)=>a-b);
+    const fast=gaps[Math.floor(gaps.length*.1)],slow=gaps[Math.floor(gaps.length*.9)];
+    assert.ok(slow>fast*1.5,`${song.id} lacks meaningful rhythmic contrast: ${slow}/${fast}`);
+    assert.ok(gaps[0]>=.3);
+  }
+  const finale=getMap('beethoven-fifth',4),gaps=finale.events.slice(1).map((e,i)=>beatToSeconds(finale,e.beat)-beatToSeconds(finale,finale.events[i].beat));
+  assert.ok(gaps.filter(g=>g<.37).length>gaps.length*.4);
+  assert.ok(gaps.some(g=>g>.65));
 });
