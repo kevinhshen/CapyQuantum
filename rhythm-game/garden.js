@@ -77,12 +77,14 @@ export class TempoGarden {
       c.beginPath(); c.moveTo(0, h * .63); c.lineTo(w, h * .63); c.stroke();
     }
     if (reduced) { this.particles = []; return; }
-    this.particles = this.particles.filter(p => p.life > 0);
+    let alive = 0;
     for (const p of this.particles) {
+      if (p.life <= 0) continue;
+      this.particles[alive++] = p;
       p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
       c.globalAlpha = Math.max(0, p.life / .65); c.strokeStyle = p.lane % 2 ? '#82d2dc' : '#dceb55';
       c.beginPath(); c.moveTo(p.x - 3, p.y); c.lineTo(p.x + 3, p.y); c.moveTo(p.x, p.y - 3); c.lineTo(p.x, p.y + 3); c.stroke();
     }
-    c.globalAlpha = 1;
+    this.particles.length = alive; c.globalAlpha = 1;
   }
 }

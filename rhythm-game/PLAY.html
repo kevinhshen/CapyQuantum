@@ -3,7 +3,7 @@
   font-family:'Avenir Next',Avenir,system-ui,sans-serif;
   color:#e8edf2;background:#070b12;font-synthesis:none;color-scheme:dark;
   --ink:#e8edf2;--muted:#a1aebb;--cream:#0d151f;--green:#dceb55;
-  --line:#344252;--peach:#ff8b9c;--accent:#dceb55;--cyan:#82d2dc;
+  --line:#344252;--peach:#ff8b9c;--danger:#ff8b9c;--accent:#dceb55;--cyan:#82d2dc;
   --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
 }
 *{box-sizing:border-box}body{margin:0}button,select,input{font:inherit;color:inherit}
@@ -77,7 +77,6 @@ h1{font-size:38px;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}h2{font
 .count-in{position:absolute;top:34%;width:100%;text-align:center;font:80px var(--mono);color:var(--accent);pointer-events:none}.deck-caption{position:absolute;bottom:0;width:100%;display:flex;justify-content:space-between;gap:10px;font:9px var(--mono);color:var(--muted)}
 .practice-hint{position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:6;background:#101b28fa;border:1px solid #5d7285;border-left:3px solid var(--accent);border-radius:0;padding:12px 18px;max-width:90vw;display:flex;align-items:center;gap:12px;width:max-content}.practice-hint>span{color:var(--accent);font-size:24px}.practice-hint p{font-size:11px;line-height:1.6;max-width:370px;margin:0;color:#c5d1dc}.practice-hint button{padding:10px;white-space:nowrap;font-size:11px}.garden-game[data-state=practice] .deck{top:210px}
 .hold-packet{isolation:isolate;border:2px solid #87acbd}.hold-body{position:absolute;bottom:26px;left:3%;right:3%;z-index:-1;border:1px solid #658ca1;border-radius:0;background:repeating-linear-gradient(0deg,#172e43ed 0 22px,#496d87ed 22px 24px);pointer-events:none;overflow:hidden;min-height:0}.hold-body span{display:block;text-align:center;font:10px var(--mono);letter-spacing:2px;color:#c8dce8;padding:8px}.hold-packet.sustaining{border-color:var(--accent);box-shadow:0 0 15px #dceb5525}
-.hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}.lane-effect{position:absolute;bottom:92px;left:calc((var(--lane) + .5)*100%/var(--lanes));width:0;height:0}.hit-ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border:1px solid var(--accent);border-radius:50%;opacity:0}.hit-petal{position:absolute;left:-4px;top:-3px;width:8px;height:3px;border-radius:0;background:var(--accent);opacity:0}.hit-petal:nth-child(2n){background:var(--cyan)}.hit-petal:nth-child(3n){background:#e8edf2}.miss-fragments{position:absolute;left:3%;right:3%;bottom:92px;display:flex;gap:6px;height:12px}.miss-fragments i{flex:1;border:1px solid #c67083;background:#442435;border-radius:0;opacity:0}
 /* Native modals, including the complete six-step teaching sequence. */
 dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;border:1px solid #576b7d;border-top:2px solid var(--accent);border-radius:0;background:var(--cream);color:var(--ink);padding:34px;box-shadow:0 25px 100px #0008}dialog::backdrop,.tutorial::backdrop{background:#03070dba;backdrop-filter:blur(8px)}dialog p{font-size:13px;line-height:1.8;color:var(--muted)}h2 em{display:block;font-size:16px;font-style:normal;color:var(--muted);margin-top:10px}
 #dialog-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}#dialog-actions .primary{flex:1}.result-title{display:flex;gap:20px;align-items:center;justify-content:space-between}.grade{font:64px var(--mono);color:var(--accent)}.result-stats{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid var(--line);margin-top:8px;padding:20px 0;gap:12px}.result-stats b{display:block;font:27px var(--mono)}.result-stats small{font:7px/1.6 var(--mono);letter-spacing:1px;color:var(--muted);display:block;margin-top:7px}.choice-result{font:11px/1.7 var(--mono)!important;color:var(--cyan)!important}.judgement-row{display:flex;justify-content:space-between;margin-top:22px;font:9px var(--mono);color:var(--muted);gap:10px}.judgement-row b{display:block;font:19px var(--mono);color:var(--ink);margin-bottom:5px}.timing-chart{margin:13px 0 20px}.timing-chart svg{display:block;width:100%;height:82px}.timing-chart>div{display:flex;justify-content:space-between;font:8px var(--mono);color:var(--muted)}details{font-size:12px;color:var(--muted);margin-top:19px}details p{font-size:11px}
@@ -120,6 +119,30 @@ dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;bo
 .home-sequence b{display:inline-block}.home-sequence{color:#a7b7c5}
 @media(max-height:800px) and (min-width:851px){.state-sphere{max-height:280px}.sphere-caption{margin-bottom:8px}}
 @media(max-width:600px){.state-sphere{max-height:300px}.sphere-caption{font-size:8px}.sphere-caption button{font-size:8px}}
+
+/* A bounded effect pool. Theme files can override the --fx-* colors on .highway. */
+.highway{--fx-hit:var(--accent,var(--green,#608542));--fx-second:var(--cyan,var(--peach,#d58d63));--fx-error:var(--danger,#a54d35)}
+.hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}
+.lane-effect{position:absolute;bottom:92px;left:calc((var(--lane) + .5)*100%/var(--lanes));width:0;height:0;color:var(--fx-hit)}
+.lane-flare{position:absolute;left:-36px;bottom:0;width:72px;height:120px;background:linear-gradient(0deg,var(--fx-hit),transparent);transform-origin:bottom;opacity:0}
+.hit-ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border:3px solid currentColor;border-radius:50%;opacity:0}
+.hit-echo{border-width:1px;color:var(--fx-second)}.hit-core{position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;background:var(--fx-hit);opacity:0}
+.hit-petal{position:absolute;left:-5px;top:-2px;width:12px;height:4px;border-radius:2px;background:var(--fx-hit);opacity:0}
+.hit-petal:nth-child(2n){background:var(--fx-second)}
+.miss-wash{position:absolute;left:0;right:0;bottom:74px;height:46px;background:var(--fx-error);opacity:0}
+.miss-fragments{position:absolute;left:3%;right:3%;bottom:92px;display:flex;gap:6px;height:12px}
+.miss-fragments i{flex:1;border:1px solid var(--fx-error);background:var(--fx-error);border-radius:3px;opacity:0}
+.judgement[data-kind=miss],.judgement[data-kind=wrong]{color:var(--fx-error)}
+.receptors button{position:relative;touch-action:none}.receptor-flash{position:absolute;inset:0;border-radius:inherit;background:var(--fx-hit);opacity:0;pointer-events:none}
+.receptor-flash[data-kind=wrong]{background:var(--fx-error)}
+.timing-feedback{position:absolute;top:calc(52% + 38px);width:100%;text-align:center;font:10px ui-monospace,monospace;color:var(--fx-hit);pointer-events:none;z-index:5}
+.streak-feedback{position:absolute;bottom:160px;width:100%;text-align:center;font:700 15px ui-monospace,monospace;letter-spacing:2px;color:var(--fx-hit);pointer-events:none;z-index:5;opacity:0}
+.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
+
+/* Opacity-only contact pulse; the ribbon itself supplies the hold progress. */
+.receptors button.holding::before{content:"";position:absolute;inset:-5px;border:2px solid var(--fx-hit);border-radius:inherit;pointer-events:none;animation:hold-contact .6s ease-in-out infinite alternate}
+@keyframes hold-contact{from{opacity:.25}to{opacity:.85}}
+.garden-game[data-reduced=true] .receptors button.holding::before{animation:none;opacity:.6}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -686,13 +709,15 @@ class TempoGarden {
       c.beginPath(); c.moveTo(0, h * .63); c.lineTo(w, h * .63); c.stroke();
     }
     if (reduced) { this.particles = []; return; }
-    this.particles = this.particles.filter(p => p.life > 0);
+    let alive = 0;
     for (const p of this.particles) {
+      if (p.life <= 0) continue;
+      this.particles[alive++] = p;
       p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
       c.globalAlpha = Math.max(0, p.life / .65); c.strokeStyle = p.lane % 2 ? '#82d2dc' : '#dceb55';
       c.beginPath(); c.moveTo(p.x - 3, p.y); c.lineTo(p.x + 3, p.y); c.moveTo(p.x, p.y - 3); c.lineTo(p.x, p.y + 3); c.stroke();
     }
-    c.globalAlpha = 1;
+    this.particles.length = alive; c.globalAlpha = 1;
   }
 }
 
@@ -771,58 +796,108 @@ class BlochSphere {
   }
 }
 
-// A fixed set of lane effects: no DOM allocation, layout reads or timers per hit.
+// Fixed element/animation pools. Precomputed paths avoid per-hit particle math and allocations.
+const FX = {
+  hitFlash: [{opacity: .55}, {opacity: 0}], wrongFlash: [{opacity: .6}, {opacity: 0}],
+  rebound: [{transform: 'translateY(4px) scale(.9)'}, {transform: 'translateY(-3px) scale(1.045)', offset: .35}, {transform: 'translateY(0) scale(1)'}],
+  shake: [{transform: 'translateX(0)'}, {transform: 'translateX(-3px)', offset: .2}, {transform: 'translateX(3px)', offset: .45}, {transform: 'translateX(0)'}],
+  judge: [{transform: 'translateY(10px) scale(.7)', opacity: .4}, {transform: 'translateY(-3px) scale(1.12)', opacity: 1, offset: .28}, {transform: 'translateY(0) scale(1)', opacity: 1}],
+  staticJudge: [{opacity: 1}, {opacity: 1}], wash: [{opacity: .18}, {opacity: 0}],
+  fade: [{opacity: 1}, {opacity: 0}], fall: [{transform: 'translateY(0) scale(1)'}, {transform: 'translateY(20px) scale(.94)'}],
+  holdFade: [{opacity: .7}, {opacity: 0}],
+  comboMiss: [{transform: 'scale(.8)', opacity: .35}, {transform: 'scale(1)', opacity: 1}], staticComboMiss: [{opacity: .35}, {opacity: 1}],
+  streak: [{transform: 'translateY(8px) scale(.8)', opacity: 0}, {transform: 'translateY(0) scale(1.05)', opacity: 1, offset: .2}, {transform: 'translateY(0) scale(1)', opacity: 1, offset: .7}, {transform: 'translateY(-6px) scale(1)', opacity: 0}],
+  staticStreak: [{opacity: 1}, {opacity: 1, offset: .75}, {opacity: 0}],
+  comboPop: [{transform: 'scale(1)'}, {transform: 'scale(1.2)', offset: .3}, {transform: 'scale(1)'}],
+};
+const BURSTS = [1.2, 1, .8, .6].map(strength => ({
+  flare: [{transform: 'scaleY(.12)', opacity: .6 * strength}, {transform: 'scaleY(1)', opacity: .24, offset: .35}, {transform: 'scaleY(1.08)', opacity: 0}],
+  core: [{transform: 'scale(.5)', opacity: .95}, {transform: `scale(${1.5 * strength})`, opacity: 0}],
+  ring: [{transform: 'scale(.25)', opacity: 1}, {transform: `scale(${2.2 * strength})`, opacity: 0}],
+  echo: [{transform: 'scale(.3)', opacity: 0}, {transform: 'scale(.6)', opacity: .7, offset: .18}, {transform: `scale(${2.5 * strength})`, opacity: 0}],
+  petals: Array.from({length: 6}, (_, i) => {
+    const angle = i / 6 * Math.PI * 2, radius = 48 * strength;
+    return [{transform: `translate(0,0) rotate(${i * 60}deg) scale(.6)`, opacity: 1}, {transform: `translate(${Math.cos(angle) * radius}px,${Math.sin(angle) * radius - 18}px) rotate(${i * 60}deg) scale(.15)`, opacity: 0}];
+  }),
+}));
+const MISS_FRAGMENTS = Array.from({length: 6}, (_, i) => [{transform: 'translateY(0) rotate(0deg)', opacity: .9}, {transform: `translate(${i % 2 ? 6 : -6}px,${22 + i % 3 * 9}px) rotate(${i % 2 ? 16 : -16}deg) scale(.8)`, opacity: 0}]);
 class HitFeedback {
   constructor(highway, judgement, combo) {
     this.highway = highway; this.judgement = judgement; this.combo = combo;
-    this.animations = new Map(); this.reduced = false;
+    this.animations = new Map(); this.cached = new WeakMap(); this.reduced = false;
     this.layer = document.createElement('div'); this.layer.className = 'hit-effects';
     this.layer.setAttribute('aria-hidden', 'true'); highway.append(this.layer);
+    this.timing = document.createElement('div'); this.timing.className = 'timing-feedback';
+    this.timing.setAttribute('aria-hidden', 'true'); highway.append(this.timing);
+    this.banner = document.createElement('div'); this.banner.className = 'streak-feedback';
+    this.banner.setAttribute('aria-hidden', 'true'); highway.append(this.banner);
   }
   configure(buttons, reduced) {
     this.reset(); this.buttons = buttons; this.reduced = reduced;
-    this.layer.innerHTML = buttons.map((_, lane) => `<div class="lane-effect" style="--lane:${lane}"><i class="hit-ring"></i>${Array.from({length: 6}, () => '<i class="hit-petal"></i>').join('')}</div>`).join('') + '<div class="miss-fragments">' + '<i></i>'.repeat(6) + '</div>';
-    this.lanes = [...this.layer.querySelectorAll('.lane-effect')].map(el => ({ ring: el.firstElementChild, petals: [...el.querySelectorAll('.hit-petal')] }));
-    this.fragments = [...this.layer.querySelector('.miss-fragments').children];
+    this.layer.innerHTML = buttons.map((_, lane) => `<div class="lane-effect" style="--lane:${lane}"><i class="lane-flare"></i><i class="hit-ring"></i><i class="hit-ring hit-echo"></i><i class="hit-core"></i>${'<i class="hit-petal"></i>'.repeat(6)}</div>`).join('') + '<div class="miss-wash"></div><div class="miss-fragments">' + '<i></i>'.repeat(6) + '</div>';
+    this.lanes = [...this.layer.querySelectorAll('.lane-effect')].map(el => ({ flare: el.querySelector('.lane-flare'), ring: el.querySelector('.hit-ring'), echo: el.querySelector('.hit-echo'), core: el.querySelector('.hit-core'), petals: [...el.querySelectorAll('.hit-petal')] }));
+    this.flashes = buttons.map(button => {
+      button.querySelector('.receptor-flash')?.remove();
+      const flash = document.createElement('i'); flash.className = 'receptor-flash'; flash.setAttribute('aria-hidden', 'true'); button.append(flash); return flash;
+    });
+    this.wash = this.layer.querySelector('.miss-wash'); this.fragments = [...this.layer.querySelector('.miss-fragments').children];
   }
   animate(element, frames, duration = 280) {
-    this.animations.get(element)?.cancel();
-    const animation = element.animate(frames, { duration, easing: 'ease-out' });
-    this.animations.set(element, animation);
-    animation.onfinish = () => { if (this.animations.get(element) === animation) this.animations.delete(element); };
+    let cached = this.cached.get(element);
+    if (!cached) {
+      const animation = element.animate(frames, {duration, easing: 'linear'});
+      cached = {animation, frames, duration}; this.cached.set(element, cached);
+      animation.onfinish = () => { if (this.animations.get(element) === animation && animation.playState === 'finished') this.animations.delete(element); };
+    } else {
+      // Restart the same Animation object, even after completion; keep one per target.
+      if (cached.frames !== frames) { cached.animation.effect.setKeyframes(frames); cached.frames = frames; }
+      if (cached.duration !== duration) { cached.animation.effect.updateTiming({duration}); cached.duration = duration; }
+      cached.animation.currentTime = 0; cached.animation.play();
+    }
+    const animation = cached.animation; this.animations.set(element, animation);
+    return animation;
   }
-  judge(text, kind) {
+  judge(text, kind, deltaMs = null) {
     this.judgement.textContent = text; this.judgement.dataset.kind = kind;
-    this.animate(this.judgement, this.reduced ? [{opacity: 1}, {opacity: 1}] : [{transform: 'translateY(5px) scale(.92)', opacity: .6}, {transform: 'translateY(0) scale(1)', opacity: 1}], 180);
+    this.timing.textContent = kind === 'hit' && Number.isFinite(deltaMs) ? Math.abs(deltaMs) <= 10 ? 'ON BEAT' : `${deltaMs < 0 ? 'EARLY' : 'LATE'} · ${Math.round(Math.abs(deltaMs))} ms` : '';
+    this.animate(this.judgement, this.reduced ? FX.staticJudge : FX.judge, 240);
   }
+  clearJudge() { this.judgement.textContent = ''; this.timing.textContent = ''; }
   hit(lane, timing = 'Good', complete = false) {
     const button = this.buttons[lane], effect = this.lanes[lane]; if (!button || !effect) return;
-    const strong = timing === 'Perfect' || complete;
-    this.animate(button, this.reduced ? [{background: '#dceb55'}, {background: '#101c28'}] : [{transform: 'translateY(4px) scale(.94)', background: '#dceb55'}, {transform: 'translateY(-2px) scale(1.03)', offset: .5}, {transform: 'translateY(0) scale(1)'}], 220);
+    const burst = BURSTS[complete ? 0 : timing === 'Perfect' ? 1 : timing === 'Great' ? 2 : 3];
+    this.flashes[lane].dataset.kind = 'hit';
+    this.animate(this.flashes[lane], FX.hitFlash, 210);
     if (this.reduced) return;
-    this.animate(effect.ring, [{transform: 'scale(.35)', opacity: .9}, {transform: `scale(${strong ? 1.7 : 1.2})`, opacity: 0}], strong ? 340 : 260);
-    effect.petals.forEach((petal, i) => {
-      const angle = (i / 6) * Math.PI * 2, radius = strong ? 38 : 24;
-      this.animate(petal, [{transform: 'translate(0,0) scale(.6)', opacity: .9}, {transform: `translate(${Math.cos(angle) * radius}px,${Math.sin(angle) * radius - 12}px) rotate(${i * 60}deg) scale(.3)`, opacity: 0}], strong ? 340 : 260);
-    });
+    this.animate(button, FX.rebound, 230);
+    this.animate(effect.flare, burst.flare, 300);
+    this.animate(effect.core, burst.core, 150);
+    this.animate(effect.ring, burst.ring, 340);
+    this.animate(effect.echo, burst.echo, 380);
+    for (let i = 0; i < effect.petals.length; i++) this.animate(effect.petals[i], burst.petals[i], 320);
   }
+
   wrong(lane) {
     const button = this.buttons[lane]; if (!button) return;
-    this.animate(button, [{background: '#382431', borderColor: '#ff8b9c'}, {background: '#101c28', borderColor: '#415569'}], 300);
+    this.flashes[lane].dataset.kind = 'wrong'; this.animate(this.flashes[lane], FX.wrongFlash, 260);
+    if (!this.reduced) this.animate(button, FX.shake, 180);
   }
   miss(cue, brokenHold = false) {
-    // Neutral fragments span the whole register; never reveal a solution lane.
-    if (!this.reduced) this.fragments.forEach((fragment, i) => this.animate(fragment, [{transform: 'translateY(0) rotate(0deg)', opacity: .9}, {transform: `translateY(${18 + i % 3 * 8}px) rotate(${i % 2 ? 12 : -12}deg)`, opacity: 0}], 300));
-    const register = cue?.register;
-    if (register) this.animate(register, this.reduced ? [{opacity: .7}, {opacity: 0}] : [{opacity: .8, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(18px) scale(.96)'}], 280);
-    if (brokenHold && cue?.body) this.animate(cue.body, [{opacity: .7}, {opacity: 0}], 220);
-    this.animate(this.combo, this.reduced ? [{opacity: .35}, {opacity: 1}] : [{transform: 'scale(.86)', opacity: .35}, {transform: 'scale(1)', opacity: 1}], 250);
+    // Entire-register fragments never reveal which correction lane was missed.
+    this.animate(this.wash, FX.wash, 220);
+    if (!this.reduced) this.fragments.forEach((fragment, i) => this.animate(fragment, MISS_FRAGMENTS[i], 300));
+    if (cue?.element) this.animate(cue.element, FX.fade, 280);
+    if (cue?.register && !this.reduced) this.animate(cue.register, FX.fall, 280);
+    if (brokenHold && cue?.body) this.animate(cue.body, FX.holdFade, 220);
+    this.animate(this.combo, this.reduced ? FX.staticComboMiss : FX.comboMiss, 250);
   }
-  milestone() {
-    this.animate(this.combo, this.reduced ? [{opacity: 1}, {opacity: 1}] : [{transform: 'scale(1)'}, {transform: 'scale(1.12)', offset: .4}, {transform: 'scale(1)'}], 340);
+  milestone(combo) {
+    this.banner.textContent = `${combo} STREAK`;
+    this.animate(this.banner, this.reduced ? FX.staticStreak : FX.streak, 700);
+    if (!this.reduced) this.animate(this.combo, FX.comboPop, 340);
   }
   pause(paused) { for (const animation of this.animations.values()) paused ? animation.pause() : animation.play(); }
-  reset() { for (const animation of this.animations.values()) animation.cancel(); this.animations.clear(); }
+  reset() { for (const animation of this.animations.values()) animation.cancel(); this.animations.clear(); this.cached = new WeakMap(); this.timing.textContent = ''; this.banner.textContent = ''; }
 }
 
 // TEAM CONTENT PORT: players cannot upload maps or music.
@@ -1047,7 +1122,7 @@ async function startGame(root, engine) {
     }
     if (!run.combo) comboMilestone = 0;
     const milestone = Math.floor(run.combo / 10);
-    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · STREAK`; }
+    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(milestone * 10); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · STREAK`; }
     else if (!run.combo) $('combo-label').textContent = 'COMBO';
   }
   function clearInputs() { held.clear(); laneSources.clear(); receptors.forEach(button => button.classList.remove('pressed', 'holding')); }
@@ -1184,7 +1259,7 @@ async function startGame(root, engine) {
     receptors[lane].classList.add('pressed');
 
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
-    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type); judgementUntil = performance.now() + 450;
+    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type, !practice && event.correct && event.type === 'hit' ? event.delta * 1000 : null); judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
       music.hit(lane); feedback.hit(lane, event.timing);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
@@ -1327,7 +1402,7 @@ async function startGame(root, engine) {
       }
       if (['playing', 'practice'].includes(mode)) drawNotes(time);
     }
-    if (now > judgementUntil) $('judgement').textContent = '';
+    if (now > judgementUntil && judgement.textContent) feedback.clearJudge();
     const menuVisible = ['home', 'levels', 'learn', 'settings'].includes(mode) && !document.hidden && !$('tutorial').open && !$('dialog').open;
     sphere.frame(dt, still, mode === 'home' && menuVisible);
     art.draw(dt, beat, still, menuVisible && !sphere.paused); requestAnimationFrame(frame);
