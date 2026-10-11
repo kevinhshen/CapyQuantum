@@ -26,7 +26,7 @@ const pct = n => `${(n * 100).toFixed(1)}%`;
 export async function startGame(root, engine) {
   root.innerHTML = `<main class="garden-game" data-state="home">
     <canvas id="garden" aria-hidden="true"></canvas>
-    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-orbit" aria-hidden="true"><i></i><i></i><i></i></span><span>QUBIT <em>TEMPO</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
+    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-orbit" aria-hidden="true"><i></i><i></i><i></i></span><span>QUBIT <em>TEMPO</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Twinkle, Twinkle, Little Star</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
     <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
     <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
     <section id="home-page" class="page home-page" aria-labelledby="home-title">
@@ -59,6 +59,13 @@ export async function startGame(root, engine) {
   const feedback = new HitFeedback(highway, judgement, comboDisplay);
   let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
   const laneSources = new Map();
+  // Plays the packet's song note: the right pitch when it is repaired, an out-of-key pitch when it is not.
+  function songNote(packet, ok) {
+    if (!packet || packet.note == null) return false;
+    music.songNote(ok ? packet.note : packet.wrongNote, packet.noteSeconds, ok);
+    if (ok) packet.songDone = true;
+    return true;
+  }
   function reportPackets() {
     for (const event of run.feedbackEvents) {
       const {note, type} = event, cue = note.cue;
@@ -70,7 +77,7 @@ export async function startGame(root, engine) {
         emit('note-miss', { packetId: note.packet.id, cueId: cue.id });
       } else {
         feedback.judge(note.holdSuccess ? 'Hold complete' : 'Hold released early', note.holdSuccess ? 'hit' : 'miss');
-        if (note.holdSuccess) { feedback.hit(note.heldLane, note.outcome.timing, true); music.hit(note.heldLane); }
+        if (note.holdSuccess) { feedback.hit(note.heldLane, note.outcome.timing, true); if (note.packet.note == null) music.hit(note.heldLane); }
         else if (cue.notes.every(n => n.done)) { cue.exitUntil = performance.now() + 280; feedback.miss(cue, true); } else feedback.miss();
         announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
         emit(type, { lane: note.heldLane, packetId: note.packet.id });
@@ -79,7 +86,13 @@ export async function startGame(root, engine) {
     }
     run.feedbackEvents.length = 0;
     for (; reportedResults < run.results.length; reportedResults++) {
-      const result = run.results[reportedResults]; if (!practice) music.memory(result.restored, reportedResults); emit('packet-resolved', result);
+      const result = run.results[reportedResults];
+      if (!practice) {
+        const packet = run.packets[reportedResults];
+        if (packet.note != null) { if (!packet.songDone && !music.bandCovered(packet.id)) songNote(packet, result.restored); packet.songDone = true; }
+        else music.memory(result.restored, reportedResults);
+      }
+      emit('packet-resolved', result);
     }
     if (!run.combo) comboMilestone = 0;
     const milestone = Math.floor(run.combo / 10);
@@ -102,7 +115,7 @@ export async function startGame(root, engine) {
       $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo); drawNotes(currentTime());
     }
   }
-  let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
+  let bank = null, run = null, mode = 'home', map = getMap('twinkle', 4), practice = false, practiceIndex = 0, practiceTime = 0;
   let approach = 2.4, offsetMs = 0, still = reducedPreference.matches;
   let paused = false, pausedAt = 0, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
   main.dataset.reduced = String(still);
@@ -120,7 +133,7 @@ export async function startGame(root, engine) {
   }
   function navigate(page) { closeDialog(); setState(page); $(`${page === 'home' ? 'home' : page}-title`)?.focus(); }
 
-  function populateMaps(selected = $('map-select').value || 'morning-dew') {
+  function populateMaps(selected = $('map-select').value || 'twinkle') {
     $('map-select').innerHTML = listMaps().map(m => `<option value="${html(m.id)}">${html(m.title)}</option>`).join(''); $('map-select').value = selected; renderLevelList();
   }
   function refreshMap() {
@@ -215,16 +228,17 @@ export async function startGame(root, engine) {
   function act(lane) {
     if (!run || paused || !['playing', 'practice'].includes(mode)) return;
     const time = currentTime() + (practice ? 0 : offsetMs / 1000);
-    const event = run.press(lane, time); reportPackets();
+    const event = run.press(lane, time); if (!practice && event.packet && event.type !== 'hold-resume') music.claimFill(event.packet.id); reportPackets();
     if (event.type === 'hold-resume') { announce(`Continue holding qubit ${lane + 1}. No extra X gate applied.`); drawNotes(currentTime()); return; }
     receptors[lane].classList.add('pressed');
 
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
     feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type, !practice && event.correct && event.type === 'hit' ? event.delta * 1000 : null); judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
-      music.hit(lane); feedback.hit(lane, event.timing);
+      if (!(event.packet.applied === event.packet.error && songNote(event.packet, true))) music.hit(lane);
+      feedback.hit(lane, event.timing);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
-    } else { music.errorTone(); feedback.wrong(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
+    } else { if (!songNote(event.packet, false)) music.errorTone(); feedback.wrong(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
     if (event.packet) announce(`Qubit ${lane + 1} flipped. Checks: ${run.checks(event.packet).map(b => b ? 'different' : 'same').join(', ')}.`);
     if (practice) { const remaining = run.cues.find(c => c.packet === run.packets[practiceIndex] && c.notes.some(n => !n.done)); if (remaining) practiceTime = remaining.at; drawNotes(practiceTime); }
   }
@@ -277,7 +291,7 @@ export async function startGame(root, engine) {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
     if (!paused) { paused = true; pausedAt = performance.now(); feedback.pause(true); run.suspendHolds(); clearInputs(); await music.pause(); }
-    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
+    showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>In the song levels, repair a memory to play its melody note. A wrong correction plays an out-of-key note. If you skip a note, the backing track plays it on time, but you still lose rhythm credit.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
     ['A qubit', 'A bit is 0 or 1. A qubit can be in a superposition α|0⟩ + β|1⟩. Measuring it in the 0/1 basis gives one outcome, with probabilities |α|² and |β|².', 'A qubit does not reveal two readable answers at once. Quantum algorithms control amplitudes and interference before measurement.'],
@@ -354,7 +368,9 @@ export async function startGame(root, engine) {
     if (run && ['playing', 'practice'].includes(mode) && !paused) {
       const time = currentTime(), adjusted = time + (practice ? 0 : offsetMs / 1000); beat = secondsToBeat(map, time);
       if (!practice) {
-        run.advance(adjusted); reportPackets(); $('score').textContent = String(run.score).padStart(6, '0');
+        run.advance(adjusted);
+        for (const packet of run.packets) if (!packet.songDone && !packet.done && !packet.error && !packet.applied && adjusted >= packet.at) songNote(packet, true);
+        reportPackets(); $('score').textContent = String(run.score).padStart(6, '0');
         const progress = Math.max(0, Math.min(100, beat / map.durationBeats * 100)); $('song-fill').style.width = `${progress}%`; root.querySelector('.song-progress').setAttribute('aria-valuenow', String(Math.round(progress)));
         $('combo').textContent = String(run.combo);
         const section = [...map.sections].reverse().find(s => s.beat <= beat);

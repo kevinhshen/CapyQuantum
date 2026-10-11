@@ -1,4 +1,5 @@
-import { beatToSeconds } from './timing.js';
+import { SONG_LEVELS, parseTune } from './songs.js';
+import { beatToSeconds, secondsToBeat } from './timing.js';
 import { COUNTS, seeded, weight, syndrome, decode } from './model.js';
 
 const mapRegistry = new Map();
@@ -84,7 +85,7 @@ export function registerMap(map) {
   mapRegistry.set(checked.id, { title: checked.title, artist: checked.artist, fixed: checked });
   return checked.id;
 }
-export function listMaps() { return [...mapRegistry].map(([id, entry]) => ({ id, title: entry.title, artist: entry.artist, qubits: entry.fixed?.qubits ?? null })); }
+export function listMaps() { return [...mapRegistry].sort(([a], [b]) => Number(!SONG_LEVELS.some(s => s.id === a)) - Number(!SONG_LEVELS.some(s => s.id === b))).map(([id, entry]) => ({ id, title: entry.title, artist: entry.artist, qubits: entry.fixed?.qubits ?? null })); }
 export function getMap(id, d = 3) {
   const entry = mapRegistry.get(id); if (!entry) throw new Error('Unknown map.');
   return entry.fixed ? structuredClone(entry.fixed) : validateMap(entry.build(d));
@@ -119,3 +120,76 @@ for (const [id, title, bpm, duration, density] of [
   ['lantern-waltz', 'Lantern glow', 112, 80, 'steady'],
   ['firefly-rush', 'Firefly rush', 138, 96, 'fast'],
 ]) mapRegistry.set(id, { title, artist: 'CapyQuantum', build: d => gardenMap(id, title, bpm, duration, density, d) });
+
+// Minimum real-time breathing room between memory packets, how far apart the taps of a burst fall, how
+// often a multi-flip packet appears, and how many flips it may carry. Faster songs get more room, not less.
+const PACING = {
+  gentle:  { gap: 1.0,  burst: .5,  multiEvery: 4, maxFlips: 3 },
+  steady:  { gap: .95,  burst: .5,  multiEvery: 4, maxFlips: 3 },
+  fast:    { gap: 1.05, burst: .55, multiEvery: 6, maxFlips: 2 },
+  driving: { gap: 1.0,  burst: .55, multiEvery: 6, maxFlips: 2 },
+};
+function songMap(id, title, bpm, duration, density, d, extra = {}) {
+  const random = seeded(20261010 + d + bpm), capacity = Math.floor((d - 1) / 2), events = [];
+  // The tune plays across the whole level. Every falling packet is snapped onto one note of it and "owns" that note:
+  // fixing the packet plays the note, a wrong flip plays an out-of-key note. Notes no packet owns are played by the backing track,
+  // so the melody never stops.
+  const tune = extra.tune ? parseTune(extra.tune) : null, onsets = [];
+  const sections = extra.sections ?? [{ beat: 0, label: 'Intro', intensity: .45, transpose: 0 }, { beat: 16, label: 'Verse', intensity: .7, transpose: 0 }, { beat: 32, label: 'Chorus', intensity: 1, transpose: 0 }, { beat: duration - 12, label: 'Outro', intensity: .65, transpose: 0 }];
+  if (tune) for (let loop = 0; loop * tune.length < duration; loop++) for (const n of tune.notes) if (loop * tune.length + n.at < duration) onsets.push({ at: loop * tune.length + n.at, n, taken: false });
+  // Pacing is set in real seconds, not beats, so a fast tempo (or a tempo climb) never crowds the player.
+  // A packet is only placed once the previous one has been finished for `gapSeconds`; phrase hits that
+  // land too soon are skipped, and the backing track plays their melody notes instead.
+  const timeline = { bpm, tempoChanges: extra.tempoChanges ?? [] }, pace = PACING[density] ?? PACING.steady;
+  // The same spacing at every qubit count keeps the packet pattern comparable between 3 and 7 qubits.
+  // A small tolerance stops a gap that lands exactly on a beat from flipping between "kept" and "skipped".
+  const maxFlips = Math.min(capacity, pace.maxFlips), burstBeats = Math.min(1, Math.max(.5, Math.ceil(pace.burst * bpm / 60 * 4) / 4));
+  const floorBeat = () => secondsToBeat(timeline, beatToSeconds(timeline, lastEnd) + pace.gap - .04);
+  const claimNote = (beat, floor) => {
+    let best = null;
+    for (const o of onsets) if (!o.taken && o.at >= floor && o.at <= duration - 3 && Math.abs(o.at - beat) <= 1.25 && (!best || Math.abs(o.at - beat) < best.dist)) best = { o, dist: Math.abs(o.at - beat), snapped: true };
+    if (best) best.o.taken = true;
+    // No free note close enough: double the nearest melody note instead; the backing track keeps playing it.
+    else for (const o of onsets) if (!best || Math.abs(o.at - beat) < best.dist) best = { o, dist: Math.abs(o.at - beat), snapped: false };
+    return best;
+  };
+  const songFields = (o, owns) => {
+    const transpose = ([...sections].reverse().find(x => x.beat <= o.at) || sections[0]).transpose, midi = o.n.midi + transpose;
+    const key = new Set(tune.notes.map(x => (x.midi + transpose) % 12));
+    return { note: midi, noteBeats: o.n.dur, ...(owns ? { tuneBeat: o.at } : {}), wrongNote: [1, -1, 6, -2, 2].map(k => midi + k).find(m => !key.has(m % 12)) ?? midi + 1 };
+  };
+  let lastEnd = 0;
+  // Authored phrases repeat every eight beats; rests and syncopation vary by section.
+  const phrases = density === 'gentle' ? [[0, 2, 3.5, 6], [0, 1.5, 4, 6.5]]
+    : density === 'steady' ? [[0, 1, 2.5, 4, 6, 7], [0, 1.5, 3, 4.5, 6, 7]]
+    // 'driving' never gaps under one beat, so 150+ BPM songs still leave 300 ms between correction windows.
+    : density === 'driving' ? [[0, 1, 2, 3.5, 4.5, 5.5, 6.5], [0, 1, 2.5, 3.5, 4.5, 5.5, 7]]
+    : [[0, .75, 1.5, 3, 4, 4.75, 6, 7], [0, 1, 1.75, 3, 4.5, 5.25, 6, 7]];
+  let index = 0;
+  for (let bar = 4; bar < duration - 2; bar += 8) {
+    const phrase = phrases[Math.floor((bar - 4) / 8) % phrases.length];
+    for (let i = 0; i < phrase.length; i++, index++) {
+      let beat = bar + phrase[i]; if (beat >= duration - 2) break;
+      const gap = (phrase[i + 1] ?? 8) - phrase[i];
+      const count = index % 11 === 8 ? 0 : index > 3 && index % pace.multiEvery === pace.multiEvery - 1 ? maxFlips : 1;
+      const lanes = [];
+      while (lanes.length < count) { const lane = Math.floor(random() * d); if (!lanes.includes(lane)) lanes.push(lane); }
+      const burst = lanes.length > 1 && index % 3 !== 0 && gap >= 1.5 && density !== 'driving';
+      const holdBeats = lanes.length === 1 && index % 8 === 2 && gap >= 1.5 && density !== 'driving' ? Math.min(1, gap - .75) : 0;
+      const claim = tune ? claimNote(beat, floorBeat()) : null;
+      if (claim?.snapped) beat = claim.o.at;
+      if (beat < floorBeat() - 1e-9) { if (claim?.snapped) claim.o.taken = false; continue; }
+      if (beat >= duration - 3) { if (claim?.snapped) claim.o.taken = false; break; }
+      const steps = burst ? lanes.map((lane, i) => ({ offset: i * burstBeats, lanes: [lane] })) : lanes.length ? [{ offset: 0, lanes, holdBeats }] : [];
+      events.push({ id: `p${index}`, beat, error: lanes, ...(claim ? songFields(claim.o, claim.snapped) : {}), steps });
+      lastEnd = beat + Math.max(0, ...steps.map(st => st.offset + (st.holdBeats || 0)));
+    }
+  }
+  return { version: 1, id, title, artist: extra.artist ?? 'CapyQuantum · original synthesized music', description: extra.description, bpm, qubits: d, durationBeats: duration,
+    tempoChanges: extra.tempoChanges ?? [],
+    events, sections, songMode: Boolean(tune),
+    music: { composer: `song-${id}`, gain: .72, offsetSeconds: 0 } };
+}
+
+
+for (const level of SONG_LEVELS) mapRegistry.set(level.id, { title: level.title, artist: level.artist, build: d => songMap(level.id, level.title, level.bpm, level.beats, level.density, d, level) });

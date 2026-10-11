@@ -9,8 +9,8 @@
 
 // Preserve the teammate's tutorial presets in source, rather than editing PLAY.html.
 export const learningPath = [
-  { name: 'Seedling', map: 'morning-dew', qubits: 3, description: 'Read the checks slowly; one bit flip.' },
-  { name: 'Sprout', map: 'lantern-waltz', qubits: 4, description: 'Four lanes and offbeat corrections.' },
-  { name: 'Sapling', map: 'lantern-waltz', qubits: 5, description: 'Two bit flips; chords and short sequences.' },
-  { name: 'Bloom', map: 'firefly-rush', qubits: 7, description: 'Seven lanes and up to three bit flips.' },
+  { name: 'Seedling', map: 'twinkle', qubits: 3, description: 'Read the checks slowly; one bit flip.' },
+  { name: 'Sprout', map: 'ode-to-joy', qubits: 4, description: 'Four lanes and offbeat corrections.' },
+  { name: 'Sapling', map: 'canon-in-d', qubits: 5, description: 'Two bit flips; chords and short sequences.' },
+  { name: 'Bloom', map: 'sugar-plum', qubits: 7, description: 'Seven lanes and up to three bit flips.' },
 ];

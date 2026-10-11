@@ -10,7 +10,8 @@ export class RhythmRun {
     this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
     for (const event of map.events) {
       const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
-      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), at: beatToSeconds(map, event.beat),
+      const packet = { id: event.id, error, applied: 0, syn: bank.sample(error, map.qubits), note: event.note, wrongNote: event.wrongNote, songDone: false,
+        noteSeconds: Math.min(1.1, Math.max(.25, (beatToSeconds(map, event.beat + (event.noteBeats || 1)) - beatToSeconds(map, event.beat)) * .92)), at: beatToSeconds(map, event.beat),
         end: beatToSeconds(map, event.beat + Math.max(0, ...event.steps.map(s => s.offset + (s.holdBeats || 0)))) + WINDOWS.good, done: false, notes: [] };
       const steps = event.steps.length ? event.steps : [{ offset: 0, lanes: [] }];
       steps.forEach((step, order) => {

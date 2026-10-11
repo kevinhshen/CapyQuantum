@@ -24,8 +24,8 @@ test('net multi-action correction preserves arbitrary six-state inputs; logical 
  }
  for(const state of STATES){const out=distribution({d:7,error:73,fix:73,state});assert.ok(Math.abs(out.reduce((s,r)=>s+(r.pass?r.weight:0),0)-1)<1e-12);}
 });
-test('every generated map validates for 3–7 qubits, remains deterministic, and includes wider chords / rapid sequences',()=>{
- for(const entry of listMaps())for(const d of COUNTS){const map=getMap(entry.id,d);assert.deepEqual(map,getMap(entry.id,d));assert.equal(laneKeys(d).length,d);validateMap(map);if(d>=5){assert.ok(map.events.some(e=>e.steps.length>1));assert.ok(map.events.some(e=>e.steps.some(s=>s.lanes.length>1)));}}
+test('every generated map validates for 3–7 qubits, remains deterministic, and retains wider chords / rapid sequences in the original maps',()=>{
+ for(const entry of listMaps())for(const d of COUNTS){const map=getMap(entry.id,d);assert.deepEqual(map,getMap(entry.id,d));assert.equal(laneKeys(d).length,d);validateMap(map);if(d>=5 && !map.songMode){assert.ok(map.events.some(e=>e.steps.length>1));assert.ok(map.events.some(e=>e.steps.some(s=>s.lanes.length>1)));}}
 });
 test('rolled chords in either order and quarter-beat bursts recover the whole register',()=>{
  const map=validateMap(sample()),run=new RhythmRun(map,bank);

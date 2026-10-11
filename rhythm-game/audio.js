@@ -1,3 +1,4 @@
+import { SONG_LEVELS, parseTune } from './songs.js';
 import { beatToSeconds, secondsToBeat } from './timing.js';
 // AudioContext is the master clock. Frame rate never sets the song tempo.
 const composers = new Map();
@@ -15,8 +16,34 @@ registerComposer('garden-lofi', (tick, { tone, noise, section }) => {
   if (tick % 16 === 0) [0, 3, 7, 10].forEach(n => tone(midiHz(root + n), 1.6, .018, 'sine'));
 
 });
+// Plays the melody on its own wherever the player is not responsible for a note, so the song never goes silent.
+const ownedNotes = new WeakMap();
+function melodyPlayer(text) {
+  const tune = parseTune(text), loopTicks = Math.round(tune.length * 4), byTick = new Map(tune.notes.map(n => [Math.round(n.at * 4), n]));
+  return (tick, { tone, map, section }) => {
+    const note = byTick.get(tick % loopTicks); if (!note) return;
+    let owned = ownedNotes.get(map); if (!owned) ownedNotes.set(map, owned = new Set(map.events.filter(e => e.tuneBeat != null).map(e => Math.round(e.tuneBeat * 4))));
+    if (owned.has(tick)) return;
+    tone(midiHz(note.midi + section.transpose), Math.max(.09, (beatToSeconds(map, tick / 4 + note.dur) - beatToSeconds(map, tick / 4)) * .94), .075 * (.7 + .3 * section.intensity), 'triangle');
+  };
+}
+function tuneComposer(song) {
+  const melody = melodyPlayer(song.tune), loopTicks = Math.round(parseTune(song.tune).length * 4);
+  const barTicks = Math.round((song.beatsPerBar ?? 4) * 4), spanTicks = Math.round(song.bassBeats * 4);
+  return (tick, ctx) => {
+    const { tone, noise, map, section } = ctx; melody(tick, ctx);
+    const lt = tick % loopTicks, secs = beats => beatToSeconds(map, (tick + beats * 4) / 4) - beatToSeconds(map, tick / 4), i = section.intensity;
+    if (lt % spanTicks === 0) {
+      const root = song.bass[Math.floor(lt / spanTicks) % song.bass.length] + section.transpose;
+      tone(midiHz(root - 12), Math.min(Math.max(.1, secs(song.bassBeats) * .9), 1.6), .07, 'triangle');
+    }
+    if (song.pulse ? tick % 4 === 0 : tick % barTicks === 0) tone(95, .15, .1 * (.6 + .4 * i), 'sine', 38);
+    if (tick % 4 === 2) noise(.03, .008 + .008 * i, 7000);
+  };
+}
+for (const level of SONG_LEVELS) registerComposer(`song-${level.id}`, tuneComposer(level));
 export class MusicTransport {
-  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; this.musicVolume = .85; this.effectsVolume = .55; }
+  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; this.musicVolume = .85; this.effectsVolume = .55; this.fillQueue = []; this.fillIndex = 0; this.fills = new Map(); this.fillSkip = new Set(); this.fillCovered = new Set(); }
   async init() {
     if (!this.context) {
       const Audio = window.AudioContext || window.webkitAudioContext;
@@ -57,8 +84,15 @@ export class MusicTransport {
       const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.musicBus);
       source.start(this.origin + this.leadIn, offset); this.track(source); this.external = true;
     } else this.external = false;
-    this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
+    this.melody = map.songMode ? [] : map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
     this.melodyIndex = 0;
+    // Every melody note a packet owns is silent until the player fixes it. If the player never touches the
+    // packet, the band plays that note itself, on time and in the same voice as the backing melody, so the tune never has a hole.
+    this.fills = new Map(); this.fillSkip = new Set(); this.fillCovered = new Set(); this.fillIndex = 0;
+    this.fillQueue = map.events.filter(e => e.note != null && e.tuneBeat != null && e.error.length).map(e => {
+      const section = [...map.sections].reverse().find(s => s.beat <= e.tuneBeat) || map.sections[0];
+      return { id: e.id, beat: e.tuneBeat, midi: e.note, seconds: Math.max(.09, (beatToSeconds(map, e.tuneBeat + (e.noteBeats || 1)) - beatToSeconds(map, e.tuneBeat)) * .94), gain: .075 * (.7 + .3 * section.intensity) };
+    }).sort((a, b) => a.beat - b.beat);
     this.timer = setInterval(() => this.schedule(), 25); this.schedule();
   }
   time() { return this.context.currentTime - this.origin - this.leadIn; }
@@ -73,6 +107,15 @@ export class MusicTransport {
       if (at >= limit) break;
       this.melodyIndex++;
       if (at >= this.context.currentTime) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][note.lane]), note.holdBeats ? beatToSeconds(this.map, note.beat + note.holdBeats) - beatToSeconds(this.map, note.beat) : .2, .055, 'triangle', null, at);
+    }
+    // Band fills: scheduled just ahead of time so they land exactly on the beat, and cancelled if the player takes the note first.
+    while (!this.external && this.fillIndex < this.fillQueue.length) {
+      const fill = this.fillQueue[this.fillIndex], at = this.origin + this.leadIn + beatToSeconds(this.map, fill.beat);
+      if (at >= limit) break;
+      this.fillIndex++;
+      if (this.fillSkip.has(fill.id)) continue;
+      this.fillCovered.add(fill.id);
+      if (at >= this.context.currentTime) this.fills.set(fill.id, { ...this.tone(midiHz(fill.midi), fill.seconds, fill.gain, 'triangle', null, at), at });
     }
     while (this.origin + this.leadIn + beatToSeconds(this.map, this.tick / 4) < limit) {
       const tick = this.tick++, at = this.origin + this.leadIn + beatToSeconds(this.map, tick / 4);
@@ -93,7 +136,18 @@ export class MusicTransport {
     gain.gain.setValueAtTime(.0001, at); gain.gain.linearRampToValueAtTime(volume, at + .008); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
     osc.connect(gain); gain.connect(bus); osc.start(at); osc.stop(at + duration + .01);
     this.track(osc, gain);
+    return { osc, gain };
   }
+  // The player pressed something on this packet (right or wrong), so the band must not also play its note.
+  claimFill(id) {
+    if (!this.fillSkip) return;
+    this.fillSkip.add(id); this.fillCovered.delete(id);
+    const fill = this.fills.get(id); if (!fill) return;
+    this.fills.delete(id);
+    if (fill.at > this.context.currentTime) { try { fill.osc.stop(this.context.currentTime); fill.gain.disconnect(); } catch {} }
+  }
+  // True when the band already played (or is about to play) this packet's note, so nothing else should sound for it.
+  bandCovered(id) { return Boolean(this.fillCovered?.has(id)); }
   noise(duration, volume, frequency, at) {
     const source = this.context.createBufferSource(), filter = this.context.createBiquadFilter(), gain = this.context.createGain();
     source.buffer = this.noiseBuffer; filter.type = 'highpass'; filter.frequency.value = frequency;
@@ -107,6 +161,15 @@ export class MusicTransport {
     const source = this.context.createBufferSource(); source.buffer = this.tapBuffers[error ? 1 : 0]; source.connect(this.effectsBus); source.start(); this.track(source);
   }
   memory(restored, index) { if (!this.running || this.paused || this.external || this.muted || !this.effectsVolume) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth', null, this.context.currentTime, this.effectsBus); }
+  songNote(midi, seconds, ok) {
+    if (!this.context || this.paused || this.external || this.muted || !Number.isFinite(midi)) return;
+    if (ok) {
+      // A repaired song note belongs to the melody; effects volume never mutes the tune.
+      if (!this.musicVolume) return;
+      this.tone(midiHz(midi), seconds, .12, 'triangle');
+      this.tone(midiHz(midi + 12), seconds * .6, .03, 'sine');
+    } else if (this.effectsVolume) this.tone(midiHz(midi), Math.min(seconds, .45), .06, 'sawtooth', null, this.context.currentTime, this.effectsBus);
+  }
   errorTone() { this.tap(true); }
   hit(lane) {
     if (!this.context || this.paused || this.muted || !this.effectsVolume || this.nodes.size >= 64) return;
