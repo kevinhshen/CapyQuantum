@@ -18,6 +18,10 @@ Build date: October 10, 2026, within the window specified in the repository's CL
 
 - **Merged tutorial contribution:** teammate’s `game-tutorial` level presets (Seedling, Sprout, Sapling, Bloom), originally added to generated `PLAY.html`, now live in `content.js` and the Levels page so rebuilds preserve them.
 
-- **Animated tutorial integration:** teammate’s `game-tutorial` contribution at `414d9d6` supplies the five illustrated animation sequences. They now live in `tutorial.js`, shared by startup and Learn. Codex adapted the modal, keyboard handling, timer cleanup, Qollab packaging and wording about encoding/correction limits.
+- **Animated tutorial integration:** teammate’s `game-tutorial` contribution at `414d9d6` supplies the five illustrated animation sequences. They now live in `tutorial.js`, available from Learn. Codex adapted the modal, keyboard handling, timer cleanup, Qollab packaging and wording about encoding/correction limits.
 
 - **Hold-note revision:** Codex added sustain input/scoring, neutral hold ribbons, a sixth tutorial step, chart validation/tests and the team authoring rules at the user’s direction. The first five animation sequences retain the teammate attribution above.
+
+- **Hit-feedback revision (October 11):** Codex added pooled hit/miss/hold animations, combo reactions, separate audio buses and volume controls, original unpitched tap samples for recordings, cached scenery, and regression tests at the user’s direction. No new external assets or runtime libraries.
+
+- **Quantum visual revision (October 11):** at the user’s direction, the visual branch takes inspiration from the dark canvas, fine wireframes, and bright accents in [Orano’s innovation experience](https://www.orano.group/experience/innovation/en). The field mesh, single-qubit Bloch-sphere schematic, orbit marks, typography, and interface styling are original Canvas/SVG/CSS work drafted with Codex. No Orano source code, logos, models, fonts, or scene assets were copied. The sphere is illustrative single-qubit state space, distinct from the four-qubit encoded-register example. Correction rules and reference experiments are unchanged.

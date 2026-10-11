@@ -1,962 +1,102 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qubit Tempo · CapyQuantum</title><style>:root {
-  font-family:Georgia,'Times New Roman',serif;
-  color:#34483b;
-  background:#b7c99a;
-  font-synthesis:none;
-  --cream:#fff9e9;
-  --ink:#34483b;
-  --muted:#758573;
-  --green:#476b47;
-  --line:#cbd5ac;
-  --peach:#e9ad85
-}
-* {
-  box-sizing:border-box
-}
-body {
-  margin:0
-}
-button,select,input {
-  font:inherit;
-  color:inherit
-}
-button {
-  cursor:pointer
-}
-button:disabled {
-  cursor:wait;
-  opacity:.5
-}
-button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible {
-  outline:3px solid #476b47;
-  outline-offset:4px
-}
-button {
-  border:1px solid var(--line);
-  background:var(--cream);
-  border-radius:12px;
-  transition:background .15s,transform .15s
-}
-button:hover {
-  background:#f2edda
-}
-button:active {
-  transform:translateY(1px)
-}
-[hidden] {
-  display:none!important
-}
-.garden-game {
-  height:100dvh;
-  min-height:630px;
-  overflow:hidden;
-  position:relative
-}
-#garden {
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  pointer-events:none
-}
-.hud {
-  position:absolute;
-  top:28px;
-  left:38px;
-  right:38px;
-  display:flex;
-  gap:26px;
-  align-items:center;
-  z-index:5
-}
-.brand {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  text-decoration:none;
-  color:var(--ink);
-  font-size:29px;
-  line-height:1
-}
-.brand em {
-  font-weight:normal
-}
-.brand-flower {
-  font-size:39px;
-  color:#587846
-}
-.brand small {
-  display:block;
-  font:8px/1.5 ui-monospace,monospace;
-  letter-spacing:1.2px;
-  margin-top:8px
-}
-.song-label {
-  margin-left:auto;
-  display:flex;
-  flex-direction:column;
-  text-align:right;
-  gap:5px
-}
-.song-label b {
-  font-size:17px;
-  font-weight:normal
-}
-.song-label span {
-  font:10px ui-monospace,monospace;
-  color:#536b48
-}
-.score-pill {
-  background:#fff9e9cc;
-  border:1px solid #fcf4d6;
-  border-radius:14px;
-  padding:10px 18px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  box-shadow:0 3px 0 #49652d15
-}
-.score-pill b {
-  font:21px ui-monospace,monospace;
-  letter-spacing:1px
-}
-.score-pill small {
-  font:8px ui-monospace,monospace;
-  letter-spacing:1.8px
-}
-.hud nav {
-  display:flex;
-  gap:7px
-}
-.hud nav button {
-  width:36px;
-  height:36px;
-  font:18px Georgia;
-  background:#fff9e9b8
-}
-.song-progress {
-  position:absolute;
-  left:38px;
-  right:38px;
-  top:98px;
-  height:3px;
-  background:#66864b25;
-  z-index:4;
-  border-radius:4px
-}
-.song-progress i {
-  display:block;
-  width:0;
-  height:100%;
-  background:#fff9e9;
-  border-radius:4px
-}
-.deck {
-  --lanes:3;
-  --deck-width:405px;
-  position:absolute;
-  width:min(var(--deck-width),55vw);
-  top:127px;
-  bottom:60px;
-  left:calc(50% - 200px);
-  transform:translateX(-50%);
-  transition:left .5s,width .3s;
-  z-index:2
-}
-.highway {
-  position:absolute;
-  inset:0 0 30px;
-  background:linear-gradient(180deg,#fff9e928,#fff9e978 55%,#fdf6e7dd);
-  border:1px solid #fff9e990;
-  border-top:0;
-  border-radius:22px 22px 34px 34px;
-  box-shadow:0 24px 60px #46623625,0 6px 0 #5d733019;
-  overflow:hidden
-}
-.lane-grid {
-  display:grid;
-  grid-template-columns:repeat(var(--lanes),1fr);
-  position:absolute;
-  inset:0
-}
-.lane {
-  border-right:1px solid #70885e22;
-  position:relative
-}
-.lane:last-child {
-  border:0
-}
-.lane span {
-  display:block;
-  text-align:center;
-  margin-top:20px;
-  font:9px ui-monospace,monospace;
-  letter-spacing:2px;
-  color:#718365
-}
-.highway-grain {
-  position:absolute;
-  inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 50px,#fff9e912 51px);
-  pointer-events:none
-}
-.hit-line {
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:92px;
-  height:3px;
-  background:#536f3b;
-  box-shadow:0 0 18px #fff9e9;
-  z-index:2
-}
-.hit-line span {
-  position:absolute;
-  top:7px;
-  left:8px;
-  font:7px ui-monospace,monospace;
-  letter-spacing:1.8px;
-  color:#81906e
-}
-.receptors {
-  position:absolute;
-  bottom:20px;
-  left:0;
-  right:0;
-  display:grid;
-  grid-template-columns:repeat(var(--lanes),1fr);
-  gap:6px;
-  padding:0 10px;
-  z-index:4
-}
-.receptors button {
-  height:55px;
-  border:1px solid #b8c697;
-  background:#fff9e9c9;
-  border-radius:15px;
-  box-shadow:0 4px 0 #64774525
-}
-.receptors span {
-  font:18px ui-monospace,monospace
-}
-.receptors small {
-  display:block;
-  font:7px ui-monospace,monospace;
-  letter-spacing:1px;
-  margin-top:4px;
-  color:#7d8e6b
-}
-.receptors button.pressed {
-  background:#e9ad85;
-  box-shadow:0 0 22px #e9ad8577;
-  transform:translateY(3px)
-}
-.notes {
-  position:absolute;
-  inset:0;
-  pointer-events:none
-}
-.falling-note {
-  position:absolute;
-  left:calc(var(--lane)*100%/var(--lanes) + 8px);
-  width:calc(100%/var(--lanes) - 16px);
-  height:24px;
-  margin-top:-12px;
-  background:#e9ad85;
-  border:1px solid #faf0ce;
-  border-radius:10px;
-  box-shadow:0 3px 0 #986b4b44,0 0 20px #e9ad8533;
-  text-align:center;
-  color:#fff9e9;
-  will-change:transform
-}
-.falling-note span {
-  font-size:20px;
-  line-height:21px
-}
-.falling-note.chord-note {
-  background:#98b17e;
-  box-shadow:0 3px 0 #536f3b55;
-  border-color:#e6ecc7
-}
-.falling-note small {
-  position:absolute;
-  top:1px;
-  right:5px;
-  font:9px ui-monospace,monospace;
-  color:#34483b
-}
-.preview-note {
-  opacity:.85
-}
-.judgement {
-  position:absolute;
-  top:52%;
-  width:100%;
-  text-align:center;
-  font-style:italic;
-  font-size:27px;
-  color:#476b47;
-  pointer-events:none;
-  z-index:5
-}
-.judgement[data-kind=stray] {
-  color:#986b4b
-}
-.combo-display {
-  position:absolute;
-  top:63%;
-  width:100%;
-  text-align:center;
-  pointer-events:none
-}
-.combo-display b {
-  display:block;
-  font:52px Georgia;
-  color:#536d3e55
-}
-.combo-display span {
-  font:8px ui-monospace,monospace;
-  letter-spacing:2px;
-  color:#6f845960
-}
-.count-in {
-  position:absolute;
-  top:34%;
-  width:100%;
-  text-align:center;
-  font:90px Georgia;
-  color:#476b47;
-  pointer-events:none
-}
-.deck-caption {
-  position:absolute;
-  bottom:0;
-  width:100%;
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  font:9px ui-monospace,monospace;
-  color:#4b633e
-}
-.map-letter {
-  position:absolute;
-  z-index:3;
-  left:calc(50% + 66px);
-  top:140px;
-  width:325px;
-  background:var(--cream);
-  border:1px solid #e8e1c6;
-  box-shadow:0 14px 45px #49652d20,0 5px 0 #6e7d4222;
-  border-radius:4px 22px 22px 22px;
-  padding:28px 28px 20px;
-  transform:rotate(1deg)
-}
-.eyebrow {
-  font:8px ui-monospace,monospace;
-  letter-spacing:1.8px;
-  color:#798666;
-  margin-bottom:18px
-}
-.letter-stamp {
-  position:absolute;
-  right:23px;
-  top:30px;
-  border:1px dashed #bec997;
-  border-radius:8px;
-  padding:4px 9px;
-  font:27px Georgia;
-  color:#9ea67c;
-  transform:rotate(-9deg)
-}
-h1 {
-  font-size:38px;
-  line-height:1.05;
-  letter-spacing:-1.5px;
-  font-weight:normal;
-  margin:0 0 15px
-}
-h1 em {
-  color:#658252
-}
-.map-letter p {
-  font-size:12px;
-  line-height:1.6;
-  color:#758573;
-  margin:0 0 20px
-}
-.field {
-  display:block;
-  font:8px ui-monospace,monospace;
-  letter-spacing:1.5px;
-  color:#758573;
-  margin-top:14px
-}
-.field select {
-  display:block;
-  width:100%;
-  margin-top:7px;
-  border:0;
-  border-bottom:1px solid #cbd5ac;
-  background:transparent;
-  padding:6px 0 9px;
-  font:14px Georgia;
-  letter-spacing:0;
-  border-radius:0
-}
-.map-info {
-  display:flex;
-  justify-content:space-between;
-  margin:14px 0 19px;
-  font:9px ui-monospace,monospace;
-  color:#758573
-}
-.primary {
-  background:#476b47;
-  color:#fff9e9;
-  border-color:#476b47;
-  padding:13px 17px;
-  box-shadow:0 3px 0 #344d3033;
-  text-align:left;
-  font-size:14px
-}
-.primary:hover {
-  background:#3b5b3b
-}
-.map-letter .primary {
-  width:100%;
-  display:flex;
-  justify-content:space-between
-}
-.text-button {
-  background:transparent;
-  border:0;
-  font:10px Georgia;
-  color:#758573;
-  padding:11px 0;
-  display:block;
-  width:100%;
-  text-align:center;
-  box-shadow:none
-}
-.text-button:hover {
-  background:transparent;
-  color:#476b47;
-  text-decoration:underline
-}
-.author-actions {
-  display:flex;
-  gap:8px;
-  margin:8px 0
-}
-.author-actions button {
-  flex:1;
-  padding:7px 0;
-  font:10px ui-monospace,monospace;
-  border-radius:8px
-}
-.music-name {
-  font:8px ui-monospace,monospace;
-  display:block;
-  color:#758573;
-  text-align:center;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis
-}
-.map-letter .runtime-note {
-  font:8px/1.5 ui-monospace,monospace;
-  margin:13px 0 0;
-  text-align:center;
-  color:#7c896a
-}
-.bottom-note {
-  position:absolute;
-  bottom:19px;
-  left:38px;
-  right:38px;
-  display:flex;
-  justify-content:space-between;
-  font:8px ui-monospace,monospace;
-  letter-spacing:.3px;
-  color:#526c42;
-  z-index:4
-}
-.practice-hint {
-  position:absolute;
-  left:50%;
-  top:112px;
-  transform:translateX(-50%);
-  z-index:6;
-  background:#fff9e9ed;
-  border:1px solid #cbd5ac;
-  border-radius:16px;
-  padding:12px 20px;
-  max-width:80vw;
-  box-shadow:0 5px 25px #49652d20;
-  display:flex;
-  align-items:center;
-  gap:12px
-}
-.practice-hint>span {
-  color:#e9ad85;
-  font-size:28px
-}
-.practice-hint p {
-  font-size:12px;
-  line-height:1.5;
-  max-width:340px;
-  margin:0
-}
-.practice-hint button {
-  padding:8px;
-  white-space:nowrap;
-  font-size:11px
-}
-.garden-game[data-state=playing] .deck,.garden-game[data-state=practice] .deck,.garden-game[data-state=result] .deck {
-  left:50%;
-  width:min(var(--deck-width),76vw)
-}
-.garden-game:not([data-state=menu]) .map-letter {
-  display:none
-}
-.garden-game[data-state=menu] .score-pill {
-  opacity:.6
-}
-.garden-game[data-state=result] .combo-display {
-  opacity:.3
-}
-dialog {
-  max-width:590px;
-  width:calc(100% - 34px);
-  max-height:90dvh;
-  overflow:auto;
-  border:1px solid #e5dfc2;
-  border-radius:24px;
-  background:var(--cream);
-  color:var(--ink);
-  padding:34px;
-  box-shadow:0 25px 100px #2f482e40
-}
-dialog::backdrop {
-  background:#34483b50;
-  backdrop-filter:blur(7px)
-}
-h2 {
-  font-size:31px;
-  font-weight:normal;
-  line-height:1.12;
-  letter-spacing:-.8px;
-  margin:0 0 19px
-}
-h2 em {
-  display:block;
-  font-size:19px;
-  letter-spacing:-.3px;
-  color:#758573;
-  margin-top:9px
-}
-dialog p {
-  font-size:13px;
-  line-height:1.7;
-  color:#64765e
-}
-#dialog-actions {
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:23px
-}
-#dialog-actions .primary {
-  flex:1
-}
-.subtle {
-  padding:11px 14px;
-  font-size:12px;
-  background:#f6f1de
-}
-.result-title {
-  display:flex;
-  gap:20px;
-  align-items:center;
-  justify-content:space-between
-}
-.grade {
-  font:70px Georgia;
-  color:#658252
-}
-.result-stats {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  border-top:1px solid #d4dbb9;
-  border-bottom:1px solid #d4dbb9;
-  margin-top:8px;
-  padding:20px 0;
-  gap:12px
-}
-.result-stats b {
-  display:block;
-  font:29px Georgia
-}
-.result-stats small {
-  font:7px ui-monospace,monospace;
-  letter-spacing:1px;
-  color:#7b896b;
-  display:block;
-  margin-top:7px
-}
-.judgement-row {
-  display:flex;
-  justify-content:space-between;
-  margin-top:22px;
-  font:9px ui-monospace,monospace;
-  color:#758573;
-  gap:10px
-}
-.judgement-row b {
-  display:block;
-  font:19px Georgia;
-  color:#476b47;
-  margin-bottom:5px
-}
-.timing-chart {
-  margin:13px 0 20px
-}
-.timing-chart svg {
-  display:block;
-  width:100%;
-  height:82px
-}
-.timing-chart>div {
-  display:flex;
-  justify-content:space-between;
-  font:8px ui-monospace,monospace;
-  color:#758573
-}
-.result-insight {
-  padding:11px 14px;
-  background:#e8edcf80;
-  border-radius:10px
-}
-details {
-  font-size:12px;
-  color:#64765e;
-  margin-top:19px
-}
-summary {
-  cursor:pointer
-}
-details p {
-  font-size:11px
-}
-.tune-field {
-  display:block;
-  font-size:13px;
-  margin:20px 0
-}
-.tune-field input {
-  width:100%;
-  display:block;
-  accent-color:#476b47;
-  margin:13px 0
-}
-.tune-field span {
-  font:10px ui-monospace,monospace;
-  color:#758573
-}
-.check-field {
-  display:flex;
-  gap:8px;
-  align-items:center;
-  font-size:13px
-}
-.check-field input {
-  accent-color:#476b47
-}
-.sr-only {
-  position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0
-}
-.loading {
-  margin:30px;
-  font-style:italic
-}
-@media(min-width:1500px) {
-  .deck {
-    left:calc(50% - 170px)
-  }
-  .map-letter {
-    left:calc(50% + 115px)
-  }
-}
-@media(max-height:780px) and (min-width:821px) {
-  .map-letter {
-    top:118px;
-    padding:21px 25px;
-    width:310px
-  }
-  .map-letter h1 {
-    font-size:31px
-  }
-  .map-letter p {
-    margin-bottom:10px
-  }
-  .field {
-    margin-top:9px
-  }
-  .map-info {
-    margin:10px 0
-  }
-  .eyebrow {
-    margin-bottom:13px
-  }
-  .deck {
-    top:112px;
-    bottom:51px
-  }
-}
-@media(max-width:820px) {
-  .garden-game {
-    min-height:650px
-  }
-  .hud {
-    top:18px;
-    left:18px;
-    right:18px;
-    gap:12px
-  }
-  .brand {
-    font-size:22px
-  }
-  .brand-flower {
-    font-size:29px
-  }
-  .brand small {
-    font-size:6px;
-    letter-spacing:.4px
-  }
-  .song-label {
-    display:none
-  }
-  .score-pill {
-    margin-left:auto;
-    padding:7px 10px
-  }
-  .score-pill b {
-    font-size:16px
-  }
-  .hud nav {
-    gap:4px
-  }
-  .hud nav button {
-    width:30px;
-    height:30px
-  }
-  .song-progress {
-    top:82px;
-    left:18px;
-    right:18px
-  }
-  .deck {
-    left:50%;
-    top:102px;
-    bottom:35px;
-    width:min(var(--deck-width),90vw)
-  }
-  .garden-game[data-state=menu] .deck {
-    left:25%;
-    width:40vw;
-    opacity:.65
-  }
-  .map-letter {
-    top:115px;
-    left:auto;
-    right:18px;
-    width:min(325px,70vw);
-    padding:24px;
-    transform:rotate(1deg)
-  }
-  .bottom-note {
-    bottom:11px;
-    left:18px;
-    right:18px;
-    font-size:6px
-  }
-  .bottom-note span:last-child {
-    display:none
-  }
-  .garden-game[data-state=playing] .deck,.garden-game[data-state=practice] .deck,.garden-game[data-state=result] .deck {
-    width:92vw
-  }
-  .deck-caption {
-    font-size:8px
-  }
-  .receptors {
-    gap:4px;
-    padding:0 6px
-  }
-  .receptors span {
-    font-size:15px
-  }
-  .falling-note {
-    left:calc(var(--lane)*100%/var(--lanes) + 5px);
-    width:calc(100%/var(--lanes) - 10px)
-  }
-  .practice-hint {
-    top:100px;
-    padding:10px 14px;
-    max-width:90vw;
-    width:max-content
-  }
-  .practice-hint p {
-    max-width:240px
-  }
-  .practice-hint button {
-    white-space:normal
-  }
-  dialog {
-    padding:25px
-  }
-  .result-stats b {
-    font-size:24px
-  }
-  .result-stats small {
-    font-size:6px
-  }
-  .result-title h2 {
-    font-size:27px
-  }
-  .grade {
-    font-size:58px
-  }
-}
-@media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after {
-    transition:none!important;
-    scroll-behavior:auto!important
-  }
-}
-@media(max-width:420px) {
-  .hud {
-    gap:8px
-  }
-  .brand {
-    font-size:18px;
-    gap:6px
-  }
-  .brand-flower {
-    font-size:22px
-  }
-  .brand small {
-    display:none
-  }
-  .score-pill {
-    padding:6px 8px
-  }
-  .score-pill b {
-    font-size:14px
-  }
-  .hud nav button {
-    width:28px;
-    height:30px
-  }
-}
-.error-packet{position:absolute;left:2%;width:96%;height:66px;border:1px solid #d9ddba;border-radius:15px;background:#fff9e9ef;box-shadow:0 4px 0 #536f3b22;will-change:transform}
-.packet-tag{text-align:center;font:7px ui-monospace,monospace;letter-spacing:1.2px;color:#7c896a;margin:7px 0 4px}
-.packet-register{position:relative;display:grid;grid-template-columns:repeat(var(--lanes),1fr);align-items:center;height:41px}
-.packet-qubit{text-align:center;font:23px Georgia;color:#8caa74;line-height:20px}.packet-qubit small{display:block;font:7px ui-monospace,monospace;color:#758573;margin-top:3px}.packet-qubit.applied{color:#bd936c}
-.parity-lamp{position:absolute;top:0;transform:translateX(-50%);width:22px;height:22px;display:grid;place-items:center;border:1px solid #c3cda1;border-radius:50%;font:bold 17px Georgia;color:#7b8a68;background:#eef1dd;z-index:1}
-.parity-lamp[data-alert="1"]{background:#f5d4b6;border:2px solid #bd805d;color:#825738}.choice-result{font:11px ui-monospace,monospace!important;color:#476b47!important}
-@media(max-width:420px){.parity-lamp{width:19px;height:19px;font-size:15px}.packet-qubit{font-size:19px}.packet-tag{font-size:6px}}
-/* Page-based player: the chart only appears during a run. */
-:root{font-family:ui-rounded,'Avenir Next',system-ui,sans-serif;--muted:#53654c}
-.garden-game{min-height:640px;background:#e8edd6}
-#garden{opacity:.48}
-.hud{top:25px}.brand{font-family:Georgia,serif}.brand small{font-size:9px;letter-spacing:1px}
-.page{position:absolute;inset:110px 7% 75px;z-index:3;overflow-y:auto;scrollbar-width:thin;padding:12px 4px}
-.page h1,.page h2{font-family:Georgia,serif;font-weight:normal;color:#34483b;margin:0}
-.page h1{font-size:45px;line-height:1.15}.page h2{font-size:32px}
-.page p{line-height:1.65;font-size:15px}.page .eyebrow{font:10px ui-monospace,monospace;letter-spacing:1.8px;color:#4b6342;margin-bottom:14px}
-.home-page{display:grid;grid-template-columns:1.1fr 1fr;gap:7%;align-items:center;max-width:1120px;margin:auto}
-.home-page h1{font-size:clamp(50px,6vw,88px);letter-spacing:-4px}.home-page h1 span{color:#ae6646}
-.home-copy>p:first-of-type{font-size:20px;max-width:400px}.home-explainer{margin:28px 0;color:#41543c}
-.home-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:370px}.home-actions .primary{grid-column:1/-1;margin:0}.home-actions button{min-height:48px}
-.primary{font-family:inherit;font-size:16px}.small-note{font-size:12px!important;color:#4b6044;line-height:1.6}
-.home-demo{border:1px solid #bccba6;background:#fff9e9ed;padding:40px 25px;border-radius:38px;box-shadow:0 14px 50px #476b4712;text-align:center;transform:rotate(1deg)}
-.demo-caption{font:9px ui-monospace,monospace;letter-spacing:1px}.memory-art{display:flex;align-items:center;justify-content:center;gap:7px;margin:42px 0 30px}.memory-art span{background:#e3ebd2;border:1px solid #b6c49c;border-radius:19px;display:grid;place-items:center;width:54px;height:64px;font-weight:650}.memory-art .fault{background:#f2cfb4;border-color:#bf8d6e}.memory-art i{font:bold 22px Georgia;font-style:normal;color:#78523c}.demo-answer{line-height:1.8;font-size:15px}.demo-foot{font-size:12px;margin-top:28px;color:#53654c}
-.page-heading{display:flex;align-items:center;gap:30px;margin-bottom:30px}.back{background:transparent;border:0;padding:10px 0;white-space:nowrap}.page-heading .eyebrow{margin-bottom:5px}.page-heading h1{font-size:34px}
-.level-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:32px;max-width:1120px;margin:auto}.level-list{display:flex;flex-direction:column;gap:14px;padding-top:12px}.level-card{padding:23px 20px;text-align:left;display:flex;align-items:center;gap:18px;border-radius:20px;min-height:102px;background:#fff9e9d9;box-shadow:0 4px 14px #34483b05}.level-card.selected{border:2px solid #476b47;background:#f6f9e9;padding:22px 19px}.level-card b{font:25px Georgia,serif;display:block}.level-card small{display:block;font-size:11px;margin-top:10px;color:#4b6044}.level-number{font:22px ui-monospace,monospace;color:#6a7b5e}.level-arrow{margin-left:auto}.level-detail{background:#fff9e9f5;padding:28px;border:1px solid #b7c6a3;border-radius:24px;box-shadow:0 10px 25px #34483b08}.level-detail p{font-size:14px}.level-detail .field{margin-top:24px}.field{font:10px ui-monospace,monospace;color:#4b6044}.field select{font:14px system-ui,sans-serif;min-height:43px}.map-info{display:flex;gap:15px;flex-wrap:wrap;color:#4b6044;font-size:11px;margin:20px 0}.chart-preview{color:#476b47}.chart-preview svg{width:100%;height:45px}.subtle{font:14px inherit;min-height:42px}.level-detail .subtle{width:100%;margin-top:8px}
-.learn-layout{display:grid;grid-template-columns:230px 1fr;gap:32px;max-width:1040px;margin:auto}.lesson-tabs{display:flex;flex-direction:column;gap:12px}.lesson-tabs button{display:flex;gap:16px;padding:18px;text-align:left;min-height:60px}.lesson-tabs small{font:12px ui-monospace,monospace}.lesson-tabs [aria-current=step]{background:#476b47;color:#fff9e9;border-color:#476b47}.lesson-body,.settings-body{border:1px solid #b7c6a3;border-radius:24px;background:#fff9e9f5;padding:34px}.lesson-body h2{font-size:36px}.lesson-body p{max-width:620px}.lesson-note{background:#e9efda;padding:18px 20px;border-radius:15px;font-size:14px;line-height:1.7;margin:22px 0;color:#34483b}.lesson-visual{padding:30px 10px;text-align:center;font:32px Georgia,serif;color:#476b47}.lesson-actions{display:flex;align-items:center;gap:25px;flex-wrap:wrap}.lesson-actions .primary{width:auto;padding:14px 24px;margin:0}.lesson-actions a{font-size:11px;color:#476b47}.lab-checks{display:flex;justify-content:center;gap:13px;align-items:center;margin:22px 0}.lab-checks span{background:#e3ebd2;border-radius:14px;padding:17px 12px}.lab-checks b{font:24px Georgia}.lab-keys,.lab-actions{display:flex;gap:8px;flex-wrap:wrap}.lab-keys button,.lab-actions button{padding:12px}.lab-actions{margin-bottom:18px}.parity-lab{margin:26px 0}.parity-lab small{display:block;font-size:11px;line-height:1.6;color:#4b6044}
-.settings-body{max-width:650px;margin:auto}.settings-body p{font-size:13px}.tune-field{font-family:inherit}.check-field{font-size:15px}
-.runtime-status{position:absolute;bottom:42px;left:7%;right:7%;z-index:4;margin:0;font:10px ui-monospace,monospace;color:#3e5338}.bottom-note{font-size:8px;color:#3e5338}.bottom-note span:last-child{font-family:inherit;letter-spacing:0}
-.deck{left:50%!important;transform:translateX(-50%);top:115px;bottom:60px;width:min(var(--deck-width),90vw)}
-.packet-tag{font-size:8px;color:#4b6044}.packet-qubit small{color:#4b6044}.packet-qubit{color:#536b48}.parity-lamp{color:#425836}.hit-line span{color:#425836}.deck-caption{color:#34483b}.practice-hint{background:#fff9e9fa;z-index:6}.garden-game[data-state=practice] .deck{top:175px}.score-pill{color:#34483b}.song-label span{color:#3e5338}
-button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #314f2d;outline-offset:3px}
-@media(max-width:850px){.page{inset:100px 5% 80px}.home-page{gap:5%;grid-template-columns:1fr 1fr}.home-demo{padding:28px 16px}.memory-art{gap:4px}.memory-art span{width:42px;height:55px}.home-page h1{font-size:58px}.home-copy>p:first-of-type{font-size:17px}.level-layout{gap:18px}.level-detail{padding:22px}.level-card{padding:20px 14px;gap:12px}.level-card.selected{padding:19px 13px}.level-card b{font-size:22px}.learn-layout{grid-template-columns:180px 1fr;gap:20px}.lesson-body{padding:24px}.page-heading{gap:20px}}
-@media(max-width:600px){.garden-game{min-height:600px}.page{inset:92px 5% 75px}.home-page{display:block}.home-copy{padding:18px 6px}.home-page h1{font-size:62px}.home-actions{max-width:none}.home-demo{margin:24px 4px;padding:24px}.memory-art{margin:24px 0}.home-explainer{margin:18px 0}.home-demo .demo-foot{margin-top:16px}.level-layout,.learn-layout{grid-template-columns:1fr;gap:22px}.page-heading h1{font-size:27px}.page-heading{gap:16px;margin-bottom:16px}.level-card{min-height:80px;padding:18px 16px}.level-card.selected{padding:17px 15px}.level-list{gap:10px}.level-card small{font-size:10px}.lesson-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lesson-tabs button{min-height:45px;padding:12px;font-size:12px;gap:8px}.lesson-body,.settings-body{padding:22px}.lesson-body h2{font-size:29px}.lesson-visual{font-size:24px}.lesson-actions{gap:18px}.lab-keys button{padding:10px;font-size:12px}.bottom-note{left:5%;right:5%;font-size:7px}.runtime-status{font-size:8px;left:5%;bottom:41px}.brand small{display:none}.hud{left:5%;right:5%;top:25px}.hud nav{margin-left:auto}.deck{top:98px;bottom:60px}.garden-game[data-state=practice] .deck{top:192px}.practice-hint{top:94px;max-width:94vw}.packet-tag{font-size:7px}}
-
-.level-detail p{margin:10px 0;line-height:1.5}.level-detail .field{margin-top:14px}.level-detail .map-info{margin:14px 0}.level-detail .primary{width:100%;display:flex;justify-content:space-between}.level-detail{padding:24px}.level-detail h2{font-size:30px}.level-detail .eyebrow{margin-bottom:10px}.level-detail .small-note{font-size:11px!important}.level-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.home-page{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.learn-layout{grid-template-columns:230px minmax(0,1fr)}.receptors{bottom:12px}.receptors button{height:48px}.combo-display{top:55px;bottom:auto;right:14px;left:auto;transform:none;opacity:.75}.combo-display b{font-size:32px}.combo-display span{font-size:8px}
-@media(max-width:850px){.learn-layout{grid-template-columns:180px minmax(0,1fr)}}
-@media(max-width:600px){.level-layout,.learn-layout{grid-template-columns:minmax(0,1fr)}.home-page{display:block}.level-detail{padding:22px}}
-.combo-display{width:auto;min-width:50px;text-align:right}
-
-.learning-path{margin:8px 0 0;padding:16px 18px;background:#fff9e9d9;border:1px solid #b7c6a3;border-radius:16px}.learning-path summary{font:14px system-ui,sans-serif;cursor:pointer}.path-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.path-presets button{text-align:left;padding:14px}.path-presets b{display:block;font:18px Georgia,serif}.path-presets small{display:block;font:11px/1.6 system-ui,sans-serif;margin-top:6px}.learning-path summary:focus-visible{outline:3px solid #314f2d;outline-offset:4px}
-
-/* Animated walkthrough contributed in game-tutorial; native modal integration. */
-.tutorial{width:min(640px,calc(100% - 34px));max-width:640px;max-height:96dvh;padding:0;overflow:auto;background:transparent;border:0;box-shadow:none}.tutorial::backdrop{background:#34483b66;backdrop-filter:blur(7px)}
-.tut-card{width:100%;overflow:auto;background:var(--cream);border:1px solid #e5dfc2;border-radius:24px;padding:28px 32px 22px;box-shadow:0 25px 100px #2f482e40}
-.tut-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.tut-top .eyebrow{margin-bottom:14px}
-.tut-skip{width:auto;display:inline-block;padding:0!important;font-size:11px}
-.tut-card h2{margin-bottom:14px}
-.tut-stage{position:relative;height:250px;overflow:hidden;margin:0 0 16px;border:1px solid #d4dbb9;border-radius:18px;background:linear-gradient(180deg,#fff9e955,#e8edcf99)}
-.tut-note{position:absolute;left:12px;right:12px;top:9px;min-height:20px;text-align:center;font:italic 14px Georgia;color:#476b47;z-index:3}
-.tut-packet{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:min(380px,92%);height:66px;border:1px solid #d9ddba;border-radius:15px;background:#fff9e9ef;box-shadow:0 4px 0 #536f3b22;z-index:2}
-.tut-stage .packet-qubit{transition:color .3s,opacity .3s,transform .3s}
-.tut-stage .packet-qubit[data-flip="1"]{color:#d98d5f}
-.tut-stage .packet-qubit[data-hidden="1"]{opacity:0;transform:scale(.3)}
-.tut-stage .parity-lamp{transition:opacity .3s,background .3s,border-color .3s}
-.tut-stage .parity-lamp[data-hidden="1"]{opacity:0}
-.tut-pop{animation:tutPop .5s ease}
-.parity-lamp.tut-pop{animation:tutLamp .7s ease-out}
-@keyframes tutPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
-@keyframes tutLamp{0%{box-shadow:0 0 0 0 #e9ad85aa}100%{box-shadow:0 0 0 14px #e9ad8500}}
-.tut-spark{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:22px;line-height:1;color:#d98d5f;opacity:0;z-index:4}
-.tut-flower{position:absolute;left:50%;top:66px;transform:translateX(-50%);font-size:22px;line-height:1;color:#e9ad85;opacity:0;z-index:4}
-.tut-flower.go{animation:tutFloat 1.3s ease-out}
-@keyframes tutFloat{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-46px) scale(1.2)}}
-.tut-stage [data-for]{opacity:0;pointer-events:none;transition:opacity .35s}
-.tut-stage[data-step="2"] [data-for~="2"],.tut-stage[data-step="3"] [data-for~="3"],.tut-stage[data-step="4"] [data-for~="4"]{opacity:1}
-.tut-table{position:absolute;left:50%;top:116px;transform:translateX(-50%);width:min(320px,88%);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
-.tut-table>div{display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid #d9ddba;border-radius:10px;background:#fff9e9cc;font:11px ui-monospace,monospace;color:#64765e;transition:background .25s,border-color .25s}
-.tut-table b{font-weight:normal;color:#476b47}
-.tut-table>div[data-active="1"]{background:#f6e2cf;border-color:#e9ad85}
-.tut-hit{position:absolute;left:0;right:0;top:176px;height:3px;background:#536f3b;box-shadow:0 0 18px #fff9e9}
-.tut-hit span{position:absolute;top:6px;left:10px;font:7px ui-monospace,monospace;letter-spacing:1.8px;color:#81906e}
-.tut-keys{position:absolute;left:50%;top:198px;transform:translateX(-50%);width:min(380px,92%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 6px}
-.tut-key{height:38px;display:grid;place-items:center;border:1px solid #b8c697;border-radius:13px;background:#fff9e9c9;box-shadow:0 3px 0 #64774525;font:15px ui-monospace,monospace;transition:background .12s,transform .12s}
-.tut-key.pressed{background:#e9ad85;box-shadow:0 0 22px #e9ad8577;transform:translateY(3px)}
-.tut-text{font-size:13px;line-height:1.7;color:#64765e;margin:0 0 18px;min-height:66px}
-.tut-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.tut-dots{display:flex;gap:7px;margin-right:auto}
-.tut-dot{width:24px;height:24px;padding:0;border-radius:50%;background:#e5e8cc;border:1px solid #bfca9c}
-.tut-dot[aria-current="step"]{background:#476b47;border-color:#476b47}
-.tut-nav .primary{min-width:150px;text-align:center}
-.tut-lesson-link{margin-top:14px;font-size:12px}.tut-card .tut-text{color:#34483b}.tut-note{color:#34483b}
-@media(max-width:520px){.tut-card{padding:20px 16px 16px}.tut-card h2{font-size:25px}.tut-nav{justify-content:flex-end}.tut-dots{width:100%;margin-bottom:4px}}
-
-@media(prefers-reduced-motion:reduce){.tutorial *{animation:none!important;transition:none!important}}
-
-/* Hold ribbons stay neutral until the player chooses a correction lane. */
-.hold-packet{isolation:isolate;border:2px solid #69834e}.hold-body{position:absolute;bottom:26px;left:3%;right:3%;z-index:-1;border:1px solid #69834e;border-radius:12px 12px 0 0;background:repeating-linear-gradient(0deg,#d8e4b9e6 0 22px,#b2c694e6 22px 24px);pointer-events:none;overflow:hidden;min-height:0}.hold-body span{display:block;text-align:center;font:10px ui-monospace,monospace;letter-spacing:2px;color:#34483b;padding:8px}.hold-packet.sustaining{box-shadow:0 0 0 3px #88a66b88}.receptors button.holding{background:#c4d9a1;border:2px solid #476b47;box-shadow:0 0 15px #aac889}.tut-hold-tail{position:absolute;bottom:66px;left:5%;right:5%;height:50px;overflow:hidden;background:#cbdba7;border:1px solid #69834e;border-radius:10px 10px 0 0;text-align:center;font:10px ui-monospace,monospace;color:#34483b;padding-top:5px;box-sizing:border-box}.tut-stage[data-step="5"] [data-for~="5"]{opacity:1}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qubit Tempo · CapyQuantum</title><style>/* Quantum lab: restrained wireframes, signal yellow, and readable correction cues. */
+:root {
+  font-family:'Avenir Next',Avenir,system-ui,sans-serif;
+  color:#e8edf2;background:#070b12;font-synthesis:none;color-scheme:dark;
+  --ink:#e8edf2;--muted:#a1aebb;--cream:#0d151f;--green:#dceb55;
+  --line:#344252;--peach:#ff8b9c;--accent:#dceb55;--cyan:#82d2dc;
+  --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+*{box-sizing:border-box}body{margin:0}button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#101923;border-radius:2px;transition:background .18s,border-color .18s,transform .18s;padding:12px 16px}
+button:hover{background:#1b2733;border-color:#778796}button:active{transform:translateY(1px)}
+button:disabled{cursor:default;opacity:.5}a{color:var(--cyan)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+[hidden]{display:none!important}h1,h2,p{margin-top:0}h1,h2{font-weight:400}p{line-height:1.7;color:var(--muted)}
+h1{font-size:38px;line-height:1.1;letter-spacing:-1px;margin-bottom:18px}h2{font-size:30px;line-height:1.2;margin-bottom:18px}
+.garden-game{height:100dvh;min-height:640px;overflow:hidden;position:relative;background:#070b12}
+#garden{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hud{position:absolute;top:30px;left:4%;right:4%;display:flex;gap:26px;align-items:center;z-index:5;padding-bottom:22px;border-bottom:1px solid #a6bed216}
+.brand{display:flex;align-items:center;gap:15px;text-decoration:none;color:var(--ink);font-size:18px;letter-spacing:3px;line-height:1}
+.brand em{font-style:normal;font-weight:300;color:var(--muted)}.brand small{display:block;font:8px/1.5 var(--mono);letter-spacing:1.65px;margin-top:10px;color:var(--muted)}
+.brand-orbit{position:relative;width:36px;height:36px;display:block;color:var(--accent);flex:none}
+.brand-orbit i{position:absolute;inset:2px 10px;border:1px solid currentColor;border-radius:50%;transform:rotate(35deg)}.brand-orbit i:nth-child(2){transform:rotate(95deg)}.brand-orbit i:nth-child(3){transform:rotate(155deg)}
+.brand-orbit:after{content:'';position:absolute;inset:16px;border-radius:50%;background:currentColor}
+.hud nav{display:flex;gap:8px;margin-left:auto}.hud nav button{width:36px;height:36px;padding:0;font-size:18px;background:transparent}
+.song-label{margin-left:auto;display:flex;flex-direction:column;text-align:right;gap:5px}.song-label b{font-size:15px;font-weight:400}.song-label span{font:10px var(--mono);color:var(--muted)}
+.score-pill{padding:8px 16px;border-left:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:4px}.score-pill b{font:21px var(--mono);letter-spacing:1px}.score-pill small{font:8px var(--mono);letter-spacing:2px;color:var(--muted)}
+.song-progress{position:absolute;left:4%;right:4%;top:104px;height:2px;background:#26313d;z-index:4}.song-progress i{display:block;width:0;height:100%;background:var(--accent);box-shadow:0 0 10px #dceb5550}
+.eyebrow{font:10px/1.6 var(--mono);letter-spacing:1.8px;color:var(--muted);margin-bottom:20px}
+.page{position:absolute;inset:125px 6% 82px;z-index:3;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4b5d6d transparent;padding:12px 4px}
+.page h1,.page h2{color:var(--ink)}.page p{font-size:15px}.page .eyebrow{font:10px var(--mono);letter-spacing:1.8px}
+.home-page{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:9%;align-items:center;max-width:1380px;margin:auto}
+.home-copy{padding:10px 0}.home-copy .eyebrow{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:1.6px}
+.home-copy .eyebrow>span{display:block;width:5px;height:20px;background:var(--accent)}
+.home-page h1{font-size:clamp(64px,6.8vw,110px);font-weight:200;letter-spacing:.12em;line-height:1.06;margin:28px 0}.home-page h1>span{color:var(--accent);letter-spacing:0}
+.home-intro{font-size:21px!important;line-height:1.55!important;color:#d3dce5;letter-spacing:.1px}.home-explainer{margin:20px 0 24px;font-size:14px!important}
+.home-actions{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;max-width:440px}.home-actions .primary{grid-column:1/-1}.home-actions button{min-height:47px;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:12px}.home-actions button>span{font-size:19px}
+.primary{background:#eef1f4;border:1px solid #eef1f4;border-left:5px solid var(--accent);color:#10151b;font:12px var(--mono);letter-spacing:1.2px;padding:17px 22px;text-align:left;border-radius:0}
+.primary:hover{background:var(--accent);border-color:var(--accent)}.home-actions .primary{min-height:59px;text-transform:uppercase}
+.subtle{font-size:13px;min-height:42px;background:transparent}.small-note{font-size:11px!important;color:var(--muted);line-height:1.7}.home-copy .small-note{margin:16px 0 0}
+.home-sequence{display:flex;gap:16px;align-items:center;margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font:8px var(--mono);letter-spacing:1.3px;color:var(--muted)}.home-sequence b{color:var(--accent);font-weight:400;margin-right:7px}.home-sequence i{font-style:normal;color:#536171}
+.home-demo{align-self:center;min-width:0}.demo-caption{font:8px/1.5 var(--mono);letter-spacing:1.8px;display:flex;align-items:center;gap:9px;color:var(--muted)}.figure-number{margin-left:auto;font-size:8px;color:#8898a8}
+.signal-dot{width:5px;height:5px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px #dceb5570}
+.state-sphere{width:100%;height:auto;display:block;max-height:410px;margin:12px 0 5px;overflow:visible}.sphere-mesh{color:#657685}.sphere-axes{color:#576777;stroke-width:.7}.sphere-state{color:var(--accent)}.sphere-labels{color:#a7b5c2;font:13px var(--mono)}.sphere-labels .psi-label{fill:var(--accent);font-size:18px}
+.state-halo{transform-box:fill-box;transform-origin:center;animation:statePulse 4s ease-in-out infinite;opacity:.4}
+@keyframes statePulse{50%{transform:scale(1.35);opacity:.15}}
+.register-example{border-top:1px solid var(--line);padding:22px 0 0}.memory-art{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:20px 0}
+.memory-art span{position:relative;border:1px solid #657789;border-radius:50%;width:48px;height:48px;display:grid;place-items:center;font:11px var(--mono);background:#0b131d;flex:none}
+.memory-art span:after{content:'';position:absolute;inset:8px -4px;border:1px solid #657789;border-radius:50%;transform:rotate(-35deg);opacity:.55;pointer-events:none}
+.memory-art .fault{color:var(--accent);border-color:var(--accent);background:#dceb5510;box-shadow:0 0 20px #dceb5510}.memory-art .fault:after{border-color:var(--accent)}.memory-art i{font:21px var(--mono);font-style:normal;color:var(--muted)}.memory-art i.alert{color:var(--accent)}.demo-answer{font-size:11px;line-height:1.7;color:var(--muted);text-align:center}.demo-answer b{font-weight:400;color:var(--accent)}
+.page-heading{display:flex;align-items:center;gap:30px;margin-bottom:32px}.back{background:transparent;border:0;padding:10px 0;white-space:nowrap;font:11px var(--mono);color:var(--muted)}.page-heading .eyebrow{margin-bottom:9px}.page-heading h1{font-size:34px;font-weight:300;letter-spacing:1px}
+.level-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:36px;max-width:1160px;margin:auto}.level-list{display:flex;flex-direction:column;gap:12px}
+.level-card{padding:23px 22px;text-align:left;display:flex;align-items:center;gap:24px;min-height:104px;background:#0c141ee8;border-color:#334151;border-radius:0;position:relative}.level-card.selected{border-color:var(--accent);background:linear-gradient(100deg,#dceb5510,#0c141ef5)}.level-card.selected:before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent)}.level-card b{font-size:24px;font-weight:300;display:block;letter-spacing:.5px}.level-card small{display:block;font:10px/1.6 var(--mono);margin-top:9px;color:var(--muted)}.level-number{font:15px var(--mono);color:var(--muted)}.selected .level-number{color:var(--accent)}.level-arrow{margin-left:auto;color:var(--accent)}
+.level-detail,.lesson-body,.settings-body{background:#0b131df2;border:1px solid var(--line);border-radius:0;padding:30px}.level-detail{border-top:2px solid var(--accent)}.level-detail h2{font-size:32px;font-weight:300;margin:0}.level-detail p{font-size:13px;line-height:1.65;margin:14px 0}.level-detail .eyebrow{margin-bottom:12px}.level-detail .primary{width:100%;display:flex;justify-content:space-between}.level-detail .subtle{width:100%;margin-top:10px}
+.field{display:block;font:9px var(--mono);letter-spacing:1.4px;color:var(--muted);margin-top:22px}.field select{display:block;width:100%;margin-top:9px;border:1px solid var(--line);background:#0d1722;padding:12px;font:13px system-ui,sans-serif;letter-spacing:0;min-height:43px;border-radius:0}
+.map-info{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font:10px var(--mono);margin:22px 0}.chart-preview{color:var(--accent);background:#101a26;padding:8px 6px 0;border-bottom:1px solid var(--line)}.chart-preview svg{width:100%;height:45px}
+.learning-path{margin:8px 0 0;padding:17px 20px;background:#0c141ee8;border:1px solid var(--line);border-radius:0;color:var(--muted)}summary{cursor:pointer;font-size:12px}.path-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.path-presets button{text-align:left;padding:14px}.path-presets b{display:block;font-size:16px;font-weight:400}.path-presets small{display:block;font:11px/1.6 system-ui,sans-serif;margin-top:6px;color:var(--muted)}
+.learn-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:30px;max-width:1120px;margin:auto}.lesson-tabs{display:flex;flex-direction:column;gap:10px}.lesson-tabs button{display:flex;gap:16px;padding:18px;text-align:left;min-height:60px;font-size:13px;background:#0b141ee8}.lesson-tabs small{font:10px var(--mono);color:var(--muted)}.lesson-tabs [aria-current=step]{border-color:var(--accent);background:#dceb5510;color:var(--accent)}
+.lesson-body h2{font-size:34px;font-weight:300}.lesson-body p{max-width:660px}.lesson-note,.result-insight{background:#172332;border-left:2px solid var(--cyan);padding:18px 20px;font-size:13px;line-height:1.8;margin:22px 0;color:#c4d3e0}
+.lesson-visual{padding:34px 10px;text-align:center;font:30px var(--mono);color:var(--accent)}.lesson-actions{display:flex;align-items:center;gap:25px;flex-wrap:wrap}.lesson-actions .primary{width:auto}.lesson-actions a{font-size:11px;color:var(--cyan)}
+.lab-checks{display:flex;justify-content:center;gap:13px;align-items:center;margin:22px 0}.lab-checks span{border:1px solid var(--line);border-radius:50%;width:48px;height:48px;display:grid;place-items:center;font:12px var(--mono);background:#14212f}.lab-checks b{font:24px var(--mono);color:var(--accent)}.lab-keys,.lab-actions{display:flex;gap:8px;flex-wrap:wrap}.lab-keys button,.lab-actions button{padding:12px;font-size:12px}.lab-actions{margin-bottom:18px}.parity-lab{margin:26px 0}.parity-lab small{display:block;font-size:11px;line-height:1.7;color:var(--muted)}
+.settings-body{max-width:690px;margin:auto}.settings-body p{font-size:13px}.tune-field{display:block;font-size:14px;margin:20px 0}.tune-field input{width:100%;display:block;accent-color:var(--accent);margin:15px 0}.tune-field span{font:10px var(--mono);color:var(--cyan)}.check-field{display:flex;gap:10px;align-items:center;font-size:14px}.check-field input{accent-color:var(--accent)}
+.runtime-status{position:absolute;bottom:49px;left:6%;right:6%;z-index:4;margin:0;font:9px var(--mono);color:var(--muted)}
+.bottom-note{position:absolute;bottom:20px;left:4%;right:4%;display:flex;justify-content:space-between;gap:20px;font:8px var(--mono);letter-spacing:.4px;color:var(--muted);z-index:4}.bottom-note span:last-child{letter-spacing:0}
+/* Register packets stay neutral: visual styling must never give away a lane. */
+.deck{--lanes:4;--deck-width:460px;position:absolute;width:min(var(--deck-width),90vw);top:130px;bottom:64px;left:50%;transform:translateX(-50%);z-index:2}
+.highway{position:absolute;inset:0 0 30px;background:linear-gradient(180deg,#0b142088,#101b28ed 70%,#132132);border:1px solid #536578;border-top:0;border-radius:0;box-shadow:0 0 55px #73c6da08;overflow:hidden}
+.lane-grid{display:grid;grid-template-columns:repeat(var(--lanes),1fr);position:absolute;inset:0}.lane{border-right:1px solid #708ca32c;position:relative}.lane:last-child{border:0}.lane span{display:block;text-align:center;margin-top:22px;font:9px var(--mono);letter-spacing:2px;color:var(--muted)}
+.highway-grain{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 49px,#9ec0dd08 50px);pointer-events:none}
+.hit-line{position:absolute;left:0;right:0;bottom:92px;height:2px;background:var(--accent);box-shadow:0 0 15px #dceb5535;z-index:2}.hit-line span{position:absolute;top:8px;left:8px;font:7px var(--mono);letter-spacing:1.8px;color:var(--accent)}
+.receptors{position:absolute;bottom:12px;left:0;right:0;display:grid;grid-template-columns:repeat(var(--lanes),1fr);gap:6px;padding:0 10px;z-index:4}.receptors button{height:48px;border:1px solid #52697d;background:#101c28;border-radius:2px;padding:6px;touch-action:none}.receptors span{font:18px var(--mono)}.receptors small{display:block;font:7px var(--mono);letter-spacing:1px;margin-top:4px;color:var(--muted)}.receptors button.pressed,.receptors button.holding{background:var(--accent);border-color:var(--accent);color:#10171d;box-shadow:0 0 24px #dceb5533}.receptors button.pressed small,.receptors button.holding small{color:#26321a}
+.notes{position:absolute;inset:0;pointer-events:none}.error-packet,.tut-packet{position:absolute;left:2%;width:96%;height:66px;border:1px solid #647b8e;border-radius:2px;background:#132232fa;box-shadow:0 0 18px #82d2dc0a;will-change:transform}.packet-tag{text-align:center;font:8px var(--mono);letter-spacing:1.2px;color:#adbdca;margin:7px 0 4px}.packet-register{position:relative;display:grid;grid-template-columns:repeat(var(--lanes),1fr);align-items:center;height:41px}
+.packet-qubit{text-align:center;line-height:20px;color:var(--cyan)}.packet-qubit small{display:block;font:7px var(--mono);color:var(--muted);margin-top:3px}.packet-qubit.applied{color:var(--accent)}
+.qubit-orbit{display:block;position:relative;margin:0 auto;width:22px;height:22px;border:1px solid currentColor;border-radius:50%}.qubit-orbit:before{content:'';position:absolute;inset:6px -4px;border:1px solid currentColor;border-radius:50%;transform:rotate(-35deg)}.qubit-orbit:after{content:'';position:absolute;inset:8px;border-radius:50%;background:currentColor}
+.parity-lamp{position:absolute;top:0;transform:translateX(-50%);width:22px;height:22px;display:grid;place-items:center;border:1px solid #74909e;border-radius:50%;font:17px var(--mono);color:#d0e0e9;background:#1b3040;z-index:1}.parity-lamp[data-alert="1"]{background:var(--accent);border:2px solid var(--accent);color:#161e16;box-shadow:0 0 12px #dceb5530}
+.judgement{position:absolute;top:52%;width:100%;text-align:center;font:23px var(--mono);color:var(--accent);pointer-events:none;z-index:5;text-shadow:0 2px 15px #070b12}.judgement[data-kind=stray],.judgement[data-kind=miss],.judgement[data-kind=wrong]{color:var(--peach)}
+.combo-display{position:absolute;top:51px;right:14px;min-width:50px;text-align:right;pointer-events:none;opacity:.75}.combo-display b{display:block;font:32px var(--mono);color:#c0cedc}.combo-display span{font:8px var(--mono);letter-spacing:2px;color:var(--muted)}
+.count-in{position:absolute;top:34%;width:100%;text-align:center;font:80px var(--mono);color:var(--accent);pointer-events:none}.deck-caption{position:absolute;bottom:0;width:100%;display:flex;justify-content:space-between;gap:10px;font:9px var(--mono);color:var(--muted)}
+.practice-hint{position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:6;background:#101b28fa;border:1px solid #5d7285;border-left:3px solid var(--accent);border-radius:0;padding:12px 18px;max-width:90vw;display:flex;align-items:center;gap:12px;width:max-content}.practice-hint>span{color:var(--accent);font-size:24px}.practice-hint p{font-size:11px;line-height:1.6;max-width:370px;margin:0;color:#c5d1dc}.practice-hint button{padding:10px;white-space:nowrap;font-size:11px}.garden-game[data-state=practice] .deck{top:210px}
+.hold-packet{isolation:isolate;border:2px solid #87acbd}.hold-body{position:absolute;bottom:26px;left:3%;right:3%;z-index:-1;border:1px solid #658ca1;border-radius:0;background:repeating-linear-gradient(0deg,#172e43ed 0 22px,#496d87ed 22px 24px);pointer-events:none;overflow:hidden;min-height:0}.hold-body span{display:block;text-align:center;font:10px var(--mono);letter-spacing:2px;color:#c8dce8;padding:8px}.hold-packet.sustaining{border-color:var(--accent);box-shadow:0 0 15px #dceb5525}
+.hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}.lane-effect{position:absolute;bottom:92px;left:calc((var(--lane) + .5)*100%/var(--lanes));width:0;height:0}.hit-ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border:1px solid var(--accent);border-radius:50%;opacity:0}.hit-petal{position:absolute;left:-4px;top:-3px;width:8px;height:3px;border-radius:0;background:var(--accent);opacity:0}.hit-petal:nth-child(2n){background:var(--cyan)}.hit-petal:nth-child(3n){background:#e8edf2}.miss-fragments{position:absolute;left:3%;right:3%;bottom:92px;display:flex;gap:6px;height:12px}.miss-fragments i{flex:1;border:1px solid #c67083;background:#442435;border-radius:0;opacity:0}
+/* Native modals, including the complete six-step teaching sequence. */
+dialog{max-width:620px;width:calc(100% - 34px);max-height:90dvh;overflow:auto;border:1px solid #576b7d;border-top:2px solid var(--accent);border-radius:0;background:var(--cream);color:var(--ink);padding:34px;box-shadow:0 25px 100px #0008}dialog::backdrop,.tutorial::backdrop{background:#03070dba;backdrop-filter:blur(8px)}dialog p{font-size:13px;line-height:1.8;color:var(--muted)}h2 em{display:block;font-size:16px;font-style:normal;color:var(--muted);margin-top:10px}
+#dialog-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}#dialog-actions .primary{flex:1}.result-title{display:flex;gap:20px;align-items:center;justify-content:space-between}.grade{font:64px var(--mono);color:var(--accent)}.result-stats{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid var(--line);margin-top:8px;padding:20px 0;gap:12px}.result-stats b{display:block;font:27px var(--mono)}.result-stats small{font:7px/1.6 var(--mono);letter-spacing:1px;color:var(--muted);display:block;margin-top:7px}.choice-result{font:11px/1.7 var(--mono)!important;color:var(--cyan)!important}.judgement-row{display:flex;justify-content:space-between;margin-top:22px;font:9px var(--mono);color:var(--muted);gap:10px}.judgement-row b{display:block;font:19px var(--mono);color:var(--ink);margin-bottom:5px}.timing-chart{margin:13px 0 20px}.timing-chart svg{display:block;width:100%;height:82px}.timing-chart>div{display:flex;justify-content:space-between;font:8px var(--mono);color:var(--muted)}details{font-size:12px;color:var(--muted);margin-top:19px}details p{font-size:11px}
+.text-button{background:transparent;border:0;font-size:12px;color:var(--muted);padding:11px 0;display:block;width:100%;text-align:center}.text-button:hover{background:transparent;color:var(--accent);text-decoration:underline}
+.tutorial{width:min(640px,calc(100% - 34px));max-width:640px;max-height:96dvh;padding:0;overflow:auto;background:transparent;border:0;box-shadow:none}.tut-card{width:100%;overflow:auto;background:var(--cream);border:1px solid #576b7d;border-top:2px solid var(--accent);padding:28px 32px 22px}.tut-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.tut-top .eyebrow{margin-bottom:14px}.tut-skip{width:auto;display:inline-block;padding:0!important;font-size:11px}.tut-card h2{margin-bottom:14px}
+.tut-stage{position:relative;height:250px;overflow:hidden;margin:0 0 16px;border:1px solid var(--line);background:linear-gradient(180deg,#0d1723,#172637)}.tut-note{position:absolute;left:12px;right:12px;top:9px;min-height:20px;text-align:center;font:12px/1.5 var(--mono);color:var(--ink);z-index:3}.tut-packet{left:50%;top:34px;transform:translateX(-50%);width:min(380px,92%);z-index:2}.tut-stage .packet-qubit{transition:color .3s,opacity .3s,transform .3s}.tut-stage .packet-qubit[data-flip="1"]{color:var(--accent)}.tut-stage .packet-qubit[data-hidden="1"]{opacity:0;transform:scale(.3)}.tut-stage .parity-lamp{transition:opacity .3s,background .3s,border-color .3s}.tut-stage .parity-lamp[data-hidden="1"]{opacity:0}
+.tut-pop{animation:tutPop .5s ease}.parity-lamp.tut-pop{animation:tutLamp .7s ease-out}@keyframes tutPop{40%{transform:scale(1.45)}}@keyframes tutLamp{0%{box-shadow:0 0 0 0 #dceb5590}100%{box-shadow:0 0 0 14px #dceb5500}}
+.tut-spark,.tut-flower{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:22px;line-height:1;color:var(--accent);opacity:0;z-index:4}.tut-flower{top:66px;color:var(--cyan)}.tut-flower.go{animation:tutFloat 1.3s ease-out}@keyframes tutFloat{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-46px) scale(1.2)}}
+.tut-stage [data-for]{opacity:0;pointer-events:none;transition:opacity .35s}.tut-stage[data-step="2"] [data-for~="2"],.tut-stage[data-step="3"] [data-for~="3"],.tut-stage[data-step="4"] [data-for~="4"],.tut-stage[data-step="5"] [data-for~="5"]{opacity:1}
+.tut-table{position:absolute;left:50%;top:116px;transform:translateX(-50%);width:min(320px,88%);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.tut-table>div{display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);background:#142230;font:11px var(--mono);color:var(--muted);transition:background .25s,border-color .25s}.tut-table b{font-weight:400;color:var(--ink)}.tut-table>div[data-active="1"]{background:#dceb5518;border-color:var(--accent)}
+.tut-hit{position:absolute;left:0;right:0;top:176px;height:2px;background:var(--accent);box-shadow:0 0 18px #dceb5525}.tut-hit span{position:absolute;top:6px;left:10px;font:7px var(--mono);letter-spacing:1.8px;color:var(--accent)}.tut-keys{position:absolute;left:50%;top:198px;transform:translateX(-50%);width:min(380px,92%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 6px}.tut-key{height:38px;display:grid;place-items:center;border:1px solid #52697d;background:#101c28;font:15px var(--mono);transition:background .12s,transform .12s}.tut-key.pressed{background:var(--accent);color:#10151b;transform:translateY(2px)}.tut-hold-tail{position:absolute;bottom:66px;left:5%;right:5%;height:50px;overflow:hidden;background:#213e54;border:1px solid #658ca1;text-align:center;font:10px var(--mono);color:#c8dce8;padding-top:5px}
+.tut-text{font-size:13px;line-height:1.7;margin:0 0 18px;min-height:66px}.tut-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tut-dots{display:flex;gap:7px;margin-right:auto}.tut-dot{width:18px;height:18px;padding:0;border-radius:50%;background:#1d2d3c;border:1px solid #52697d}.tut-dot[aria-current="step"]{background:var(--accent);border-color:var(--accent)}.tut-nav .primary{min-width:150px;text-align:center}.tut-lesson-link{margin-top:14px;font-size:12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.loading{margin:30px;font:12px var(--mono);color:var(--muted)}
+@media(max-height:800px) and (min-width:851px){.page{inset:112px 6% 77px}.home-page h1{font-size:clamp(56px,5.4vw,76px);margin:18px 0}.home-intro{font-size:18px!important}.home-explainer{margin:18px 0 22px}.home-sequence{display:none}.state-sphere{max-height:310px}.register-example{padding-top:16px}.memory-art{margin:16px 0}.home-copy{padding:0}.page-heading{margin-bottom:23px}.deck{top:119px}.level-card{min-height:92px;padding:19px 22px}.level-detail{padding:24px}}
+@media(max-width:850px){.hud{top:24px;gap:14px}.brand{font-size:15px;letter-spacing:2px;gap:10px}.brand small{font-size:7px}.page{inset:112px 5% 80px}.home-page{gap:6%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.home-page h1{font-size:60px;letter-spacing:.08em}.home-copy .eyebrow{font-size:8px;letter-spacing:1px}.home-intro{font-size:18px!important}.home-explainer{font-size:13px!important}.home-actions{grid-template-columns:1fr 1fr}.home-actions button{font-size:11px;padding:12px}.home-sequence{gap:8px;font-size:7px;letter-spacing:0}.demo-caption{letter-spacing:.8px;font-size:7px}.memory-art{gap:5px}.memory-art span{width:39px;height:39px;font-size:10px}.demo-answer{font-size:10px}.level-layout{gap:22px}.level-card{gap:16px;padding:20px 16px}.level-card b{font-size:21px}.level-detail{padding:22px}.learn-layout{grid-template-columns:175px minmax(0,1fr);gap:22px}.lesson-body{padding:25px}.page-heading{gap:22px}.song-label{display:none}.score-pill{margin-left:auto}.hud nav{gap:5px;margin-left:0}.garden-game[data-state=home] .hud nav,.garden-game[data-state=levels] .hud nav,.garden-game[data-state=learn] .hud nav,.garden-game[data-state=settings] .hud nav{margin-left:auto}}
+@media(max-width:600px){.garden-game{min-height:620px}.hud{top:22px;left:5%;right:5%;padding-bottom:18px;gap:10px}.brand{font-size:13px;letter-spacing:1.4px}.brand small{display:none}.brand-orbit{width:30px;height:30px}.brand-orbit:after{inset:13px}.hud nav button{width:30px;height:30px;font-size:16px}.page{inset:90px 5% 78px}.home-page{display:flex;flex-direction:column;gap:24px;align-items:stretch}.home-copy{order:-1;padding:16px 0 0}.home-copy .eyebrow{font-size:8px}.home-page h1{font-size:clamp(56px,15vw,82px);letter-spacing:.1em;margin:20px 0}.home-intro{font-size:18px!important}.home-explainer{margin:18px 0 22px}.home-actions{max-width:none}.home-actions button{font-size:12px}.home-sequence{margin-top:24px;gap:14px;font-size:8px}.home-demo{align-self:stretch;padding:15px 0 20px}.state-sphere{max-height:300px}.demo-caption{font-size:8px}.memory-art{max-width:360px;margin:20px auto}.memory-art span{width:44px;height:44px}.demo-answer{font-size:11px}.level-layout,.learn-layout{grid-template-columns:minmax(0,1fr);gap:22px}.page-heading h1{font-size:25px}.page-heading{gap:16px;margin-bottom:22px}.level-card{min-height:86px;padding:18px 16px}.level-card small{font-size:9px}.level-list{gap:10px}.lesson-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lesson-tabs button{min-height:45px;padding:12px;font-size:12px;gap:8px}.lesson-body,.settings-body{padding:22px}.lesson-body h2{font-size:28px}.lesson-visual{font-size:22px}.lesson-actions{gap:18px}.lab-checks{gap:8px}.lab-checks span{width:39px;height:39px;font-size:10px}.lab-keys button{padding:10px;font-size:11px}.bottom-note{left:5%;right:5%;font-size:7px;bottom:18px}.bottom-note span:last-child{display:none}.runtime-status{font-size:8px;left:5%;bottom:44px}.song-progress{top:80px;left:5%;right:5%}.score-pill{padding:4px 8px}.score-pill b{font-size:15px}.score-pill small{font-size:6px}.deck{top:96px;bottom:57px;width:92vw}.deck-caption{font-size:8px}.practice-hint{top:92px;max-width:94vw;padding:10px 12px;gap:8px}.practice-hint p{font-size:10px;max-width:240px}.practice-hint button{white-space:normal;padding:8px;max-width:80px}.practice-hint>span{display:none}.garden-game[data-state=practice] .deck{top:232px}.packet-tag{font-size:7px}.receptors{gap:4px;padding:0 6px}.receptors span{font-size:15px}.judgement{font-size:20px}.result-stats b{font-size:22px}.result-stats small{font-size:6px}.grade{font-size:48px}dialog{padding:24px}.tut-card{padding:20px 16px 16px}.tut-card h2{font-size:25px}.tut-nav{justify-content:flex-end}.tut-dots{width:100%;margin-bottom:4px}.tut-nav button{font-size:11px}.tut-nav .primary{min-width:130px}}
+@media(max-width:420px){.hud{gap:7px}.brand{font-size:12px;letter-spacing:1px;gap:7px}.hud nav button{width:28px;height:29px}.score-pill{padding:4px 6px}.score-pill b{font-size:13px}.parity-lamp{width:19px;height:19px;font-size:15px}.packet-tag{font-size:6px}.qubit-orbit{width:19px;height:19px}.qubit-orbit:after{inset:7px}.tut-note{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.garden-game[data-reduced=true] *,.garden-game[data-reduced=true] *::before,.garden-game[data-reduced=true] *::after{animation:none!important;transition:none!important}.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
 </style></head><body><div id="app"><p class="loading" role="status">Preparing Qubit Tempo…</p></div><script type="module">// Pauli-X repetition-code reference model. Mirrors quantum/rhythm.py.
 const STATES = ['0', '1', '+', '-', '+i', '-i'];
 const COUNTS = [3, 4, 5, 6, 7];
@@ -1217,6 +357,7 @@ class RhythmRun {
   constructor(map, bank, { untimed = false } = {}) {
     this.untimed = untimed;
     this.map = map; this.bank = bank; this.notes = []; this.packets = []; this.cues = []; this.results = [];
+    this.feedbackEvents = [];
     this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
     for (const event of map.events) {
       const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
@@ -1275,6 +416,7 @@ class RhythmRun {
     note.holding = false; note.suspended = false; note.done = true; note.holdSuccess = success;
     if (success) this.credit(note);
     else { note.outcome.timing = 'Miss'; this.combo = 0; }
+    this.feedbackEvents.push({ type: success ? 'hold-complete' : 'hold-break', note });
   }
   release(lane, time) {
     const note = this.notes.find(n => n.holding && n.heldLane === lane);
@@ -1288,7 +430,7 @@ class RhythmRun {
   advance(time) {
     for (const note of this.notes) {
       if (note.holding && time >= note.endAt) this.finishHold(note, !note.suspended);
-      else if (!note.done && !note.holding && time > note.at + WINDOWS.good) { note.done = true; note.outcome = { timing: 'Miss', delta: null, correct: false }; this.combo = 0; }
+      else if (!note.done && !note.holding && time > note.at + WINDOWS.good) { note.done = true; note.outcome = { timing: 'Miss', delta: null, correct: false }; this.combo = 0; this.feedbackEvents.push({ type: 'note-miss', note }); }
     }
     const resolved = [];
     for (const p of this.packets) if (!p.done && time > p.end) {
@@ -1332,21 +474,31 @@ registerComposer('garden-lofi', (tick, { tone, noise, section }) => {
 
 });
 class MusicTransport {
-  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; }
+  constructor() { this.context = null; this.nodes = new Set(); this.muted = false; this.timer = null; this.running = false; this.paused = false; this.musicVolume = .85; this.effectsVolume = .55; }
   async init() {
     if (!this.context) {
       const Audio = window.AudioContext || window.webkitAudioContext;
       if (!Audio) throw new Error('Web Audio is unavailable. Use a current browser.');
       this.context = new Audio(); this.master = this.context.createGain(); this.master.connect(this.context.destination);
+      this.musicBus = this.context.createGain(); this.musicBus.connect(this.master);
+      this.effectsBus = this.context.createGain(); this.effectsBus.connect(this.master);
       this.noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * .3, this.context.sampleRate);
       const data = this.noiseBuffer.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      // Reuse two pre-enveloped, unpitched samples instead of a filter graph per hit.
+      this.tapBuffers = [.035, .06].map((duration, index) => {
+        const buffer = this.context.createBuffer(1, Math.ceil(this.context.sampleRate * duration), this.context.sampleRate), samples = buffer.getChannelData(0);
+        let smooth = 0;
+        for (let i = 0; i < samples.length; i++) { smooth += (index ? .1 : .3) * (Math.random() * 2 - 1 - smooth); samples[i] = smooth * (index ? .09 : .16) * Math.min(1, i / (this.context.sampleRate * .002)) * (1 - i / samples.length) ** 3; }
+        return buffer;
+      });
     }
+    this.updateGains();
     await this.context.resume();
   }
   async start(map) {
     await this.init(); this.stop(); this.map = map; this.beatSeconds = 60 / map.bpm;
     this.leadIn = 4 * this.beatSeconds; this.origin = this.context.currentTime + .12;
-    this.paused = false; this.running = true; this.master.gain.value = this.muted ? 0 : map.music.gain;
+    this.paused = false; this.running = true; this.updateGains();
     this.tick = -16;
     let buffer = null;
     if (map.music.url && !buffer) {
@@ -1360,8 +512,8 @@ class MusicTransport {
     if (buffer) {
       const offset = map.music.offsetSeconds;
       if (offset >= buffer.duration || buffer.duration - offset < beatToSeconds(map, map.durationBeats)) throw new Error('The audio file is shorter than this map after its offset.');
-      const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.master);
-      source.start(this.origin + this.leadIn, offset); this.nodes.add(source); this.external = true;
+      const source = this.context.createBufferSource(); source.buffer = buffer; source.connect(this.musicBus);
+      source.start(this.origin + this.leadIn, offset); this.track(source); this.external = true;
     } else this.external = false;
     this.melody = map.events.flatMap(event => event.steps.map(step => ({ beat: event.beat + step.offset, lane: step.lanes[0], holdBeats: step.holdBeats || 0 })));
     this.melodyIndex = 0;
@@ -1393,81 +545,174 @@ class MusicTransport {
       });
     }
   }
-  tone(freq, duration, volume, type = 'sine', endFrequency = null, at = this.context.currentTime) {
+  tone(freq, duration, volume, type = 'sine', endFrequency = null, at = this.context.currentTime, bus = this.musicBus) {
     const c = this.context, osc = c.createOscillator(), gain = c.createGain();
     osc.type = type; osc.frequency.setValueAtTime(freq, at); if (endFrequency) osc.frequency.exponentialRampToValueAtTime(endFrequency, at + duration);
     gain.gain.setValueAtTime(.0001, at); gain.gain.linearRampToValueAtTime(volume, at + .008); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
-    osc.connect(gain); gain.connect(this.master); osc.start(at); osc.stop(at + duration + .01);
-    this.nodes.add(osc); osc.onended = () => this.nodes.delete(osc);
+    osc.connect(gain); gain.connect(bus); osc.start(at); osc.stop(at + duration + .01);
+    this.track(osc, gain);
   }
   noise(duration, volume, frequency, at) {
     const source = this.context.createBufferSource(), filter = this.context.createBiquadFilter(), gain = this.context.createGain();
     source.buffer = this.noiseBuffer; filter.type = 'highpass'; filter.frequency.value = frequency;
     gain.gain.setValueAtTime(volume, at); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
-    source.connect(filter); filter.connect(gain); gain.connect(this.master); source.start(at); source.stop(at + duration);
-    this.nodes.add(source); source.onended = () => this.nodes.delete(source);
+    source.connect(filter); filter.connect(gain); gain.connect(this.musicBus); source.start(at); source.stop(at + duration);
+    this.track(source, filter, gain);
   }
-  memory(restored, index) { if (!this.running || this.paused) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth'); }
-  errorTone(lane) { if (this.context && !this.paused) this.tone(180 + lane * 15, .16, .03, 'sawtooth'); }
-  hit(lane) { if (this.running && !this.paused) this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][lane]), .16, .035, 'sine'); }
-  setMuted(muted) { this.muted = muted; if (this.master) this.master.gain.value = muted ? 0 : this.map?.music.gain ?? .7; }
+  track(source, ...connections) { this.nodes.add(source); source.onended = () => { this.nodes.delete(source); source.disconnect(); connections.forEach(node => node.disconnect()); }; }
+  tap(error = false) {
+    if (!this.context || this.paused || this.muted || !this.effectsVolume || this.nodes.size >= 64) return;
+    const source = this.context.createBufferSource(); source.buffer = this.tapBuffers[error ? 1 : 0]; source.connect(this.effectsBus); source.start(); this.track(source);
+  }
+  memory(restored, index) { if (!this.running || this.paused || this.external || this.muted || !this.effectsVolume) return; const note = [72, 75, 79, 82, 79, 75, 74, 70][index % 8]; this.tone(midiHz(note + (restored ? 0 : 1)), .28, .045, restored ? 'triangle' : 'sawtooth', null, this.context.currentTime, this.effectsBus); }
+  errorTone() { this.tap(true); }
+  hit(lane) {
+    if (!this.context || this.paused || this.muted || !this.effectsVolume || this.nodes.size >= 64) return;
+    if (this.external) this.tap();
+    else this.tone(midiHz([72, 74, 75, 79, 82, 84, 86][lane]), .16, .035, 'sine', null, this.context.currentTime, this.effectsBus);
+  }
+  updateGains() {
+    if (!this.master) return;
+    this.master.gain.setTargetAtTime(this.muted ? 0 : 1, this.context.currentTime, .01);
+    this.musicBus.gain.setTargetAtTime(this.musicVolume * (this.map?.music.gain ?? .7), this.context.currentTime, .01);
+    this.effectsBus.gain.setTargetAtTime(this.effectsVolume, this.context.currentTime, .01);
+  }
+  setVolumes(musicVolume, effectsVolume) { this.musicVolume = Math.max(0, Math.min(1, musicVolume)); this.effectsVolume = Math.max(0, Math.min(1, effectsVolume)); this.updateGains(); }
+  setMuted(muted) { this.muted = muted; this.updateGains(); }
   async pause() { this.paused = true; if (this.context) await this.context.suspend(); }
   async resume() { if (this.context) await this.context.resume(); this.paused = false; }
   stop() { clearInterval(this.timer); this.running = false; for (const node of this.nodes) { try { node.stop(); } catch {} } this.nodes.clear(); }
 }
 
-// Original vector garden, inspired by Ion Garden's sage/cream palette.
+// Original wireframe field. Decorative terrain is schematic, not quantum data.
+// Keep the renderer API stable for the rhythm/feedback loop and standalone build.
 class TempoGarden {
-  constructor(canvas) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.particles = []; this.blooms = 0; this.palette = 0; this.resize(); }
-  resize() { const r = this.canvas.getBoundingClientRect(), ratio = Math.min(devicePixelRatio || 1, 2); this.w = r.width; this.h = r.height; this.canvas.width = r.width * ratio; this.canvas.height = r.height * ratio; this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0); }
-  ellipse(x, y, rx, ry, color) { const c = this.ctx; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fillStyle = color; c.fill(); }
-  tree(x, y, size, variant = 0) {
-    const c = this.ctx; this.ellipse(x, y + size * .65, size * .52, size * .14, '#55734b28');
-    c.fillStyle = '#a79066'; c.fillRect(x - size * .055, y, size * .11, size * .62);
-    this.ellipse(x, y - size * .2, size * .5, size * .58, variant ? '#829e70' : '#75956c');
-    this.ellipse(x - size * .2, y - size * .08, size * .36, size * .37, variant ? '#96ae7b' : '#87a577');
-    this.ellipse(x + size * .14, y - size * .36, size * .32, size * .36, '#a2b888');
+  constructor(canvas) {
+    this.canvas = canvas; this.ctx = canvas.getContext('2d');
+    this.particles = []; this.blooms = 0; this.palette = 0; this.cheer = 0;
+    this.scenery = document.createElement('canvas'); this.sceneryKey = ''; this.resize();
   }
-  flower(x, y, size, color) {
-    const c = this.ctx; c.strokeStyle = '#729368'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 2, y + size * 2.4); c.stroke();
-    for (let n = 0; n < 5; n++) { const a = n * Math.PI * 2 / 5; this.ellipse(x + Math.cos(a) * size * .6, y + Math.sin(a) * size * .6, size * .55, size * .55, color); }
-    this.ellipse(x, y, size * .35, size * .35, '#fff1bd');
+  resize() {
+    const r = this.canvas.getBoundingClientRect(), ratio = Math.min(devicePixelRatio || 1, 2);
+    this.w = Math.max(1, r.width); this.h = Math.max(1, r.height);
+    this.canvas.width = this.w * ratio; this.canvas.height = this.h * ratio;
+    this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0); this.sceneryKey = '';
   }
-  burst(x, y, lane) { this.blooms++; for (let i = 0; i < 7; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 100, vy: -35 - Math.random() * 60, life: .65, lane }); }
+  celebrate(reduced = false) {
+    this.cheer = reduced ? 0 : .6; this.blooms = Math.min(45, this.blooms + 3);
+    if (!reduced) this.burst(this.w * .17, this.h * .68, 0);
+  }
+  burst(x, y, lane) {
+    for (let i = 0; i < 7 && this.particles.length < 42; i++) {
+      const angle = i / 7 * Math.PI * 2;
+      this.particles.push({ x, y, vx: Math.cos(angle) * 55, vy: Math.sin(angle) * 55, life: .65, lane });
+    }
+  }
+  drawScenery(c) {
+    const w = this.w, h = this.h;
+    c.fillStyle = '#070b12'; c.fillRect(0, 0, w, h);
+    const glow = c.createRadialGradient(w * .24, h * .44, 0, w * .24, h * .44, w * .6);
+    glow.addColorStop(0, '#17263465'); glow.addColorStop(1, '#070b1200');
+    c.fillStyle = glow; c.fillRect(0, 0, w, h);
+    c.lineWidth = .6; c.strokeStyle = '#b1cbde0d'; c.beginPath();
+    for (let x = w * .04; x < w; x += w * .225) { c.moveTo(x, 0); c.lineTo(x, h); }
+    for (let y = h * .12; y < h; y += h * .25) { c.moveTo(0, y); c.lineTo(w, y); } c.stroke();
+    // A low-contrast perspective mesh leaves foreground text and checks clear.
+    const point = (x, depth) => {
+      const perspective = .13 + depth ** 1.8 * 1.35;
+      const wave = Math.sin(x * .42 + depth * 8) * Math.cos(x * .17 - depth * 5);
+      return [w / 2 + x / 22 * w * perspective, h * .63 + depth ** 1.6 * h * .52 + wave * 17 * (1 - depth)];
+    };
+    c.strokeStyle = '#89a9c31c'; c.lineWidth = .6;
+    for (let row = 0; row <= 22; row++) {
+      c.beginPath(); for (let col = -22; col <= 22; col++) { const [x, y] = point(col, row / 22); col === -22 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke();
+    }
+    for (let col = -22; col <= 22; col++) {
+      c.beginPath(); for (let row = 0; row <= 22; row++) { const [x, y] = point(col, row / 22); row ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke();
+    }
+    // Deterministic nodes: no flickering random positions between frames.
+    for (let i = 0; i < 32; i++) {
+      const x = (i * 313.7 % 997) / 997 * w, y = (i * 197.3 % 983) / 983 * h;
+      c.fillStyle = i < this.blooms ? '#dceb5580' : '#8fabbc28'; c.fillRect(x, y, 1.4, 1.4);
+    }
+  }
   draw(dt, beat = 0, reduced = false) {
     const c = this.ctx, w = this.w, h = this.h;
-    c.fillStyle = this.palette % 2 ? '#b9cda0' : '#b7c99a'; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#f2eed055'; c.beginPath(); c.ellipse(w * .12, h * .25, w * .42, h * .4, -.3, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#95ad8050'; c.beginPath(); c.ellipse(w * .92, h * .65, w * .38, h * .52, .3, 0, Math.PI * 2); c.fill();
-    this.ellipse(w * .16, h * .65, w * .14, h * .13, '#8eab8425');
-    this.ellipse(w * .13, h * .73, Math.min(95, w * .1), 39, '#7ba59b');
-    this.ellipse(w * .13, h * .72, Math.min(88, w * .09), 31, '#a6c8b0');
-    this.ellipse(w * .13, h * .72, Math.min(75, w * .075), 24, '#92bca9');
-    c.strokeStyle = '#d5e0bc'; c.lineWidth = 2; c.beginPath(); c.ellipse(w * .13, h * .72, Math.min(50, w * .05), 12, 0, 0, Math.PI * 2); c.stroke();
-    for (let i = 0; i < 12; i++) {
-      const side = i % 2, x = side ? w * (.87 + Math.sin(i * 4) * .07) : w * (.08 + Math.sin(i * 4) * .06);
-      const y = h * (.2 + (i % 6) * .13); this.tree(x, y, 30 + (i % 3) * 9, i % 2);
+    const key = `${this.canvas.width}/${this.canvas.height}/${this.blooms}`;
+    if (this.sceneryKey !== key) {
+      this.scenery.width = this.canvas.width; this.scenery.height = this.canvas.height;
+      const cached = this.scenery.getContext('2d'); cached.setTransform(this.canvas.width / w, 0, 0, this.canvas.height / h, 0, 0);
+      this.drawScenery(cached); this.sceneryKey = key;
     }
-    for (let i = 0; i < 68; i++) {
-      const x = ((i * 313.7) % 997) / 997 * w, y = ((i * 197.3) % 983) / 983 * h;
-      if (x > w * .28 && x < w * .72) continue;
-      this.flower(x, y, 2.5 + i % 3, ['#e4b5a3', '#f0dfad', '#d0c2d8'][i % 3]);
+    c.drawImage(this.scenery, 0, 0, w, h); this.cheer = Math.max(0, this.cheer - dt);
+    if (!reduced && beat > 0) {
+      const pulse = (Math.sin(beat * Math.PI * 2) + 1) / 2;
+      c.strokeStyle = `rgba(220,235,85,${.015 + pulse * .025})`; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(0, h * .63); c.lineTo(w, h * .63); c.stroke();
     }
-    // Garden growth responds to successful corrections.
-    for (let i = 0; i < Math.min(this.blooms, 45); i++) this.flower(w * (.79 + (i % 5) * .028), h * (.67 + Math.floor(i / 5) * .018), 3.5, '#f1c7a5');
-    const bob = reduced ? 0 : Math.sin(beat * Math.PI) * 2;
-    this.ellipse(w * .17, h * .52 + 16, 29, 9, '#49684125');
-    this.ellipse(w * .17, h * .52 + bob, 28, 20, '#d5ad83');
-    this.ellipse(w * .17 + 18, h * .52 - 7 + bob, 17, 16, '#e5c59e');
-    this.ellipse(w * .17 + 18, h * .52 - 22 + bob, 5, 6, '#caa17b');
-    this.ellipse(w * .17 + 23, h * .52 - 9 + bob, 2, 2, '#415a42');
-    this.ellipse(w * .17 + 33, h * .52 + bob, 4, 2, '#836a4d');
-    if (!reduced) {
-      this.particles = this.particles.filter(p => p.life > 0);
-      for (const p of this.particles) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 110 * dt; c.globalAlpha = Math.max(0, p.life / .65); this.ellipse(p.x, p.y, 4, 2, ['#f7ead0', '#e9b391', '#cadbb7'][p.lane % 3]); }
-      c.globalAlpha = 1;
-    } else this.particles = [];
+    if (reduced) { this.particles = []; return; }
+    this.particles = this.particles.filter(p => p.life > 0);
+    for (const p of this.particles) {
+      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      c.globalAlpha = Math.max(0, p.life / .65); c.strokeStyle = p.lane % 2 ? '#82d2dc' : '#dceb55';
+      c.beginPath(); c.moveTo(p.x - 3, p.y); c.lineTo(p.x + 3, p.y); c.moveTo(p.x, p.y - 3); c.lineTo(p.x, p.y + 3); c.stroke();
+    }
+    c.globalAlpha = 1;
   }
+}
+
+// A fixed set of lane effects: no DOM allocation, layout reads or timers per hit.
+class HitFeedback {
+  constructor(highway, judgement, combo) {
+    this.highway = highway; this.judgement = judgement; this.combo = combo;
+    this.animations = new Map(); this.reduced = false;
+    this.layer = document.createElement('div'); this.layer.className = 'hit-effects';
+    this.layer.setAttribute('aria-hidden', 'true'); highway.append(this.layer);
+  }
+  configure(buttons, reduced) {
+    this.reset(); this.buttons = buttons; this.reduced = reduced;
+    this.layer.innerHTML = buttons.map((_, lane) => `<div class="lane-effect" style="--lane:${lane}"><i class="hit-ring"></i>${Array.from({length: 6}, () => '<i class="hit-petal"></i>').join('')}</div>`).join('') + '<div class="miss-fragments">' + '<i></i>'.repeat(6) + '</div>';
+    this.lanes = [...this.layer.querySelectorAll('.lane-effect')].map(el => ({ ring: el.firstElementChild, petals: [...el.querySelectorAll('.hit-petal')] }));
+    this.fragments = [...this.layer.querySelector('.miss-fragments').children];
+  }
+  animate(element, frames, duration = 280) {
+    this.animations.get(element)?.cancel();
+    const animation = element.animate(frames, { duration, easing: 'ease-out' });
+    this.animations.set(element, animation);
+    animation.onfinish = () => { if (this.animations.get(element) === animation) this.animations.delete(element); };
+  }
+  judge(text, kind) {
+    this.judgement.textContent = text; this.judgement.dataset.kind = kind;
+    this.animate(this.judgement, this.reduced ? [{opacity: 1}, {opacity: 1}] : [{transform: 'translateY(5px) scale(.92)', opacity: .6}, {transform: 'translateY(0) scale(1)', opacity: 1}], 180);
+  }
+  hit(lane, timing = 'Good', complete = false) {
+    const button = this.buttons[lane], effect = this.lanes[lane]; if (!button || !effect) return;
+    const strong = timing === 'Perfect' || complete;
+    this.animate(button, this.reduced ? [{background: '#dceb55'}, {background: '#101c28'}] : [{transform: 'translateY(4px) scale(.94)', background: '#dceb55'}, {transform: 'translateY(-2px) scale(1.03)', offset: .5}, {transform: 'translateY(0) scale(1)'}], 220);
+    if (this.reduced) return;
+    this.animate(effect.ring, [{transform: 'scale(.35)', opacity: .9}, {transform: `scale(${strong ? 1.7 : 1.2})`, opacity: 0}], strong ? 340 : 260);
+    effect.petals.forEach((petal, i) => {
+      const angle = (i / 6) * Math.PI * 2, radius = strong ? 38 : 24;
+      this.animate(petal, [{transform: 'translate(0,0) scale(.6)', opacity: .9}, {transform: `translate(${Math.cos(angle) * radius}px,${Math.sin(angle) * radius - 12}px) rotate(${i * 60}deg) scale(.3)`, opacity: 0}], strong ? 340 : 260);
+    });
+  }
+  wrong(lane) {
+    const button = this.buttons[lane]; if (!button) return;
+    this.animate(button, [{background: '#382431', borderColor: '#ff8b9c'}, {background: '#101c28', borderColor: '#415569'}], 300);
+  }
+  miss(cue, brokenHold = false) {
+    // Neutral fragments span the whole register; never reveal a solution lane.
+    if (!this.reduced) this.fragments.forEach((fragment, i) => this.animate(fragment, [{transform: 'translateY(0) rotate(0deg)', opacity: .9}, {transform: `translateY(${18 + i % 3 * 8}px) rotate(${i % 2 ? 12 : -12}deg)`, opacity: 0}], 300));
+    const register = cue?.register;
+    if (register) this.animate(register, this.reduced ? [{opacity: .7}, {opacity: 0}] : [{opacity: .8, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(18px) scale(.96)'}], 280);
+    if (brokenHold && cue?.body) this.animate(cue.body, [{opacity: .7}, {opacity: 0}], 220);
+    this.animate(this.combo, this.reduced ? [{opacity: .35}, {opacity: 1}] : [{transform: 'scale(.86)', opacity: .35}, {transform: 'scale(1)', opacity: 1}], 250);
+  }
+  milestone() {
+    this.animate(this.combo, this.reduced ? [{opacity: 1}, {opacity: 1}] : [{transform: 'scale(1)'}, {transform: 'scale(1.12)', offset: .4}, {transform: 'scale(1)'}], 340);
+  }
+  pause(paused) { for (const animation of this.animations.values()) paused ? animation.pause() : animation.play(); }
+  reset() { for (const animation of this.animations.values()) animation.cancel(); this.animations.clear(); }
 }
 
 // TEAM CONTENT PORT: players cannot upload maps or music.
@@ -1494,8 +739,8 @@ function initTutorial(root, onLessons) {
       <div class="tut-top"><div class="eyebrow" id="tut-eyebrow">TUTORIAL</div><button id="tut-skip" class="text-button tut-skip">Skip tutorial ✕</button></div>
       <h2 id="tut-title"></h2>
       <div id="tut-stage" class="tut-stage" data-step="0" aria-hidden="true">
-        <div id="tut-note" class="tut-note"></div><div id="tut-spark" class="tut-spark">✸</div><div id="tut-flower" class="tut-flower">✿</div>
-        <div id="tut-packet" class="tut-packet"><div id="tut-tail" class="tut-hold-tail" data-for="4">HOLD</div><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}">✦<small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
+        <div id="tut-note" class="tut-note"></div><div id="tut-spark" class="tut-spark">✸</div><div id="tut-flower" class="tut-flower">◎</div>
+        <div id="tut-packet" class="tut-packet"><div id="tut-tail" class="tut-hold-tail" data-for="4">HOLD</div><div class="packet-tag">ENCODED MEMORY</div><div class="packet-register" style="--lanes:3">${[0, 1, 2].map(q => `<span class="packet-qubit" data-q="${q}"><i class="qubit-orbit" aria-hidden="true"></i><small>Q${q + 1}</small></span>${q < 2 ? `<span class="parity-lamp" data-l="${q}" style="left:${(q + 1) / 3 * 100}%">=</span>` : ''}`).join('')}</div></div>
         <div class="tut-table" data-for="2"><div data-row="0"><span>≠ =</span><b>flip Q1</b></div><div data-row="1"><span>≠ ≠</span><b>flip Q2</b></div><div data-row="2"><span>= ≠</span><b>flip Q3</b></div><div data-row="3"><span>= =</span><b>wait</b></div></div>
         <div class="tut-hit" data-for="3 4 5"><span>RECOVER HERE</span></div>
         <div class="tut-keys" data-for="3 4 5">${['D', 'F', 'J'].map((key, i) => `<div class="tut-key" data-key="${i}">${key}</div>`).join('')}</div>
@@ -1556,7 +801,7 @@ function initTutorial(root, onLessons) {
           at(1100, () => { setTop(108, true, 1500); say('Press the key as the packet reaches the line.'); });
           at(2600, () => {
             press(1); view.q[1] = 0; sync(); pop('[data-q="1"]'); pop('[data-l]'); if (!reduce) flower.classList.add('go');
-            say('Flipped Q2 back on the beat → Perfect ✿ Every lamp reads = again.');
+            say('Flipped Q2 back on the beat → Perfect · Every lamp reads = again.');
           });
         } },
       { title: 'Hold the long notes', text: 'A long packet has a ribbon above it. Read the lamps, press the faulty qubit’s key at the line, and keep it down until the ribbon ends. Holding applies one X correction, not repeated flips. Releasing early loses the rhythm credit but does not undo the repair. Untimed practice uses one press for holds; after a pause, re-press held keys to continue.',
@@ -1619,16 +864,39 @@ function initTutorial(root, onLessons) {
 
 
 const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+// A schematic single-qubit Bloch sphere, separate from the encoded-register example.
+const stateSphere = `<svg class="state-sphere" viewBox="0 0 520 400" role="img" aria-labelledby="sphere-title sphere-desc">
+  <title id="sphere-title">Single-qubit state space</title><desc id="sphere-desc">A wireframe Bloch sphere with zero and one at its poles and a highlighted example state vector psi. This illustrates a single qubit, not the four-qubit register below.</desc>
+  <defs><radialGradient id="sphere-glow"><stop stop-color="#deeb4922"/><stop offset="1" stop-color="#deeb4900"/></radialGradient></defs>
+  <circle cx="260" cy="198" r="178" fill="url(#sphere-glow)"/>
+  <g class="sphere-mesh" fill="none" stroke="currentColor" stroke-width=".7">
+    <circle cx="260" cy="198" r="143"/>
+    ${[30, 58, 88, 118].map(r => `<ellipse cx="260" cy="198" rx="${r}" ry="143"/>`).join('')}
+    ${[-108, -72, -36, 0, 36, 72, 108].map(y => `<ellipse cx="260" cy="${198 + y}" rx="${(143 ** 2 - y ** 2) ** .5}" ry="${(143 ** 2 - y ** 2) ** .5 * .23}"/>`).join('')}
+  </g>
+  <g class="sphere-axes" fill="none" stroke="currentColor" stroke-dasharray="3 5"><path d="M260 35V365M80 240L437 155M89 141L434 254"/></g>
+  <g class="sphere-state" fill="none" stroke="currentColor"><path d="M260 198L347 97" stroke-width="2"/><path d="M337 102L347 97L345 108" stroke-width="2"/><circle cx="347" cy="97" r="6" fill="currentColor"/><circle class="state-halo" cx="347" cy="97" r="17"/><path d="M347 114V190L260 198" stroke-dasharray="3 5" opacity=".4"/></g>
+  <circle cx="260" cy="198" r="3" fill="#e8edf2"/>
+  <g class="sphere-labels" fill="currentColor"><text x="250" y="25">|0⟩</text><text x="250" y="385">|1⟩</text><text x="368" y="95" class="psi-label">|ψ⟩</text><text x="438" y="153">x</text><text x="437" y="263">y</text></g>
+</svg>`;
 const pct = n => `${(n * 100).toFixed(1)}%`;
 async function startGame(root, engine) {
   root.innerHTML = `<main class="garden-game" data-state="home">
     <canvas id="garden" aria-hidden="true"></canvas>
-    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-flower">✿</span><span>qubit <em>tempo.</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
+    <header class="hud"><a class="brand" href="#" aria-label="Home"><span class="brand-orbit" aria-hidden="true"><i></i><i></i><i></i></span><span>QUBIT <em>TEMPO</em><small>QUANTUM ERROR CORRECTION</small></span></a><div class="song-label"><b id="song-name">Morning dew</b><span id="section">Read checks. Choose a correction.</span></div><div class="score-pill"><b id="score">000000</b><small>SCORE</small></div><nav><button id="sound" aria-label="Mute music" aria-pressed="false">♫</button><button id="help" aria-label="How to play">?</button><button id="pause" aria-label="Pause map" disabled>Ⅱ</button></nav></header>
     <div class="song-progress" role="progressbar" aria-label="Map progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="song-fill"></i></div>
     <section id="deck" class="deck" aria-label="Vertical qubit note highway"><div class="highway"><div id="lane-grid" class="lane-grid" aria-hidden="true"></div><div class="highway-grain" aria-hidden="true"></div><div class="hit-line" aria-hidden="true"><span>RECOVER HERE</span></div><div id="notes" class="notes" aria-hidden="true"></div><div id="judgement" class="judgement" aria-hidden="true"></div><div class="combo-display"><b id="combo">0</b><span id="combo-label">COMBO</span></div><div id="receptors" class="receptors"></div><div id="count-in" class="count-in" aria-hidden="true"></div></div><div class="deck-caption"><span id="keys-caption">D · F · J</span><span id="clue-caption">three qubits, one protected memory</span></div></section>
     <section id="home-page" class="page home-page" aria-labelledby="home-title">
-      <div class="home-copy"><div class="eyebrow">CAPYQUANTUM</div><h1 id="home-title" tabindex="-1">qubit tempo<span>.</span></h1><p>A rhythm game about protecting quantum information.</p><p class="home-explainer">Read the checks between qubits. Find the error.<br>Apply a correction when the memory reaches the line.</p><div class="home-actions"><button id="home-start" class="primary">Start <span>→</span></button><button id="home-learn">Learn</button><button id="home-settings">Settings</button></div><p class="small-note">New to quantum computing? Start with Learn or untimed practice.</p></div>
-      <div class="home-demo" aria-label="Illustration: a bit flip on qubit 2 makes both neighboring checks different"><div class="demo-caption">ONE LOGICAL QUBIT · FOUR PHYSICAL QUBITS</div><div class="memory-art"><span>Q1</span><i>≠</i><span class="fault">Q2</span><i>≠</i><span>Q3</span><i>=</i><span>Q4</span></div><div class="demo-answer">These checks point to Q2.<br><b>One X flip repairs this example.</b></div><div class="demo-foot">An X gate swaps |0⟩ and |1⟩.</div></div>
+      <div class="home-demo">
+        <div class="demo-caption"><span class="signal-dot"></span> SINGLE-QUBIT STATE SPACE <span class="figure-number">FIG. 01</span></div>
+        ${stateSphere}
+        <div class="register-example" role="img" aria-label="Four physical qubits. A bit flip on Q2 makes both adjacent parity checks different; one X correction on Q2 repairs this example.">
+          <div class="demo-caption">ENCODED REGISTER <span class="figure-number">Q1 — Q4</span></div>
+          <div class="memory-art"><span>Q1</span><i class="alert">≠</i><span class="fault">Q2</span><i class="alert">≠</i><span>Q3</span><i>=</i><span>Q4</span></div>
+          <div class="demo-answer">Two different checks. <b>One X correction on Q2.</b></div>
+        </div>
+      </div>
+      <div class="home-copy"><div class="eyebrow"><span></span> CAPYQUANTUM / INTERACTIVE QEC</div><h1 id="home-title" tabindex="-1">QUBIT<br>TEMPO<span>.</span></h1><p class="home-intro">Protect quantum information.<br>One correction at a time.</p><p class="home-explainer">Read the checks between qubits. Find the error.<br>Apply a correction on the beat.</p><div class="home-actions"><button id="home-start" class="primary">Start experience <span>→</span></button><button id="home-learn">Learn the science <span>↗</span></button><button id="home-settings">Settings <span>＋</span></button></div><p class="small-note">New to quantum? Explore Learn or try untimed practice.</p><div class="home-sequence" aria-label="Game sequence"><span><b>01</b> ENCODE</span><i>—</i><span><b>02</b> DETECT</span><i>—</i><span><b>03</b> CORRECT</span></div></div>
     </section>
     <section id="levels-page" class="page levels-page" aria-labelledby="levels-title" hidden><div class="page-heading"><button id="levels-home" class="back">← Home</button><div><div class="eyebrow">PLAY</div><h1 id="levels-title" tabindex="-1">Choose a level</h1></div></div><div class="level-layout"><div id="level-list" class="level-list" aria-label="Levels"></div><aside id="map-letter" class="level-detail"><div class="eyebrow" id="level-difficulty">LEVEL DETAILS</div><h2 id="level-title">Morning dew</h2><p id="level-description"></p><label class="field" hidden>MAP<select id="map-select" aria-label="Map"></select></label><label class="field">PHYSICAL QUBITS<select id="qubits" aria-label="Qubit count">${COUNTS.map(d => `<option value="${d}" ${d === 4 ? 'selected' : ''}>${d} lanes · correct up to ${Math.floor((d - 1) / 2)} bit flip${d > 4 ? 's' : ''}</option>`).join('')}</select></label><div class="map-info"><span id="map-bpm"></span><span id="map-duration"></span><span id="map-notes"></span></div><div id="chart-preview" class="chart-preview" aria-label="Timing preview"></div><p class="small-note">Timing preview · taller marks indicate chords.</p><button id="play" class="primary" disabled>Preparing Qiskit…</button><button id="practice" class="subtle" disabled>Untimed practice</button></aside></div></section>
     <section id="learn-page" class="page learn-page" aria-labelledby="learn-title" hidden><div class="page-heading"><button id="learn-home" class="back">← Home</button><div><div class="eyebrow">LEARN</div><h1 id="learn-title" tabindex="-1">Quantum, one idea at a time</h1></div></div><div class="learn-layout"><nav id="lesson-tabs" class="lesson-tabs" aria-label="Lessons"></nav><article id="lesson-body" class="lesson-body"></article></div></section>
@@ -1641,19 +909,38 @@ async function startGame(root, engine) {
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
-  let reported = new Set(), reportedHolds = new Set();
+  const highway = root.querySelector('.highway'), judgement = $('judgement'), comboDisplay = root.querySelector('.combo-display');
+  const feedback = new HitFeedback(highway, judgement, comboDisplay);
+  let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
   const laneSources = new Map();
   function reportPackets() {
-    run.notes.filter(n => n.holdSuccess !== undefined).forEach(note => {
-      if (reportedHolds.has(note.id)) return; reportedHolds.add(note.id);
-      $('judgement').textContent = note.holdSuccess ? 'Hold complete' : 'Hold released early';
-      $('judgement').dataset.kind = note.holdSuccess ? 'hit' : 'stray'; judgementUntil = performance.now() + 650;
-      announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
-      emit(note.holdSuccess ? 'hold-complete' : 'hold-break', { lane: note.heldLane, packetId: note.packet.id });
-    });
-    run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } });
+    for (const event of run.feedbackEvents) {
+      const {note, type} = event, cue = note.cue;
+      if (type === 'note-miss') {
+        if (cue.missReported) continue; cue.missReported = true;
+        if (cue.notes.every(n => n.done)) { cue.exitUntil = performance.now() + 280; feedback.miss(cue); } else feedback.miss();
+        feedback.judge('Miss', 'miss');
+        announce('Missed correction beat. Combo reset.');
+        emit('note-miss', { packetId: note.packet.id, cueId: cue.id });
+      } else {
+        feedback.judge(note.holdSuccess ? 'Hold complete' : 'Hold released early', note.holdSuccess ? 'hit' : 'miss');
+        if (note.holdSuccess) { feedback.hit(note.heldLane, note.outcome.timing, true); music.hit(note.heldLane); }
+        else if (cue.notes.every(n => n.done)) { cue.exitUntil = performance.now() + 280; feedback.miss(cue, true); } else feedback.miss();
+        announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
+        emit(type, { lane: note.heldLane, packetId: note.packet.id });
+      }
+      judgementUntil = performance.now() + 650;
+    }
+    run.feedbackEvents.length = 0;
+    for (; reportedResults < run.results.length; reportedResults++) {
+      const result = run.results[reportedResults]; if (!practice) music.memory(result.restored, reportedResults); emit('packet-resolved', result);
+    }
+    if (!run.combo) comboMilestone = 0;
+    const milestone = Math.floor(run.combo / 10);
+    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · STREAK`; }
+    else if (!run.combo) $('combo-label').textContent = 'COMBO';
   }
-  function clearInputs() { held.clear(); laneSources.clear(); root.querySelectorAll('[data-lane]').forEach(button => button.classList.remove('pressed', 'holding')); }
+  function clearInputs() { held.clear(); laneSources.clear(); receptors.forEach(button => button.classList.remove('pressed', 'holding')); }
   function inputDown(lane, source) {
     if (paused || !['playing', 'practice'].includes(mode)) return;
     const sources = laneSources.get(lane) || new Set();
@@ -1671,7 +958,7 @@ async function startGame(root, engine) {
   }
   let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
   let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let paused = false, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
+  let paused = false, pausedAt = 0, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
   function menuStatus(text) { $('load-status').textContent = text; }
@@ -1700,7 +987,8 @@ async function startGame(root, engine) {
     $('deck').style.setProperty('--lanes', map.qubits); $('deck').style.setProperty('--deck-width', `${240 + map.qubits * 55}px`);
     $('lane-grid').innerHTML = laneKeys(map.qubits).map((key, lane) => `<div class="lane" style="--lane:${lane}"><span>Q${lane + 1}</span></div>`).join('');
     $('receptors').innerHTML = laneKeys(map.qubits).map((key, lane) => `<button data-lane="${lane}" aria-label="Flip qubit ${lane + 1}, ${key === 'SPACE' ? 'Space' : key}"><span>${key === 'SPACE' ? '␣' : key}</span><small>Q${lane + 1}</small></button>`).join('');
-    root.querySelectorAll('[data-lane]').forEach(button => {
+    receptors = [...$('receptors').querySelectorAll('button')]; feedback.configure(receptors, still);
+    receptors.forEach(button => {
       button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); inputDown(Number(button.dataset.lane), `pointer-${e.pointerId}`); });
       for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, e => inputUp(Number(button.dataset.lane), `pointer-${e.pointerId}`));
       button.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inputDown(Number(button.dataset.lane), 'enter'); } });
@@ -1736,13 +1024,13 @@ async function startGame(root, engine) {
   function closeDialog() { if ($('dialog').open) $('dialog').close(); }
   async function pauseGame() {
     if (!['playing', 'practice'].includes(mode) || paused) return;
-    paused = true; run?.suspendHolds(); clearInputs(); await music.pause();
+    paused = true; pausedAt = performance.now(); feedback.pause(true); run?.suspendHolds(); clearInputs(); await music.pause();
     showDialog(`<div class="eyebrow">PAUSED</div><h2 id="dialog-title">Map paused.</h2><p>${html(map.title)} · the music and map are paused. Re-press any held keys after resuming to finish their tails.</p>`, '<button id="resume" class="primary">Resume map ↗</button><button id="restart" class="subtle">Start again</button><button id="choose" class="subtle">Choose a map</button>');
     $('resume').onclick = resumeGame; $('restart').onclick = () => { closeDialog(); start(practice); }; $('choose').onclick = toMenu;
   }
-  async function resumeGame() { closeDialog(); await music.resume(); paused = false; lastFrame = performance.now(); }
+  async function resumeGame() { closeDialog(); await music.resume(); const elapsed = performance.now() - pausedAt; judgementUntil += elapsed; for (const cue of run.cues) if (cue.exitUntil > pausedAt) cue.exitUntil += elapsed; feedback.pause(false); paused = false; lastFrame = performance.now(); }
   function toMenu() {
-    closeDialog(); music.stop(); music.context?.resume(); paused = false; clearInputs(); run = null; setState('levels');
+    closeDialog(); music.stop(); feedback.reset(); music.context?.resume(); paused = false; clearInputs(); run = null; setState('levels');
     $('practice-hint').hidden = true; menuStatus(engine.label); $('judgement').textContent = ''; $('song-fill').style.width = '0%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '0'); refreshMap(); $('levels-title').focus();
   }
   async function start(untimed = false) {
@@ -1754,15 +1042,17 @@ async function startGame(root, engine) {
       for (const event of map.events) { if (chosen.length >= 6) break; if (!chosen.includes(event)) chosen.push(event); }
       playMap.events = structuredClone(chosen.sort((a, b) => a.beat - b.beat));
     }
-    run = new RhythmRun(playMap, bank, { untimed: practice }); reported = new Set(); reportedHolds = new Set(); art.blooms = 0; art.particles = []; practiceIndex = 0;
+    run = new RhythmRun(playMap, bank, { untimed: practice }); reportedResults = comboMilestone = 0; art.blooms = 0; art.particles = []; practiceIndex = 0;
+    judgement.textContent = ''; judgementUntil = 0; feedback.reduced = still; main.dataset.reduced = String(still);
     $('play').disabled = $('practice').disabled = true; menuStatus('Starting the music…');
     try {
-      if (practice) { await music.init(); music.stop(); music.master.gain.value = music.muted ? 0 : .6; setState('practice'); practiceTime = run.packets[0].at; }
+      if (practice) { await music.init(); music.stop(); music.map = map; music.external = Boolean(map.music.url); music.paused = false; music.updateGains(); setState('practice'); practiceTime = run.packets[0].at; }
       else { await music.start(map); setState('playing'); }
     } catch (error) { music.stop(); setState('levels'); menuStatus(error.message); $('play').disabled = $('practice').disabled = false; return; }
     $('play').disabled = $('practice').disabled = false; $('practice-hint').hidden = !practice;
-    $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet ${c.endAt > c.at ? 'hold-packet' : ''}">${c.endAt > c.at ? '<div class="hold-body" aria-hidden="true"><span>HOLD</span></div>' : ''}<div class="packet-tag">${c.endAt > c.at ? 'HOLD · ' : ''}${c.clean ? 'WAIT · NO CORRECTION' : `FLIP ${c.notes.length} QUBIT${c.notes.length > 1 ? 'S' : ''}`} ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
-    run.cues.forEach(c => { c.element = $(`cue-${c.id}`); }); $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
+    $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet ${c.endAt > c.at ? 'hold-packet' : ''}">${c.endAt > c.at ? '<div class="hold-body" aria-hidden="true"><span>HOLD</span></div>' : ''}<div class="packet-tag">${c.endAt > c.at ? 'HOLD · ' : ''}${c.clean ? 'WAIT · NO CORRECTION' : `FLIP ${c.notes.length} QUBIT${c.notes.length > 1 ? 'S' : ''}`} ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}"><i class="qubit-orbit" aria-hidden="true"></i><small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
+    run.cues.forEach(c => { c.element = $(`cue-${c.id}`); c.register = c.element.querySelector('.packet-register'); c.body = c.element.querySelector('.hold-body'); c.lamps = [...c.element.querySelectorAll('[data-check]')]; c.qubits = [...c.element.querySelectorAll('[data-qubit]')]; c.element.hidden = true; });
+    highwayHeight = highway.clientHeight; $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
     emit('map-start', { map: structuredClone(map), practice }); announce(`Starting ${map.title}, ${map.qubits} lanes. Keys: ${laneKeys(map.qubits).join(', ')}.`);
     $('receptors').querySelector('button')?.focus(); lastFrame = performance.now(); drawNotes(currentTime());
   }
@@ -1779,41 +1069,41 @@ async function startGame(root, engine) {
     const time = currentTime() + (practice ? 0 : offsetMs / 1000);
     const event = run.press(lane, time); reportPackets();
     if (event.type === 'hold-resume') { announce(`Continue holding qubit ${lane + 1}. No extra X gate applied.`); drawNotes(currentTime()); return; }
-    root.querySelector(`[data-lane="${lane}"]`).classList.add('pressed');
+    receptors[lane].classList.add('pressed');
 
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
-    $('judgement').textContent = event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
-    $('judgement').dataset.kind = event.correct === false ? 'stray' : event.type; judgementUntil = performance.now() + 450;
+    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type); judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
-      if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane);
-      const r = $('receptors').getBoundingClientRect(), deck = $('deck').getBoundingClientRect();
-      art.burst(deck.left + (lane + .5) * deck.width / map.qubits, r.top, lane);
+      music.hit(lane); feedback.hit(lane, event.timing);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
-    } else { music.errorTone?.(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
+    } else { music.errorTone(); feedback.wrong(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
     if (event.packet) announce(`Qubit ${lane + 1} flipped. Checks: ${run.checks(event.packet).map(b => b ? 'different' : 'same').join(', ')}.`);
     if (practice) { const remaining = run.cues.find(c => c.packet === run.packets[practiceIndex] && c.notes.some(n => !n.done)); if (remaining) practiceTime = remaining.at; drawNotes(practiceTime); }
   }
   function drawNotes(time) {
-    const height = root.querySelector('.highway').clientHeight, hit = height - 92;
+    const height = highwayHeight, hit = height - 92, now = performance.now();
     const currentPacket = practice ? run.packets[practiceIndex] : run.packets.find(p => !p.done && p.end >= time);
     const closest = run.cues.find(c => !c.packet.done && (!practice || c.packet === currentPacket) && (c.clean || c.notes.some(n => !n.done))) || run.cues.filter(c => c.packet === currentPacket).at(-1);
     for (const cue of run.cues) {
       const y = hit - (cue.at - time) / approach * (hit - 25);
       const sustaining = cue.notes.some(n => n.holding);
       const positionY = still || practice || sustaining ? hit : y;
-      const display = !cue.packet.done && (practice || time <= (cue.endAt > cue.at ? cue.endAt : cue.at) + WINDOWS.good) && positionY > -100 && positionY < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
-      cue.element.hidden = !display;
+      const exiting = cue.exitUntil > now;
+      const display = exiting || !cue.exitUntil && !cue.packet.done && (practice || time <= (cue.endAt > cue.at ? cue.endAt : cue.at) + WINDOWS.good) && positionY > -100 && positionY < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
+      if (cue.element.hidden === display) cue.element.hidden = !display;
       if (display) {
-        cue.element.style.transform = `translateY(${positionY - 40}px)`;
-        const body = cue.element.querySelector('.hold-body');
-        if (body) { body.hidden = cue.notes.every(n => n.done); body.style.height = `${Math.max(0, cue.endAt - Math.max(cue.at, time)) / approach * (hit - 25)}px`; }
+        cue.element.style.transform = `translateY(${(exiting ? hit : positionY) - 40}px)`;
+        const body = cue.body;
+        if (body) { body.hidden = !exiting && cue.notes.every(n => n.done); if (!exiting) body.style.height = `${Math.max(0, cue.endAt - Math.max(cue.at, time)) / approach * (hit - 25)}px`; }
         cue.element.classList.toggle('sustaining', sustaining);
-        const checks = run.checks(cue.packet);
-        cue.element.querySelectorAll('[data-check]').forEach(lamp => { const bit = checks[Number(lamp.dataset.check)]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
-        cue.element.querySelectorAll('[data-qubit]').forEach(q => { q.classList.toggle('applied', Boolean(cue.packet.applied >> Number(q.dataset.qubit) & 1)); });
+        if (cue.lastApplied !== cue.packet.applied) {
+          const checks = run.checks(cue.packet); cue.lastApplied = cue.packet.applied;
+          cue.lamps.forEach((lamp, index) => { const bit = checks[index]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
+          cue.qubits.forEach((q, index) => q.classList.toggle('applied', Boolean(cue.packet.applied >> index & 1)));
+        }
       }
     }
-    root.querySelectorAll('[data-lane]').forEach(button => { const lane = Number(button.dataset.lane); button.classList.toggle('pressed', Boolean(laneSources.get(lane)?.size)); button.classList.toggle('holding', run.notes.some(n => n.holding && !n.suspended && n.heldLane === lane)); });
+    receptors.forEach((button, lane) => { button.classList.toggle('pressed', Boolean(laneSources.get(lane)?.size)); button.classList.toggle('holding', run.notes.some(n => n.holding && !n.suspended && n.heldLane === lane)); });
     if (time < 0 && !practice) $('count-in').textContent = String(Math.max(1, Math.ceil(-time / (60 / map.bpm)))); else $('count-in').textContent = '';
     if (currentPacket) {
       const checks = run.checks(currentPacket), clue = checks.map(b => b ? '≠' : '=').join(' ');
@@ -1828,17 +1118,17 @@ async function startGame(root, engine) {
 
   function finish() {
     if (!run || mode === 'result') return;
-    music.stop(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
+    music.stop(); feedback.reset(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
     const result = run.summary(); $('notes').innerHTML = ''; $('count-in').textContent = '';
-    const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#78966b"/>`).join('');
-    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✿' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#e8edcf"/><path d="M12 45H448" stroke="#bdc99e" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
+    const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#dceb55"/>`).join('');
+    showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✓' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#192737"/><path d="M12 45H448" stroke="#647487" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
     $('again').onclick = () => start(false); $('choose-result').onclick = toMenu;
     emit('map-end', { mapId: map.id, practice, summary: result }); announce(`${map.title} complete. ${result.restored} of ${result.packets} memories restored.`);
   }
   async function guide() {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
-    if (!paused) { paused = true; run.suspendHolds(); clearInputs(); await music.pause(); }
+    if (!paused) { paused = true; pausedAt = performance.now(); feedback.pause(true); run.suspendHolds(); clearInputs(); await music.pause(); }
     showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
@@ -1872,10 +1162,11 @@ async function startGame(root, engine) {
   }
   function tuning() {
     navigate('settings');
-    $('settings-body').innerHTML = `<label class="tune-field">Note travel <input id="travel" type="range" min="1.2" max="3.6" step=".1" value="${approach}"><span id="travel-value">${approach.toFixed(1)} seconds</span></label><p>Longer travel gives you more time to read the checks. It does not change the song or hit times.</p><label class="tune-field">Input compensation <input id="offset" type="range" min="-200" max="200" step="5" value="${offsetMs}"><span id="offset-value">${offsetMs} ms</span></label><p>Positive compensation treats your input as later. Use the early/late plot after a level to adjust.</p><label class="check-field"><input id="static-mode" type="checkbox" ${still ? 'checked' : ''}> Still notes / reduced motion</label><p>Show the next correction at the line with a countdown. Untimed practice removes the timing demand.</p><label class="check-field"><input id="mute-setting" type="checkbox" ${music.muted ? 'checked' : ''}> Mute music and effects</label><p class="small-note">Settings last for this session.</p>`;
+    $('settings-body').innerHTML = `<label class="tune-field">Note travel <input id="travel" type="range" min="1.2" max="3.6" step=".1" value="${approach}"><span id="travel-value">${approach.toFixed(1)} seconds</span></label><p>Longer travel gives you more time to read the checks. It does not change the song or hit times.</p><label class="tune-field">Input compensation <input id="offset" type="range" min="-200" max="200" step="5" value="${offsetMs}"><span id="offset-value">${offsetMs} ms</span></label><p>Positive compensation treats your input as later. Use the early/late plot after a level to adjust.</p><label class="check-field"><input id="static-mode" type="checkbox" ${still ? 'checked' : ''}> Still notes / reduced motion</label><p>Show the next correction at the line with a countdown. Untimed practice removes the timing demand.</p><label class="tune-field">Music volume <input id="music-volume" type="range" min="0" max="100" step="1" value="${Math.round(music.musicVolume * 100)}"><span id="music-volume-value">${Math.round(music.musicVolume * 100)}%</span></label><label class="tune-field">Effects volume <input id="effects-volume" type="range" min="0" max="100" step="1" value="${Math.round(music.effectsVolume * 100)}"><span id="effects-volume-value">${Math.round(music.effectsVolume * 100)}%</span></label><p>Recorded songs use soft tap feedback. Set effects to 0% to hear only the song.</p><label class="check-field"><input id="mute-setting" type="checkbox" ${music.muted ? 'checked' : ''}> Mute music and effects</label><p class="small-note">Settings last for this session.</p>`;
     $('travel').oninput = () => { approach = Number($('travel').value); $('travel-value').textContent = `${approach.toFixed(1)} seconds`; };
     $('offset').oninput = () => { offsetMs = Number($('offset').value); $('offset-value').textContent = `${offsetMs} ms`; };
-    $('static-mode').onchange = () => { still = $('static-mode').checked; };
+    $('static-mode').onchange = () => { still = $('static-mode').checked; feedback.reduced = still; main.dataset.reduced = String(still); };
+    for (const channel of ['music', 'effects']) $(`${channel}-volume`).oninput = () => { music.setVolumes(Number($('music-volume').value) / 100, Number($('effects-volume').value) / 100); $(`${channel}-volume-value`).textContent = `${$(`${channel}-volume`).value}%`; };
     $('mute-setting').onchange = () => setMuted($('mute-setting').checked);
   }
   function setMuted(value) { music.setMuted(value); $('sound').setAttribute('aria-pressed', String(value)); $('sound').setAttribute('aria-label', value ? 'Unmute music' : 'Mute music'); $('sound').textContent = value ? '♪̸' : '♫'; }
@@ -1902,7 +1193,7 @@ async function startGame(root, engine) {
   window.addEventListener('keyup', e => { held.delete(e.code); const key = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase(), lane = laneKeys(map.qubits).indexOf(key); if (lane >= 0) inputUp(lane, e.code); });
   window.addEventListener('blur', () => { held.clear(); pauseGame(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { held.clear(); pauseGame(); } });
-  window.addEventListener('resize', () => art.resize());
+  window.addEventListener('resize', () => { art.resize(); if (['playing', 'practice'].includes(mode)) highwayHeight = highway.clientHeight; });
   window.QubitTempo = {
     registerMap(input) { const id = registerMap(input); populateMaps(); return id; }, registerComposer,
     maps: () => listMaps(), selectMap(id) { if (!['home', 'levels'].includes(mode)) throw new Error('Return to map selection first.'); $('map-select').value = id; refreshMap(); },
