@@ -6,6 +6,7 @@ import { getMap, listMaps, registerMap, laneKeys } from './maps.js';
 import { RhythmRun, WINDOWS } from './rhythm.js';
 import { MusicTransport, registerComposer } from './audio.js';
 import { TempoGarden } from './garden.js';
+import { HitFeedback } from './feedback.js';
 
 const html = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const pct = n => `${(n * 100).toFixed(1)}%`;
@@ -30,19 +31,38 @@ export async function startGame(root, engine) {
   </main>`;
   const $ = id => root.querySelector(`#${id}`), main = root.querySelector('main');
   const music = new MusicTransport(), art = new TempoGarden($('garden')), hooks = new EventTarget();
-  let reported = new Set(), reportedHolds = new Set();
+  const highway = root.querySelector('.highway'), judgement = $('judgement'), comboDisplay = root.querySelector('.combo-display');
+  const feedback = new HitFeedback(highway, judgement, comboDisplay);
+  let reportedResults = 0, receptors = [], highwayHeight = 0, comboMilestone = 0;
   const laneSources = new Map();
   function reportPackets() {
-    run.notes.filter(n => n.holdSuccess !== undefined).forEach(note => {
-      if (reportedHolds.has(note.id)) return; reportedHolds.add(note.id);
-      $('judgement').textContent = note.holdSuccess ? 'Hold complete' : 'Hold released early';
-      $('judgement').dataset.kind = note.holdSuccess ? 'hit' : 'stray'; judgementUntil = performance.now() + 650;
-      announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
-      emit(note.holdSuccess ? 'hold-complete' : 'hold-break', { lane: note.heldLane, packetId: note.packet.id });
-    });
-    run.results.forEach(result => { if (!reported.has(result.id)) { reported.add(result.id); if (!practice) music.memory(result.restored, run.results.indexOf(result)); emit('packet-resolved', result); } });
+    for (const event of run.feedbackEvents) {
+      const {note, type} = event, cue = note.cue;
+      if (type === 'note-miss') {
+        if (cue.missReported) continue; cue.missReported = true;
+        if (cue.notes.every(n => n.done)) { cue.exitUntil = performance.now() + 280; feedback.miss(cue); } else feedback.miss();
+        feedback.judge('Miss', 'miss');
+        announce('Missed correction beat. Combo reset.');
+        emit('note-miss', { packetId: note.packet.id, cueId: cue.id });
+      } else {
+        feedback.judge(note.holdSuccess ? 'Hold complete' : 'Hold released early', note.holdSuccess ? 'hit' : 'miss');
+        if (note.holdSuccess) { feedback.hit(note.heldLane, note.outcome.timing, true); music.hit(note.heldLane); }
+        else if (cue.notes.every(n => n.done)) { cue.exitUntil = performance.now() + 280; feedback.miss(cue, true); } else feedback.miss();
+        announce(note.holdSuccess ? 'Hold complete. One correction applied.' : 'Released early. Hold rhythm credit lost; no extra X gate was applied.');
+        emit(type, { lane: note.heldLane, packetId: note.packet.id });
+      }
+      judgementUntil = performance.now() + 650;
+    }
+    run.feedbackEvents.length = 0;
+    for (; reportedResults < run.results.length; reportedResults++) {
+      const result = run.results[reportedResults]; if (!practice) music.memory(result.restored, reportedResults); emit('packet-resolved', result);
+    }
+    if (!run.combo) comboMilestone = 0;
+    const milestone = Math.floor(run.combo / 10);
+    if (milestone > comboMilestone) { comboMilestone = milestone; feedback.milestone(); art.celebrate(still); $('combo-label').textContent = `${milestone * 10} · BLOOM`; }
+    else if (!run.combo) $('combo-label').textContent = 'COMBO';
   }
-  function clearInputs() { held.clear(); laneSources.clear(); root.querySelectorAll('[data-lane]').forEach(button => button.classList.remove('pressed', 'holding')); }
+  function clearInputs() { held.clear(); laneSources.clear(); receptors.forEach(button => button.classList.remove('pressed', 'holding')); }
   function inputDown(lane, source) {
     if (paused || !['playing', 'practice'].includes(mode)) return;
     const sources = laneSources.get(lane) || new Set();
@@ -60,7 +80,7 @@ export async function startGame(root, engine) {
   }
   let bank = null, run = null, mode = 'home', map = getMap('morning-dew', 4), practice = false, practiceIndex = 0, practiceTime = 0;
   let approach = 2.4, offsetMs = 0, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let paused = false, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
+  let paused = false, pausedAt = 0, lastFrame = performance.now(), lastSection = '', lastClue = '', judgementUntil = 0, held = new Set();
   function emit(type, detail) { hooks.dispatchEvent(new CustomEvent(type, { detail })); }
   function announce(text) { $('live').textContent = text; }
   function menuStatus(text) { $('load-status').textContent = text; }
@@ -89,7 +109,8 @@ export async function startGame(root, engine) {
     $('deck').style.setProperty('--lanes', map.qubits); $('deck').style.setProperty('--deck-width', `${240 + map.qubits * 55}px`);
     $('lane-grid').innerHTML = laneKeys(map.qubits).map((key, lane) => `<div class="lane" style="--lane:${lane}"><span>Q${lane + 1}</span></div>`).join('');
     $('receptors').innerHTML = laneKeys(map.qubits).map((key, lane) => `<button data-lane="${lane}" aria-label="Flip qubit ${lane + 1}, ${key === 'SPACE' ? 'Space' : key}"><span>${key === 'SPACE' ? '␣' : key}</span><small>Q${lane + 1}</small></button>`).join('');
-    root.querySelectorAll('[data-lane]').forEach(button => {
+    receptors = [...$('receptors').querySelectorAll('button')]; feedback.configure(receptors, still);
+    receptors.forEach(button => {
       button.addEventListener('pointerdown', e => { e.preventDefault(); button.setPointerCapture(e.pointerId); inputDown(Number(button.dataset.lane), `pointer-${e.pointerId}`); });
       for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, e => inputUp(Number(button.dataset.lane), `pointer-${e.pointerId}`));
       button.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); inputDown(Number(button.dataset.lane), 'enter'); } });
@@ -125,13 +146,13 @@ export async function startGame(root, engine) {
   function closeDialog() { if ($('dialog').open) $('dialog').close(); }
   async function pauseGame() {
     if (!['playing', 'practice'].includes(mode) || paused) return;
-    paused = true; run?.suspendHolds(); clearInputs(); await music.pause();
+    paused = true; pausedAt = performance.now(); feedback.pause(true); run?.suspendHolds(); clearInputs(); await music.pause();
     showDialog(`<div class="eyebrow">PAUSED</div><h2 id="dialog-title">Map paused.</h2><p>${html(map.title)} · the music and map are paused. Re-press any held keys after resuming to finish their tails.</p>`, '<button id="resume" class="primary">Resume map ↗</button><button id="restart" class="subtle">Start again</button><button id="choose" class="subtle">Choose a map</button>');
     $('resume').onclick = resumeGame; $('restart').onclick = () => { closeDialog(); start(practice); }; $('choose').onclick = toMenu;
   }
-  async function resumeGame() { closeDialog(); await music.resume(); paused = false; lastFrame = performance.now(); }
+  async function resumeGame() { closeDialog(); await music.resume(); const elapsed = performance.now() - pausedAt; judgementUntil += elapsed; for (const cue of run.cues) if (cue.exitUntil > pausedAt) cue.exitUntil += elapsed; feedback.pause(false); paused = false; lastFrame = performance.now(); }
   function toMenu() {
-    closeDialog(); music.stop(); music.context?.resume(); paused = false; clearInputs(); run = null; setState('levels');
+    closeDialog(); music.stop(); feedback.reset(); music.context?.resume(); paused = false; clearInputs(); run = null; setState('levels');
     $('practice-hint').hidden = true; menuStatus(engine.label); $('judgement').textContent = ''; $('song-fill').style.width = '0%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '0'); refreshMap(); $('levels-title').focus();
   }
   async function start(untimed = false) {
@@ -143,15 +164,17 @@ export async function startGame(root, engine) {
       for (const event of map.events) { if (chosen.length >= 6) break; if (!chosen.includes(event)) chosen.push(event); }
       playMap.events = structuredClone(chosen.sort((a, b) => a.beat - b.beat));
     }
-    run = new RhythmRun(playMap, bank, { untimed: practice }); reported = new Set(); reportedHolds = new Set(); art.blooms = 0; art.particles = []; practiceIndex = 0;
+    run = new RhythmRun(playMap, bank, { untimed: practice }); reportedResults = comboMilestone = 0; art.blooms = 0; art.particles = []; practiceIndex = 0;
+    judgement.textContent = ''; judgementUntil = 0; feedback.reduced = still; main.dataset.reduced = String(still);
     $('play').disabled = $('practice').disabled = true; menuStatus('Starting the music…');
     try {
-      if (practice) { await music.init(); music.stop(); music.master.gain.value = music.muted ? 0 : .6; setState('practice'); practiceTime = run.packets[0].at; }
+      if (practice) { await music.init(); music.stop(); music.map = map; music.external = Boolean(map.music.url); music.paused = false; music.updateGains(); setState('practice'); practiceTime = run.packets[0].at; }
       else { await music.start(map); setState('playing'); }
     } catch (error) { music.stop(); setState('levels'); menuStatus(error.message); $('play').disabled = $('practice').disabled = false; return; }
     $('play').disabled = $('practice').disabled = false; $('practice-hint').hidden = !practice;
     $('notes').innerHTML = run.cues.map(c => `<div id="cue-${c.id}" class="error-packet ${c.endAt > c.at ? 'hold-packet' : ''}">${c.endAt > c.at ? '<div class="hold-body" aria-hidden="true"><span>HOLD</span></div>' : ''}<div class="packet-tag">${c.endAt > c.at ? 'HOLD · ' : ''}${c.clean ? 'WAIT · NO CORRECTION' : `FLIP ${c.notes.length} QUBIT${c.notes.length > 1 ? 'S' : ''}`} ${c.total > 1 ? `· ${c.order + 1}/${c.total}` : ''}</div><div class="packet-register" style="--lanes:${map.qubits}">${laneKeys(map.qubits).map((key, q) => `<span class="packet-qubit" data-qubit="${q}">✦<small>Q${q + 1}</small></span>${q < map.qubits - 1 ? `<span class="parity-lamp" data-check="${q}" style="left:${(q + 1) / map.qubits * 100}%">=</span>` : ''}`).join('')}</div></div>`).join('');
-    run.cues.forEach(c => { c.element = $(`cue-${c.id}`); }); $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
+    run.cues.forEach(c => { c.element = $(`cue-${c.id}`); c.register = c.element.querySelector('.packet-register'); c.body = c.element.querySelector('.hold-body'); c.lamps = [...c.element.querySelectorAll('[data-check]')]; c.qubits = [...c.element.querySelectorAll('[data-qubit]')]; c.element.hidden = true; });
+    highwayHeight = highway.clientHeight; $('combo').textContent = '0'; $('combo-label').textContent = 'COMBO'; $('score').textContent = '000000';
     emit('map-start', { map: structuredClone(map), practice }); announce(`Starting ${map.title}, ${map.qubits} lanes. Keys: ${laneKeys(map.qubits).join(', ')}.`);
     $('receptors').querySelector('button')?.focus(); lastFrame = performance.now(); drawNotes(currentTime());
   }
@@ -168,41 +191,41 @@ export async function startGame(root, engine) {
     const time = currentTime() + (practice ? 0 : offsetMs / 1000);
     const event = run.press(lane, time); reportPackets();
     if (event.type === 'hold-resume') { announce(`Continue holding qubit ${lane + 1}. No extra X gate applied.`); drawNotes(currentTime()); return; }
-    root.querySelector(`[data-lane="${lane}"]`).classList.add('pressed');
+    receptors[lane].classList.add('pressed');
 
     $('score').textContent = String(run.score).padStart(6, '0'); $('combo').textContent = String(run.combo);
-    $('judgement').textContent = event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray';
-    $('judgement').dataset.kind = event.correct === false ? 'stray' : event.type; judgementUntil = performance.now() + 450;
+    feedback.judge(event.type === 'hit' ? event.correct ? event.holding ? `Hold · ${event.timing}` : event.timing : 'Added an error' : event.correct === false ? 'Added an error' : 'Stray', event.correct === false ? 'wrong' : event.type); judgementUntil = performance.now() + 450;
     if (event.type === 'hit' && event.correct) {
-      if (practice) music.tone(440 * 2 ** (lane / 12), .15, .04, 'sine'); else music.hit(lane);
-      const r = $('receptors').getBoundingClientRect(), deck = $('deck').getBoundingClientRect();
-      art.burst(deck.left + (lane + .5) * deck.width / map.qubits, r.top, lane);
+      music.hit(lane); feedback.hit(lane, event.timing);
       emit('note-hit', { mapId: map.id, lane, timing: event.timing, correct: event.correct, deltaMs: event.delta * 1000, combo: run.combo, packetId: event.note.packet.id });
-    } else { music.errorTone?.(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
+    } else { music.errorTone(); feedback.wrong(lane); emit(event.type === 'hit' ? 'wrong-correction' : 'stray-input', { lane, time, correct: event.correct }); }
     if (event.packet) announce(`Qubit ${lane + 1} flipped. Checks: ${run.checks(event.packet).map(b => b ? 'different' : 'same').join(', ')}.`);
     if (practice) { const remaining = run.cues.find(c => c.packet === run.packets[practiceIndex] && c.notes.some(n => !n.done)); if (remaining) practiceTime = remaining.at; drawNotes(practiceTime); }
   }
   function drawNotes(time) {
-    const height = root.querySelector('.highway').clientHeight, hit = height - 92;
+    const height = highwayHeight, hit = height - 92, now = performance.now();
     const currentPacket = practice ? run.packets[practiceIndex] : run.packets.find(p => !p.done && p.end >= time);
     const closest = run.cues.find(c => !c.packet.done && (!practice || c.packet === currentPacket) && (c.clean || c.notes.some(n => !n.done))) || run.cues.filter(c => c.packet === currentPacket).at(-1);
     for (const cue of run.cues) {
       const y = hit - (cue.at - time) / approach * (hit - 25);
       const sustaining = cue.notes.some(n => n.holding);
       const positionY = still || practice || sustaining ? hit : y;
-      const display = !cue.packet.done && (practice || time <= (cue.endAt > cue.at ? cue.endAt : cue.at) + WINDOWS.good) && positionY > -100 && positionY < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
-      cue.element.hidden = !display;
+      const exiting = cue.exitUntil > now;
+      const display = exiting || !cue.exitUntil && !cue.packet.done && (practice || time <= (cue.endAt > cue.at ? cue.endAt : cue.at) + WINDOWS.good) && positionY > -100 && positionY < height && (!practice || (cue.packet === currentPacket && cue === closest)) && (!still || cue === closest);
+      if (cue.element.hidden === display) cue.element.hidden = !display;
       if (display) {
-        cue.element.style.transform = `translateY(${positionY - 40}px)`;
-        const body = cue.element.querySelector('.hold-body');
-        if (body) { body.hidden = cue.notes.every(n => n.done); body.style.height = `${Math.max(0, cue.endAt - Math.max(cue.at, time)) / approach * (hit - 25)}px`; }
+        cue.element.style.transform = `translateY(${(exiting ? hit : positionY) - 40}px)`;
+        const body = cue.body;
+        if (body) { body.hidden = !exiting && cue.notes.every(n => n.done); if (!exiting) body.style.height = `${Math.max(0, cue.endAt - Math.max(cue.at, time)) / approach * (hit - 25)}px`; }
         cue.element.classList.toggle('sustaining', sustaining);
-        const checks = run.checks(cue.packet);
-        cue.element.querySelectorAll('[data-check]').forEach(lamp => { const bit = checks[Number(lamp.dataset.check)]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
-        cue.element.querySelectorAll('[data-qubit]').forEach(q => { q.classList.toggle('applied', Boolean(cue.packet.applied >> Number(q.dataset.qubit) & 1)); });
+        if (cue.lastApplied !== cue.packet.applied) {
+          const checks = run.checks(cue.packet); cue.lastApplied = cue.packet.applied;
+          cue.lamps.forEach((lamp, index) => { const bit = checks[index]; lamp.textContent = bit ? '≠' : '='; lamp.dataset.alert = String(bit); });
+          cue.qubits.forEach((q, index) => q.classList.toggle('applied', Boolean(cue.packet.applied >> index & 1)));
+        }
       }
     }
-    root.querySelectorAll('[data-lane]').forEach(button => { const lane = Number(button.dataset.lane); button.classList.toggle('pressed', Boolean(laneSources.get(lane)?.size)); button.classList.toggle('holding', run.notes.some(n => n.holding && !n.suspended && n.heldLane === lane)); });
+    receptors.forEach((button, lane) => { button.classList.toggle('pressed', Boolean(laneSources.get(lane)?.size)); button.classList.toggle('holding', run.notes.some(n => n.holding && !n.suspended && n.heldLane === lane)); });
     if (time < 0 && !practice) $('count-in').textContent = String(Math.max(1, Math.ceil(-time / (60 / map.bpm)))); else $('count-in').textContent = '';
     if (currentPacket) {
       const checks = run.checks(currentPacket), clue = checks.map(b => b ? '≠' : '=').join(' ');
@@ -217,7 +240,7 @@ export async function startGame(root, engine) {
 
   function finish() {
     if (!run || mode === 'result') return;
-    music.stop(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
+    music.stop(); feedback.reset(); paused = false; setState('result'); $('practice-hint').hidden = true; $('song-fill').style.width = '100%'; root.querySelector('.song-progress').setAttribute('aria-valuenow', '100');
     const result = run.summary(); $('notes').innerHTML = ''; $('count-in').textContent = '';
     const timingPlot = result.deltas.slice(0, 140).map((x, i) => `<circle cx="${20 + i / Math.max(1, Math.min(result.deltas.length, 140) - 1) * 420}" cy="${45 + Math.max(-145, Math.min(145, x)) / 145 * 30}" r="2.5" fill="#78966b"/>`).join('');
     showDialog(`<div class="eyebrow">${practice ? 'UNTIMED PRACTICE' : 'MAP COMPLETE'}</div><div class="result-title"><h2 id="dialog-title">${html(map.title)}<em>${practice ? 'Practice results' : 'Rhythm and recovery results'}</em></h2><span class="grade">${practice ? '✿' : result.grade}</span></div><div class="result-stats"><div><b>${practice ? `${result.hits}/${result.total}` : pct(result.accuracy)}</b><small>${practice ? 'NOTES CAUGHT' : 'CORRECT ON BEAT'}</small></div><div><b>${result.best}</b><small>BEST COMBO</small></div><div><b>${result.restored}/${result.packets}</b><small>MEMORIES RESTORED</small></div></div>${!practice && result.holds ? `<p>Hold notes: ${result.holdsCompleted}/${result.holds} completed · ${result.holdsBroken} released early or not resumed.</p>` : ''}<p class="choice-result">Correction choices: ${result.choiceAccuracy === null ? 'no inputs' : pct(result.choiceAccuracy)} · ${result.goodFixes} repairs / ${result.badFixes} added errors</p>${practice ? '<p>Timing was not scored. Now try the same patterns with the music.</p>' : `<div class="judgement-row">${Object.entries(result.judgements).map(([name, count]) => `<span><b>${count}</b>${name}</span>`).join('')}<span><b>${result.strays}</b>Strays</span></div><div class="timing-chart"><svg viewBox="0 0 460 90" role="img" aria-label="Timing errors: dots above center are early, below center are late"><rect x="12" y="35" width="436" height="20" rx="5" fill="#e8edcf"/><path d="M12 45H448" stroke="#bdc99e" stroke-dasharray="3 4"/>${timingPlot}</svg><div><span>EARLY ↑</span><span>${result.meanOffset === null ? 'No timed hits' : `Mean ${Math.round(result.meanOffset)} ms`}</span><span>LATE ↓</span></div></div>`}<p class="result-insight">${result.restored === result.packets ? 'Your net corrections returned every memory to the original encoded state.' : 'A wrong choice or missed correction can leave an error behind. Matching parity lamps alone cannot detect a logical flip.'}</p><details><summary>Quantum results & map details</summary><p>${map.qubits} data qubits protect one logical state; this code guarantees up to ${Math.floor((map.qubits - 1) / 2)} simultaneous X flips. ${map.qubits % 2 === 0 ? 'The even lane count adds rhythm complexity; it has the same guaranteed correction capacity as the previous odd count.' : ''}</p><p>Mean reference preservation: ${pct(result.fidelity)}. Source: ${html(engine.label)}. Net X residuals use an ideal-gate repetition-code reference. Sampled noisy-backend references do not model the full gate-noise history of each rapid input. Each packet is a fresh encoded register, not continuous memory.</p><p>Score ${result.score}; ${map.bpm} BPM; ${html(map.music.credit || map.artist)}. ${practice ? 'Untimed practice has no rhythm rank.' : 'Accuracy includes timing weights and penalizes stray input.'}</p></details>`, '<button id="again" class="primary">Play this map ↗</button><button id="choose-result" class="subtle">Choose another map</button>');
@@ -227,7 +250,7 @@ export async function startGame(root, engine) {
   async function guide() {
     const active = ['playing', 'practice'].includes(mode);
     if (!active) { navigate('learn'); return; }
-    if (!paused) { paused = true; run.suspendHolds(); clearInputs(); await music.pause(); }
+    if (!paused) { paused = true; pausedAt = performance.now(); feedback.pause(true); run.suspendHolds(); clearInputs(); await music.pause(); }
     showDialog(`<div class="eyebrow">HOW TO PLAY</div><h2 id="dialog-title">Read, choose, correct.</h2><p>The lamps compare neighboring qubits: ≠ means different; = means same. Find the smallest set of flips that explains the pattern. Apply those keys as the packet reaches the line.</p><p>For four lanes: ≠ = = points to Q1; ≠ ≠ = to Q2; = ≠ ≠ to Q3; = = ≠ to Q4. A healthy memory needs no input. Multiple correction beats share one memory; checks update after every flip.</p><p>For long packets, hold the chosen key until the tail reaches the line; holding applies only one X gate. Releasing early loses rhythm credit, without reversing your repair. Re-press held keys after resuming. P / Escape pauses. This code protects against bit flips, not phase errors.</p>`, '<button id="close-help" class="primary">Resume</button>'); $('close-help').onclick = resumeGame;
   }
   const lessons = [
@@ -261,10 +284,11 @@ export async function startGame(root, engine) {
   }
   function tuning() {
     navigate('settings');
-    $('settings-body').innerHTML = `<label class="tune-field">Note travel <input id="travel" type="range" min="1.2" max="3.6" step=".1" value="${approach}"><span id="travel-value">${approach.toFixed(1)} seconds</span></label><p>Longer travel gives you more time to read the checks. It does not change the song or hit times.</p><label class="tune-field">Input compensation <input id="offset" type="range" min="-200" max="200" step="5" value="${offsetMs}"><span id="offset-value">${offsetMs} ms</span></label><p>Positive compensation treats your input as later. Use the early/late plot after a level to adjust.</p><label class="check-field"><input id="static-mode" type="checkbox" ${still ? 'checked' : ''}> Still notes / reduced motion</label><p>Show the next correction at the line with a countdown. Untimed practice removes the timing demand.</p><label class="check-field"><input id="mute-setting" type="checkbox" ${music.muted ? 'checked' : ''}> Mute music and effects</label><p class="small-note">Settings last for this session.</p>`;
+    $('settings-body').innerHTML = `<label class="tune-field">Note travel <input id="travel" type="range" min="1.2" max="3.6" step=".1" value="${approach}"><span id="travel-value">${approach.toFixed(1)} seconds</span></label><p>Longer travel gives you more time to read the checks. It does not change the song or hit times.</p><label class="tune-field">Input compensation <input id="offset" type="range" min="-200" max="200" step="5" value="${offsetMs}"><span id="offset-value">${offsetMs} ms</span></label><p>Positive compensation treats your input as later. Use the early/late plot after a level to adjust.</p><label class="check-field"><input id="static-mode" type="checkbox" ${still ? 'checked' : ''}> Still notes / reduced motion</label><p>Show the next correction at the line with a countdown. Untimed practice removes the timing demand.</p><label class="tune-field">Music volume <input id="music-volume" type="range" min="0" max="100" step="1" value="${Math.round(music.musicVolume * 100)}"><span id="music-volume-value">${Math.round(music.musicVolume * 100)}%</span></label><label class="tune-field">Effects volume <input id="effects-volume" type="range" min="0" max="100" step="1" value="${Math.round(music.effectsVolume * 100)}"><span id="effects-volume-value">${Math.round(music.effectsVolume * 100)}%</span></label><p>Recorded songs use soft tap feedback. Set effects to 0% to hear only the song.</p><label class="check-field"><input id="mute-setting" type="checkbox" ${music.muted ? 'checked' : ''}> Mute music and effects</label><p class="small-note">Settings last for this session.</p>`;
     $('travel').oninput = () => { approach = Number($('travel').value); $('travel-value').textContent = `${approach.toFixed(1)} seconds`; };
     $('offset').oninput = () => { offsetMs = Number($('offset').value); $('offset-value').textContent = `${offsetMs} ms`; };
-    $('static-mode').onchange = () => { still = $('static-mode').checked; };
+    $('static-mode').onchange = () => { still = $('static-mode').checked; feedback.reduced = still; main.dataset.reduced = String(still); };
+    for (const channel of ['music', 'effects']) $(`${channel}-volume`).oninput = () => { music.setVolumes(Number($('music-volume').value) / 100, Number($('effects-volume').value) / 100); $(`${channel}-volume-value`).textContent = `${$(`${channel}-volume`).value}%`; };
     $('mute-setting').onchange = () => setMuted($('mute-setting').checked);
   }
   function setMuted(value) { music.setMuted(value); $('sound').setAttribute('aria-pressed', String(value)); $('sound').setAttribute('aria-label', value ? 'Unmute music' : 'Mute music'); $('sound').textContent = value ? '♪̸' : '♫'; }
@@ -291,7 +315,7 @@ export async function startGame(root, engine) {
   window.addEventListener('keyup', e => { held.delete(e.code); const key = e.code === 'Space' ? 'SPACE' : e.key.toUpperCase(), lane = laneKeys(map.qubits).indexOf(key); if (lane >= 0) inputUp(lane, e.code); });
   window.addEventListener('blur', () => { held.clear(); pauseGame(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { held.clear(); pauseGame(); } });
-  window.addEventListener('resize', () => art.resize());
+  window.addEventListener('resize', () => { art.resize(); if (['playing', 'practice'].includes(mode)) highwayHeight = highway.clientHeight; });
   window.QubitTempo = {
     registerMap(input) { const id = registerMap(input); populateMaps(); return id; }, registerComposer,
     maps: () => listMaps(), selectMap(id) { if (!['home', 'levels'].includes(mode)) throw new Error('Return to map selection first.'); $('map-select').value = id; refreshMap(); },

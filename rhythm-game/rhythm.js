@@ -6,6 +6,7 @@ export class RhythmRun {
   constructor(map, bank, { untimed = false } = {}) {
     this.untimed = untimed;
     this.map = map; this.bank = bank; this.notes = []; this.packets = []; this.cues = []; this.results = [];
+    this.feedbackEvents = [];
     this.score = 0; this.combo = 0; this.best = 0; this.strays = 0; this.goodFixes = 0; this.badFixes = 0;
     for (const event of map.events) {
       const error = event.error.reduce((m, q) => m ^ 1 << q, 0);
@@ -64,6 +65,7 @@ export class RhythmRun {
     note.holding = false; note.suspended = false; note.done = true; note.holdSuccess = success;
     if (success) this.credit(note);
     else { note.outcome.timing = 'Miss'; this.combo = 0; }
+    this.feedbackEvents.push({ type: success ? 'hold-complete' : 'hold-break', note });
   }
   release(lane, time) {
     const note = this.notes.find(n => n.holding && n.heldLane === lane);
@@ -77,7 +79,7 @@ export class RhythmRun {
   advance(time) {
     for (const note of this.notes) {
       if (note.holding && time >= note.endAt) this.finishHold(note, !note.suspended);
-      else if (!note.done && !note.holding && time > note.at + WINDOWS.good) { note.done = true; note.outcome = { timing: 'Miss', delta: null, correct: false }; this.combo = 0; }
+      else if (!note.done && !note.holding && time > note.at + WINDOWS.good) { note.done = true; note.outcome = { timing: 'Miss', delta: null, correct: false }; this.combo = 0; this.feedbackEvents.push({ type: 'note-miss', note }); }
     }
     const resolved = [];
     for (const p of this.packets) if (!p.done && time > p.end) {

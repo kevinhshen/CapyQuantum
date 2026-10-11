@@ -957,3 +957,15 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,su
 
 /* Hold ribbons stay neutral until the player chooses a correction lane. */
 .hold-packet{isolation:isolate;border:2px solid #69834e}.hold-body{position:absolute;bottom:26px;left:3%;right:3%;z-index:-1;border:1px solid #69834e;border-radius:12px 12px 0 0;background:repeating-linear-gradient(0deg,#d8e4b9e6 0 22px,#b2c694e6 22px 24px);pointer-events:none;overflow:hidden;min-height:0}.hold-body span{display:block;text-align:center;font:10px ui-monospace,monospace;letter-spacing:2px;color:#34483b;padding:8px}.hold-packet.sustaining{box-shadow:0 0 0 3px #88a66b88}.receptors button.holding{background:#c4d9a1;border:2px solid #476b47;box-shadow:0 0 15px #aac889}.tut-hold-tail{position:absolute;bottom:66px;left:5%;right:5%;height:50px;overflow:hidden;background:#cbdba7;border:1px solid #69834e;border-radius:10px 10px 0 0;text-align:center;font:10px ui-monospace,monospace;color:#34483b;padding-top:5px;box-sizing:border-box}.tut-stage[data-step="5"] [data-for~="5"]{opacity:1}
+
+/* Fixed effect pool lives at the hit line, above notes and below judgement text. */
+.hit-effects{position:absolute;inset:0;pointer-events:none;z-index:3;contain:layout style}
+.lane-effect{position:absolute;bottom:92px;left:calc((var(--lane) + .5)*100%/var(--lanes));width:0;height:0}
+.hit-ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border:3px solid #739951;border-radius:50%;opacity:0}
+.hit-petal{position:absolute;left:-4px;top:-3px;width:9px;height:6px;border-radius:70% 20%;background:#d58d63;opacity:0}
+.hit-petal:nth-child(2n){background:#789b56}.hit-petal:nth-child(3n){background:#c5a344}
+.miss-fragments{position:absolute;left:3%;right:3%;bottom:92px;display:flex;gap:6px;height:12px}
+.miss-fragments i{flex:1;border:1px solid #9f674b;background:#efd6c2;border-radius:3px;opacity:0}
+.judgement[data-kind=miss],.judgement[data-kind=wrong]{color:#8b4c2e}
+.receptors button{touch-action:none}.receptors button.holding{background:#c4d9a1;border-color:#476b47}
+.garden-game[data-reduced=true] .receptors button.pressed{transform:none}
