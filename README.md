@@ -179,6 +179,6 @@ python3 rhythm-game/tools/build_standalone.py
 
 ## License, attribution, and history
 
-Application code and documentation use the [MIT license](LICENSE). Qiskit retains its Apache-2.0 license. Team prototypes, teammate contributions, quantum references, visual inspiration, and **OpenAI Codex assistance** are disclosed in [ATTRIBUTION.md](rhythm-game/ATTRIBUTION.md).
+Application code and documentation use the [MIT license](LICENSE). Qiskit retains its Apache-2.0 license. Team prototypes, teammate contributions, quantum references, visual inspiration, and **AI assistance (OpenAI Codex, Claude)** are disclosed in [ATTRIBUTION.md](rhythm-game/ATTRIBUTION.md).
 
 The original Qubit Factory prototype is preserved on [`codex/archive-qubit-factory-2026-10-10`](https://github.com/kevinhshen/CapyQuantum/tree/codex/archive-qubit-factory-2026-10-10) at commit `4bf75fd`. Cappy Quantum builds on the team's earlier work; its contribution is the educational interaction and implementation of established quantum error-correction concepts.

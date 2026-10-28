@@ -226,3 +226,6 @@ __marimo__/
 
 # Local preview tooling
 node_modules/
+
+# Local agent instructions
+CLAUDE.md
