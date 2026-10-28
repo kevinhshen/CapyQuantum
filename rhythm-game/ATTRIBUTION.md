@@ -14,31 +14,16 @@ This effort is supported by Qollab & IonQ
 
 Build date: October 10, 2026, within the hackathon's submission window. This file documents starting points; it is not a certification of submission eligibility.
 
-- **This revision:** osu!-inspired separate Home/Levels navigation (no copied assets or code), bright educational UI, four short quantum lessons and parity lab, irregular phrase charts, shared tempo-change timing, team-only content workflow, packaging updates and timing tests drafted with OpenAI Codex at the user’s direction.
+## Team contributions
 
-- **Merged tutorial contribution:** teammate’s `game-tutorial` level presets (Seedling, Sprout, Sapling, Bloom), originally added to generated `PLAY.html`, now live in `content.js` and the Levels page so rebuilds preserve them.
+- **Tutorial levels:** teammate's `game-tutorial` contribution (commit `414d9d6`) supplies the Seedling, Sprout, Sapling and Bloom level presets and the five illustrated animation sequences, now in `content.js` and `tutorial.js`.
+- **Songs:** teammate's `new-music` contribution (commit `e3ebd5d`) supplies the ten synthesized tune arrangements, pacing, melody ownership and backing fills.
 
-- **Animated tutorial integration:** teammate’s `game-tutorial` contribution at `414d9d6` supplies the five illustrated animation sequences. They now live in `tutorial.js`, available from Learn. Codex adapted the modal, keyboard handling, timer cleanup, Qollab packaging and wording about encoding/correction limits.
+## Revision notes
 
-- **Hold-note revision:** Codex added sustain input/scoring, neutral hold ribbons, a sixth tutorial step, chart validation/tests and the team authoring rules at the user’s direction. The first five animation sequences retain the teammate attribution above.
+Later revisions added hold notes, hit-feedback animations and audio buses, a wireframe/Bloch-sphere visual theme (inspired by [Orano's innovation experience](https://www.orano.group/experience/innovation/en); no Orano code, logos, models, fonts or assets were copied), a ten-song difficulty progression, and onset-synchronized charts. All of this is original Canvas/SVG/CSS/Web Audio work with no new external assets or runtime libraries. The osu!-inspired navigation copies no osu! assets, sounds or code. The sphere is illustrative single-qubit state space and does not claim hardware evolution or live backend output.
 
-- **Hit-feedback revision (October 11):** Codex added pooled hit/miss/hold animations, combo reactions, separate audio buses and volume controls, original unpitched tap samples for recordings, cached scenery, and regression tests at the user’s direction. No new external assets or runtime libraries.
-
-- **Quantum visual revision (October 11):** at the user’s direction, the visual branch takes inspiration from the dark canvas, fine wireframes, and bright accents in [Orano’s innovation experience](https://www.orano.group/experience/innovation/en). The field mesh, single-qubit Bloch-sphere schematic, orbit marks, typography, and interface styling are original Canvas/SVG/CSS work drafted with Codex. No Orano source code, logos, models, fonts, or scene assets were copied. The sphere is illustrative single-qubit state space, distinct from the four-qubit encoded-register example. Correction rules and reference experiments are unchanged.
-
-- **Motion polish (October 11):** original orthographic Bloch-sphere projection and depth-separated wireframes, pointer-responsive viewing angle, pause/reduced-motion behavior, gentle menu field signals, and UI transitions drafted with Codex. The animation rotates the view of a fixed pure state; it does not claim hardware evolution or live backend output. No additional third-party libraries or assets.
-
-- **Animation refinement on main (October 11):** Codex added original layered hit bursts, hold-contact pulses, timing labels and streak banners, separated theme/effect styles, and measured/optimized animation reuse at the user's direction. No osu! assets, sounds, code or new runtime libraries were used.
-
-- **Song-level integration (October 11):** the teammate’s `new-music` contribution at `e3ebd5d` supplies ten synthesized tune arrangements, pacing, melody ownership and backing fills. Codex moved the standalone-only changes into shared source modules, integrated them with the current visual/effect and audio-volume systems, retained the original levels, and added regression checks. No external recordings or runtime libraries were added.
+## Music credits
 
 - **Music (CC0, no attribution required, credited anyway):** "1-2-3-4 (Chiptune)" by Pro Sensory (https://opengameart.org/content/1-2-3-4-chiptune) and "Mecha Collection" by Jonathan So (https://opengameart.org/content/mecha-collection). Both CC0 on OpenGameArt; transcoded to 64 kbps mono AAC to fit Qollab's 2 MB file limit. BPM/offset were estimated automatically and charts are authored on a fixed grid, so verify alignment by ear.
 - **More music (CC0, credited anyway):** "Funked Up" by Joth (https://opengameart.org/content/funked-up), "Oldskool (CC0)" by Of Far Different Nature (https://opengameart.org/node/107451), and "Loop" by cubedcanada (https://opengameart.org/node/88983). Transcoded to 64 kbps mono AAC; BPM/offset estimated automatically, so verify by ear.
-
-- **Progressive charts:** Codex integrated the five recorded tracks into the shared 15-level catalog, replaced the original garden tracks, and authored increasing correction density from level 3 onward. Recorded BPM/offset estimates retain the teammate's values and still require listening/playtesting.
-
-- **Ten-song difficulty revision:** at the user's direction, Codex removed the five CC0 recordings from the active catalog, source assets, and runtime package, and widened levels 3–10 with increasing correction density, more frequent multi-flip charts, and an accelerating Symphony No. 5 finale. Earlier contribution notes above describe the integration history.
-
-- **Rhythmic phrase revision:** Codex replaced nearly uniform level 3–10 timing with alternating run/rest patterns, syncopated gaps, and faster clustered corrections, while preserving safe packet spacing, melody ownership, and the difficulty progression.
-
-- **Music synchronization revision:** Codex replaced time-spaced chart generation with exact melody/percussion onset selection, anchored sequence taps to musical beats, separated input feedback from backing melody playback, and used audio output timestamps for visual/input timing when supported. The previous average-density targets are superseded by synchronization.
